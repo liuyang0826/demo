@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <script src="d3.js"></script>
+</head>
+<body>
+<script>
+  var width  = 1000
+  var height = 800
+
+  var svg = d3.select('body').append('svg')
+  .attr('width', width)
+  .attr('height', height)
+  // 地图组
+  var chinaMap = svg.append('g')
+  .attr('name', 'chinaMap')
+
+  var projection = d3.geoMercator()
+  .center([105, 38])
+  .scale(850)
+  .translate([width/2, height/2])
+
+  // 地图path
+  var path = d3.geoPath()
+  .projection(projection)
+
+  d3.json('./china.json')
+  .then(({features}) => {
+    // 地图
+    chinaMap.selectAll('path')
+    .data(features)
+    .enter()
+    .append('path')
+    .attr('stroke', '#fff')
+    .attr('stroke-width', 1)
+    .attr('fill', '#6EFF5F')
+    .attr('opacity', 1)
+    .attr('d', path)
+  })
+</script>
+</body>
+</html>

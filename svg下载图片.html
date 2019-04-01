@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8'>
+  <title>Title</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    #chart {
+      width: 1200px;
+      height: 900px;
+      margin: auto;
+    }
+  </style>
+</head>
+<body>
+<script src='./d3.js'></script>
+<div id='chart'></div>
+<button>下载</button>
+<script>
+  const data = Array.from({length: 20}).map((_, index) => {
+    return { x: index, y: ~~(800 * Math.random()) }
+  })
+  let margin = {top: 50, right: 50, bottom: 50, left: 50}
+  let width = 1100
+  let height = 800
+
+  // 添加svg
+  let svg = d3.select('#chart')
+  .append('svg')
+  .attr('xmlns', 'http://www.w3.org/2000/svg')
+  .attr('version', '1.1')
+  .attr('width', width + margin.left + margin.right)
+  .attr('height', height + margin.top + margin.bottom)
+
+  // 背景
+  svg.append('g')
+  .append('rect')
+  .style('fill', '#fff')
+  .attr('width', width + margin.left + margin.right)
+  .attr('height', height + margin.top + margin.bottom)
+  // 绘图层
+  let chart = svg.append('g')
+  .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+
+  let x = d3.scaleLinear()
+  .domain([0, d3.max(data, d => d.x)]).nice()
+  .range([0, width])
+  let y = d3.scaleLinear()
+  .domain([0, d3.max(data, d => d.y)]).nice()
+  .range([height, 0])
+
+  // data
+  let line = d3.line()
+  .x((d) => x(d.x))
+  .y((d) => y(d.y))
+
+  let path = chart.append('path')
+  .attr('fill', 'none')
+  .attr('stroke', 'steelblue')
+  .attr('stroke-width', 1.5)
+  .attr('stroke-linejoin', 'round')
+  .attr('stroke-linecap', 'round')
+  data.forEach((item, index) => {
+    if (index) {
+      let t = 1000 / 10
+      let [current, delay] = [data.slice(0, index), t * (index - 1)]
+      path.transition().delay(delay).duration(0).ease(d3.easeLinear).attr('d', line(current.concat([current[current.length - 1]])))
+      .transition().duration(t).ease(d3.easeLinear).attr('d', line(data.slice(0, index + 1)))
+    }
+  })
+  // x
+  chart.append('g')
+  .attr('transform', 'translate(0,' + height + ')')
+  .call(d3.axisBottom(x))
+  // y
+  chart.append('g')
+  .call(d3.axisLeft(y))
+
+
+  // 下载
+  d3.select('button').on('click', downLoad)
+  function downLoad () {
+    var image = new Image();
+
+    image.onload = function () {
+      var canvas = document.createElement('canvas');  //准备空画布
+      canvas.width = 1200;
+      canvas.height = 900;
+
+      var context = canvas.getContext('2d');  //取得画布的2d绘图上下文
+      context.drawImage(image, 0, 0);
+
+      var a = document.createElement('a');
+      a.href = canvas.toDataURL('image/png');  //将画布内的信息导出为png图片数据
+      a.download = 'MapByMathArtSys';  //设定下载名称
+      a.click(); //点击触发下载
+    }
+    image.src = 'data:image/svg+xml;utf8,' + d3.select('#chart').html();
+  }
+</script>
+</body>
+</html>

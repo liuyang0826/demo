@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      height: 3000px;
+    }
+    .el {
+      margin: 2500px auto 0;
+      width: 100px;
+      height: 100px;
+      visibility: hidden;
+      opacity: 0;
+      transform: translateY(50px);
+    }
+    .in {
+      transform: translateX(0);
+      visibility: visible;
+      opacity: 1;
+      transition: .3s ease-out .5s;
+    }
+  </style>
+</head>
+<body>
+<div class="el">红红火火恍恍惚惚</div>
+<script>
+  function isInView (el, distance) {
+    let clientRect = el.getBoundingClientRect && el.getBoundingClientRect()
+    let top = clientRect.top
+    return top + clientRect.height > -distance && top <= (window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight) + distance
+  }
+  window.onscroll = function () {
+    let el = document.querySelector('.el')
+    if (isInView(el, 0)) {
+      el.classList.add('in')
+    } else {
+      el.classList.remove('in')
+    }
+  }
+  function throttle (fn, delay) {
+    var now, lastExec, timer, context, args
+
+    var execute = function() {
+      fn.apply(context, args)
+      lastExec = now
+    }
+
+    return function() {
+      context = this
+      args = arguments
+
+      now = Date.now()
+
+      if (timer) {
+        clearTimeout(timer)
+        timer = null
+      }
+
+      if (lastExec) {
+        var diff = delay - (now - lastExec)
+        if (diff < 0) {
+          execute()
+        } else {
+          timer = setTimeout(() => {
+            execute()
+          }, diff)
+        }
+      } else {
+        execute()
+      }
+    }
+  }
+</script>
+</body>
+</html>

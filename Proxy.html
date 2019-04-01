@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+</head>
+<body>
+<div id="app">
+
+</div>
+<script>
+  const data = {
+    a: 100,
+    b: 200
+  }
+  function createProxy (obj) {
+    return new Proxy(obj, {
+      get (target, p, receiver) {
+        if (typeof target[p] === 'function') {
+          return target[p].bind(target)
+        }
+        return target[p]
+      },
+      set (target, p, value, receiver) {
+        target[p] = value
+      }
+    })
+  }
+</script>
+</body>
+</html>

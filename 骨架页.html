@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>Title</title>
+  <style>
+    body {
+      background: #f6f6f6;
+    }
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    .wrap {
+      margin: 40px auto;
+      position: relative;
+      width: 90vw;
+      height: calc(90vw * 180 / 400);
+      max-width: 400px;
+      max-height: 180px;
+      overflow: hidden;
+      color: #fff;
+      box-shadow: 0 0 8px rgba(0, 0, 0, .1);
+    }
+    .bg {
+      position: absolute;
+      z-index: -1;
+      width: 200%;
+      height: 100%;
+      background: linear-gradient(90deg,#f0f0f0 10%,#169DED 30%,#f0f0f0 50%,#f0f0f0);
+      animation: fn .8s infinite linear;
+    }
+    @keyframes fn {
+      from {
+        transform: translate(-50%) translateZ(0);
+      }
+      to {
+        transform: translateX(0) translateZ(0);
+      }
+    }
+    .box {
+      margin: 40px auto;
+      width: 400px;
+      height: 180px;
+      box-sizing: border-box;
+      padding: 20px;
+      background: #fff;
+      box-shadow: 0 0 8px rgba(0, 0, 0, .1);
+    }
+    .box div {
+      height: 20px;
+      margin-bottom: 20px;
+      background: linear-gradient(90deg,#fff,#edeff1,#fff);
+      background-size: 400px 400px;
+      animation: b .6s linear infinite;
+    }
+    @keyframes b {
+      from {
+        background-position: 0 0;
+      }
+      to {
+        background-position: 400px 0;
+      }
+    }
+    .box div:last-of-type {
+      margin-bottom: 0;
+    }
+    .box div:nth-child(1) {
+      width: 30%;
+    }
+    .box div:nth-child(2) {
+      width: 80%;
+    }
+    .box div:nth-child(3) {
+      width: 40%;
+    }
+    .box div:nth-child(4) {
+      width: 50%;
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="bg"></div>
+  <svg width="100%" height="100%" viewBox="0 0 400 180" version="1.1"
+       xmlns="http://www.w3.org/2000/svg">
+    <path
+        d="M0,0 H400V180H0V0
+         M40,10  A1,1 90 0,1 40,70 A1,1 90 1,1 40,10
+         M10,85  H190V100H10V85
+         M10,115 H140V130H10V115
+         M10,145 H340V160H10V145" fill="currentColor" fill-rule="evenodd"></path>
+  </svg>
+</div>
+<div class="box">
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
+</div>
+</body>
+</html>

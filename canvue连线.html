@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      height: 100vh;
+    }
+    canvas {
+      background: #1E87F0;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+  const distance = 140
+  const count = 180
+
+  const canvas = document.getElementById('canvas')
+  const w = canvas.width = document.body.clientWidth
+  const h = canvas.height = document.body.clientHeight
+  const ctx = canvas.getContext('2d')
+  ctx.fillStyle = '#fff'
+  class Point {
+    constructor (x, y, ctx) {
+      this.x = x
+      this.y = y
+      this.ctx = ctx
+      this.vx = .8 * Math.random() - .4
+      this.vy = .8 * Math.random() - .4
+    }
+    draw () {
+      this.ctx.beginPath()
+      this.ctx.arc(this.x, this.y, 3, 0, Math.PI * 2)
+      this.ctx.fill()
+      this.move()
+    }
+    move () {
+      if (this.x > w || this.x < 0) {
+        this.vx = -this.vx
+      }
+      if (this.y > h || this.y < 0) {
+        this.vy = -this.vy
+      }
+      this.x += this.vx
+      this.y += this.vy
+    }
+  }
+  function getIsConcat (a, b) {
+    return (a.x - b.x) ** 2 + (a.y - b.y) ** 2 < distance ** 2
+  }
+  const arr = Array.from({length: count}).map(() => new Point(Math.random() * w, Math.random() * h, ctx))
+
+  !function f() {
+    ctx.clearRect(0, 0, w, h)
+    arr.forEach((item) => {
+      item.draw()
+      arr.forEach((other) => {
+        if (other !== item && getIsConcat(item, other)) {
+          ctx.beginPath()
+          ctx.moveTo(item.x, item.y)
+          ctx.lineTo(other.x, other.y)
+          let b = 1 - Math.sqrt(((item.x - other.x) ** 2 + (item.y - other.y) ** 2) / distance ** 2)
+          ctx.strokeStyle = `rgba(255, 255, 255, ${b})`
+          ctx.lineWidth = b
+          ctx.stroke()
+        }
+      })
+    })
+    requestAnimationFrame(f)
+  }()
+</script>
+</body>
+</html>

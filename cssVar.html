@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      --color-black: #000;
+    }
+    .parent {
+      padding-top: 20px;
+      margin-top: 2000px;
+      position: relative;
+    }
+    #test {
+      margin-top: 200px;
+    }
+  </style>
+</head>
+<body>
+<div>
+  <div class="parent">
+    <div id="test"></div>
+  </div>
+</div>
+<div class="btn">点击</div>
+<script>
+function getOffsetTop (el) {
+  let top = 0
+  while (el) {
+    top += el.offsetTop
+    el = el.offsetParent
+  }
+  return top
+}
+
+document.querySelector('.btn').onclick = function () {
+  console.log(test.getBoundingClientRect().top)
+}
+
+console.log(getOffsetTop(test))
+</script>
+</body>
+</html>

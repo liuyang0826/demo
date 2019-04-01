@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>图片尺寸缩放</title>
+</head>
+<input type="file" id="file" accept="image/png,image/jpg,image/jpeg">
+<input type="text" id="width"><input type="text" id="height"><button>确定</button>
+<body>
+<script>
+  document.querySelector('button').onclick = async () => {
+    const file = document.querySelector('#file').files[0]
+    compress(await loadImage(await readFile(file)), document.querySelector('#width').value, document.querySelector('#height').value, file.name)
+  }
+
+  // 读文件
+  function readFile (file) {
+    return new Promise(resolve => {
+      const fr = new FileReader()
+      fr.onload = ({target}) => {
+        resolve (target.result)
+      }
+      fr.readAsDataURL(file)
+    })
+  }
+  // 生成Image对象
+  function loadImage (src) {
+    return new Promise(resolve => {
+      const image = new Image()
+      image.onload = () => {
+        image.onload = null
+        resolve(image)
+      }
+      image.src = src
+    })
+  }
+  // 压缩
+  function compress (image, width, height, name) {
+    const canvas = document.createElement('canvas')
+    canvas.width = width
+    canvas.height = height
+    const ctx = canvas.getContext('2d')
+    ctx.drawImage(image, 0 , 0, width, height)
+    // 下载到本地
+    const a = document.createElement('a')
+    const type = name.replace(/.*\./, '')
+    a.href = canvas.toDataURL('image/' + type)
+    a.download = `${name.replace(/\.\w*$/, '')}${width}x${height}.${type}`
+    a.click()
+  }
+</script>
+</body>
+</html>

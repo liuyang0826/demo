@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8'>
+  <title>Title</title>
+  <script src='d3.js'></script>
+</head>
+<body>
+<script>
+
+
+  var width = 400,
+  height = 400
+
+  var svg = d3.select('body').append('svg')
+  .attr('width', width)
+  .attr('height', height)
+
+  var a = d3.rgb('#FFA0A0')	//红色
+  var b = d3.rgb('#FFF8A0')	//绿色
+
+  var compute = function (c) {
+    return d3.interpolate(a, b)(
+    d3.scaleLinear()
+    .domain([0, 150])
+    .range([0,1])(c))
+  }
+
+  var linear = d3.scaleLinear()
+  .domain([0, 150])
+  .range([0,1])
+
+  var rects = svg.selectAll('rect')
+  .data(d3.range(150))
+  .enter()
+  .append('rect')
+  .attr('y', d => d)
+  .attr('width', d => 25 - d / 10)
+  .attr('height', 1)
+  .style('fill', d => compute(d))
+  .on('mouseover',function(d){
+    console.log(compute(d).toString())
+    d3.select(this)
+    .style('fill','yellow')
+  })
+  .on('mouseout',function(d){
+    d3.select(this)
+    .style('fill', compute(d).toString())
+  })
+</script>
+</body>
+</html>

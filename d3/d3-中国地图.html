@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<meta charset='utf-8'>
+<style>
+  path, circle {
+    cursor: pointer;
+  }
+</style>
+<body>
+<script src='d3.js'></script>
+<script>
+
+
+  var width  = 1000
+  var height = 800
+
+  var svg = d3.select('body').append('svg')
+  .attr('width', width)
+  .attr('height', height)
+  // 地图组
+  var chinaMap = svg.append('g')
+  .attr('name', 'chinaMap')
+  // 散点组
+  var dotGroup = svg.append('g')
+  .attr('name', 'dotGroup')
+  // 射线组
+  var lineGroup = svg.append('g')
+  .attr('name', 'lineGroup')
+  // 动态点组
+  var animateDotGroup = svg.append('g')
+  .attr('name', 'animateDotGroup')
+  // 省份名组
+  var nameGroup = svg.append('g')
+  .attr('name', 'nameGroup')
+
+  var projection = d3.geoMercator()
+  .center([105, 38])
+  .scale(850)
+  .translate([width/2, height/2])
+
+  // 地图path
+  var path = d3.geoPath()
+  .projection(projection)
+  // 射线path
+  let curveLine = d3.line()
+  .x(d => d[0])
+  .y(d => d[1])
+  .curve(d3.curveBundle.beta(.1))
+  const COLOR_RANGE = ['#ff0000', '#ff0096', '#fc00ff', '#a200ff', '#4e00ff', '#00b4ff', '#00ffae', '#4eff00', '#fff000', '#ff7800', '#e21d1d', '#df188d', '#d325d5', '#9822dc', '#591edd', '#1ea3da', '#25dba1', '#57d71e', '#ddd226', '#de7a20', '#b33c3c', '#b4347f', '#ae3baf', '#8837b6', '#6239be', '#3a91b5', '#36b78e', '#60b43b', '#bfb73e', '#ba783d', '#904343', '#8d416e', '#8c428d', '#7a4a95', '#62489c']
+
+
+  let data = [
+    {
+      name: '四川',
+      r: 30
+    },
+    {
+      name: '内蒙古',
+      r: 20
+    },
+    {
+      name: '吉林',
+      r: 20
+    },
+    {
+      name: '新疆',
+      r: 20
+    }
+  ]
+  d3.json('./d3-china.json')
+  .then(({features}) => {
+    // 地图
+    chinaMap.selectAll('path')
+    .data(features).enter()
+    .append('path')
+    .attr('stroke', '#fff')
+    .attr('stroke-width', 1)
+    .attr('fill', '#6EFF5F')
+    .attr('d', path)
+    .on('click', clickArea)
+    .on('mouseover', function(d, i){
+      d3.select(this).attr('fill', 'yellow')
+    })
+    .on('mouseout', function(d, i){
+      d3.select(this).attr('fill', '#6EFF5F')
+    })
+
+    dotGroup.selectAll('circle')
+    .data(data).enter()
+    .append('circle')
+    .attr('cx', d => path.centroid(features.find(feature => feature.properties.name === d.name))[0])
+    .attr('cy', d => path.centroid(features.find(feature => feature.properties.name === d.name))[1])
+    .attr('r', d => d.r)
+    .attr('fill', (d, i) => COLOR_RANGE[i])
+    .on('click', function (d) {
+      clickArea(features.find(feature => feature.properties.name === d.name))
+    })
+
+    nameGroup.selectAll('text')
+    .data(features).enter()
+    .append('text')
+    .style('font-size', '12px')
+    .text(d => d.properties.name)
+    //设置各个文本（省份名称）显示的文字
+    .attr('transform', d => d.properties.id === 20 ? 'translate(' + (path.centroid(d)[0] - 20) + ', ' + (path.centroid(d)[1] + 20) + ')' : 'translate(' + (path.centroid(d)[0] - 10) + ', ' + path.centroid(d)[1] + ')')
+
+    let pathArr = []
+    // 点击一个省区域
+    function clickArea(start) {
+      lineGroup.html('')
+      features.forEach((feature, index) => {
+        if (start === feature) return
+        let a = path.centroid(start)
+        let b = path.centroid(feature)
+        let pints = [a, [(a[0] + b[0]) / 2 - (a[1] - b[1]) * .8, (a[1] + b[1]) / 2 - (a[0] - b[0]) * .8], b]
+
+        pathArr[index] = lineGroup
+        .append('path')
+        .datum(pints)
+        .attr('stroke', '#666')
+        .attr('stroke-width', 1)
+        .attr('fill', 'none')
+        .attr('d', d3.line().curve(d3.curveBundle.beta(.1)))
+      })
+      pathArr.forEach((path, index) => {
+        new AnimateDot({node: path.node(), context: animateDotGroup, color: COLOR_RANGE[index]})
+      })
+      // console.log(lineGroup.selectAll('path')
+      // .data(features).enter()
+      // .append('path')
+      // .attr('stroke', '#666')
+      // .attr('stroke-width', 1)
+      // .attr('fill', 'none')
+      // .attr('d', function (end) {
+      //   if (start === end) return
+      //   let a = path.centroid(start)
+      //   let b = path.centroid(end)
+      //   // pts[2] = [
+      //   //   (pts[0][0] + pts[1][0]) / 2 - (pts[0][1] - pts[1][1]) * curveness,
+      //   //   (pts[0][1] + pts[1][1]) / 2 - (pts[1][0] - pts[0][0]) * curveness
+      //   // ];
+      //   let pints = [a, [(a[0] + b[0]) / 2 - (a[1] - b[1]) * .8, (a[1] + b[1]) / 2 - (a[0] - b[0]) * .8], b]
+      //   return curveLine(pints)
+      // }).node())
+    }
+  })
+  class AnimateDot {
+    constructor ({node, context, color}) {
+      this.node = node
+      this.context = context
+      this.color = color
+      this.init()
+    }
+    init () {
+      this.atLength = 0
+      this.timer = null
+      this.totalLength = this.node.getTotalLength()
+      this.dot = this.context
+      .append('circle')
+      .attr('fill', this.color)
+      .attr('r', 5)
+      this.render()
+      this.animate()
+    }
+    render () {
+      this.dot
+      .datum(this.node.getPointAtLength(this.atLength))
+      .attr('cx', d => d.x)
+      .attr('cy', d => d.y)
+    }
+    update () {
+      this.atLength += 0.5
+      this.atLength %= this.totalLength
+      this.render()
+    }
+    animate () {
+      this.update()
+      this.timer = requestAnimationFrame(() => {
+        this.animate()
+      })
+    }
+    destroy () {
+      cancelAnimationFrame(this.timer)
+    }
+  }
+
+</script>
+
+</body>

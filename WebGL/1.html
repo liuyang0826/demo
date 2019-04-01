@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    .wrap {
+      animation: fn 1s infinite;
+      background: #000;
+      max-height: 200px;
+      overflow: auto;
+      transform-origin: center top;
+    }
+    .inner {
+      height: 300px;
+    }
+    @keyframes fn {
+      from {
+        transform: scaleY(0);
+      }
+      to {
+        transform: scaleY(1);
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="inner"></div>
+</div>
+<script>
+
+  var undefined = 1
+  console.log(!!(undefined * 2) === true)
+
+  function f () {
+    var undefined = 1
+    console.log(!!(undefined * 2) === true)
+  }
+
+  f()
+
+</script>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <style>
+    * {
+      margin: 0;padding: 0;
+    }
+    .textarea-wrap {
+      position: relative;
+      width: 200px;
+      margin: 100px auto;
+      border: 1px solid #000;
+    }
+    .textarea, .placeholder {
+      left: 0;
+      top: 0;
+      box-sizing: border-box;
+      padding: 10px;
+      width: 100%;
+      min-height: 100px;
+    }
+    .textarea {
+      position: relative;
+      z-index: 100;
+      text-align: justify;
+      word-break: break-all;
+    }
+    .placeholder {
+      position: absolute;
+      z-index: 10;
+      color: #999;
+    }
+    .hidden {
+      visibility: hidden;
+    }
+  </style>
+</head>
+<body>
+<div class="textarea-wrap">
+  <div class="placeholder" id="placeholder">请输入内容</div>
+  <div class="textarea" contenteditable="true" id="textarea">
+    <span><br></span>
+  </div>
+</div>
+<button id="btn">按钮</button>
+<script>
+textarea.oninput = function (e) {
+  if (e.target.innerText.charCodeAt(0) === 10) {
+    e.target.innerHTML = '<span><br></span>'
+    placeholder.classList.remove('hidden')
+  } else {
+    placeholder.classList.add('hidden')
+  }
+}
+textarea.onkeydown = function (e) {
+  if ((e.target.innerText.charCodeAt(0) === 10 && e.which === 8) || e.which === 13) {
+    e.preventDefault()
+  }
+}
+btn.onclick = function () {
+  console.log(textarea.innerText)
+}
+</script>
+<script>
+var arr1 = Array(200).fill('').map(d => ~~(Math.random() * 1000000))
+var arr2 = Array(200).fill('').map(d => ~~(Math.random() * 1000000))
+console.time('a')
+var res1 = new Set()
+arr1.forEach((a) => {
+  if (arr2.some(d => d === a)) {
+    res1.add(a)
+  }
+})
+console.timeEnd('a')
+console.time('b')
+var map = {}
+var res2 = new Set()
+arr1.forEach((d) => {
+  map[d] = true
+})
+arr2.forEach((d) => {
+  if (map[d]){
+    res2.add(d)
+  }
+})
+console.timeEnd('b')
+console.log(res2)
+</script>
+</body>
+</html>

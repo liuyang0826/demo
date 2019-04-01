@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh">
+<meta charset = 'utf-8'>
+<style>
+  text{
+    font-size:12px
+  }
+  .mainBars rect{
+    shape-rendering: auto
+    fill-opacity: 0
+    stroke-width: 0.5px
+    stroke: rgb(0,  0,  0)
+    stroke-opacity: 0
+  }
+  .subBars{
+    shape-rendering:crispEdges
+  }
+  .edges{
+    stroke:none
+    fill-opacity:0.5
+  }
+  .header{
+    text-anchor:middle
+    font-size:16px
+  }
+  line{
+    stroke:grey
+  }
+</style>
+<body>
+<script src = 'd3.js'></script>
+<script src = '../viz.js'></script>
+<script>
+
+  var data = [
+    ['Lite', 'CA', 16],
+    ['Small', 'CA', 1278],
+    ['Medium', 'CA', 27],
+    ['Plus', 'CA', 58],
+    ['Grand', 'CA', 1551],
+    ['Elite', 'CA', 141],
+    ['Lite', 'AZ', 5453],
+    ['Small', 'AZ', 683],
+    ['Medium', 'AZ', 862],
+    ['Grand', 'AZ', 6228],
+    ['Lite', 'AL', 15001],
+    ['Small', 'AL', 527],
+    ['Medium', 'AL', 836],
+    ['Plus', 'AL', 28648],
+    ['Grand', 'AL', 3],
+    ['Lite', 'CO', 13],
+    ['Small', 'CO', 396],
+    ['Medium', 'CO', 362],
+    ['Plus', 'CO', 78],
+    ['Grand', 'CO', 2473],
+    ['Elite', 'CO', 2063],
+    ['Medium', 'DE', 203],
+    ['Grand', 'DE', 686],
+    ['Elite', 'DE', 826],
+    ['Lite', 'KS', 1738],
+    ['Small', 'KS', 12925],
+    ['Medium', 'KS', 15413],
+    ['Small', 'GA', 2166],
+    ['Medium', 'GA', 86],
+    ['Plus', 'GA', 348],
+    ['Grand', 'GA', 4244],
+    ['Elite', 'GA', 1536],
+    ['Small', 'IA', 351],
+    ['Grand', 'IA', 405],
+    ['Small', 'IL', 914],
+    ['Medium', 'IL', 127],
+    ['Grand', 'IL', 1470],
+    ['Elite', 'IL', 516],
+    ['Lite', 'IN', 43],
+    ['Small', 'IN', 667],
+    ['Medium', 'IN', 172],
+    ['Plus', 'IN', 149],
+    ['Grand', 'IN', 1380],
+    ['Elite', 'IN', 791],
+    ['Small', 'FL', 1],
+    ['Grand', 'FL', 1],
+    ['Small', 'MD', 1070],
+    ['Grand', 'MD', 1171],
+    ['Elite', 'MD', 33],
+    ['Plus', 'TX', 1],
+    ['Small', 'MS', 407],
+    ['Medium', 'MS', 3],
+    ['Grand', 'MS', 457],
+    ['Elite', 'MS', 20],
+    ['Small', 'NC', 557],
+    ['Medium', 'NC', 167],
+    ['Plus', 'NC', 95],
+    ['Grand', 'NC', 1090],
+    ['Elite', 'NC', 676],
+    ['Lite', 'NM', 1195],
+    ['Small', 'NM', 350],
+    ['Medium', 'NM', 212],
+    ['Grand', 'NM', 1509],
+    ['Lite', 'NV', 3899],
+    ['Small', 'NV', 147],
+    ['Medium', 'NV', 455],
+    ['Plus', 'NV', 1],
+    ['Grand', 'NV', 4100],
+    ['Lite', 'OH', 12],
+    ['Small', 'OH', 634],
+    ['Medium', 'OH', 749],
+    ['Plus', 'OH', 119],
+    ['Grand', 'OH', 3705],
+    ['Elite', 'OH', 3456],
+    ['Small', 'PA', 828],
+    ['Medium', 'PA', 288],
+    ['Plus', 'PA', 141],
+    ['Grand', 'PA', 2625],
+    ['Elite', 'PA', 1920],
+    ['Small', 'SC', 1146],
+    ['Medium', 'SC', 212],
+    ['Plus', 'SC', 223],
+    ['Grand', 'SC', 1803],
+    ['Elite', 'SC', 761],
+    ['Small', 'TN', 527],
+    ['Medium', 'TN', 90],
+    ['Grand', 'TN', 930],
+    ['Elite', 'TN', 395],
+    ['Lite', 'ME', 7232],
+    ['Small', 'ME', 1272],
+    ['Medium', 'ME', 1896],
+    ['Plus', 'ME', 1],
+    ['Grand', 'ME', 10782],
+    ['Elite', 'ME', 1911],
+    ['Small', 'VA', 495],
+    ['Medium', 'VA', 32],
+    ['Plus', 'VA', 7],
+    ['Grand', 'VA', 1557],
+    ['Elite', 'VA', 24],
+    ['Small', 'WA', 460],
+    ['Plus', 'WA', 88],
+    ['Grand', 'WA', 956],
+    ['Small', 'WV', 232],
+    ['Medium', 'WV', 71],
+    ['Grand', 'WV', 575],
+    ['Elite', 'WV', 368]
+  ]
+  var color  =  {Elite:'#3366CC',  Grand:'#DC3912',   Lite:'#FF9900',  Medium:'#109618',  Plus:'#990099',  Small:'#0099C6'}
+  var svg  =  d3.select('body').append('svg').attr('width',  960).attr('height',  800)
+
+  svg.append('text').attr('x', 250).attr('y', 70)
+  .attr('class', 'header').text('Sales Attempt')
+
+  // svg.append('text').attr('x', 750).attr('y', 70)
+  // .attr('class', 'header').text('Sales')
+
+  var g  = svg.append('g').attr('transform', 'translate(150, 100)')
+
+  var bp = viz.bP()
+  .data(data)
+  .min(12)
+  .pad(1)
+  .height(600)
+  .width(700)
+  .barSize(35)
+  .fill(d => color[d.primary])
+
+  g.call(bp)
+
+  g.append('text').attr('x', -50).attr('y', -8).style('text-anchor', 'middle').text('Channel')
+  g.append('text').attr('x',  250).attr('y', -8).style('text-anchor', 'middle').text('State')
+
+  g.append('line').attr('x1', -100).attr('x2', 0)
+  g.append('line').attr('x1', 200).attr('x2', 300)
+
+  g.append('line').attr('y1', 610).attr('y2', 610).attr('x1', -100).attr('x2', 0)
+  g.append('line').attr('y1', 610).attr('y2', 610).attr('x1', 200).attr('x2', 300)
+
+  g.selectAll('.mainBars')
+  .on('mouseover', mouseover)
+  .on('mouseout', mouseout)
+
+  g.selectAll('.mainBars').append('text').attr('class', 'label')
+  .attr('x', d => (d.part === 'primary'? -30: 30))
+  .attr('y', d => +6)
+  .text(d => d.key)
+  .attr('text-anchor', d => (d.part === 'primary'? 'end': 'start'))
+
+  g.selectAll('.mainBars').append('text').attr('class', 'perc')
+  .attr('x', d => (d.part === 'primary'? -100: 80))
+  .attr('y', d => +6)
+  .text(function(d){ return d3.format('0.0%')(d.percent)})
+  .attr('text-anchor', d => (d.part === 'primary'? 'end': 'start'))
+
+  function mouseover(d){
+    bp.mouseover(d)
+
+    g.selectAll('.mainBars').select('.perc')
+    .text(function(d){ return d3.format('0.0%')(d.percent)})
+  }
+  function mouseout(d){
+    bp.mouseout(d)
+
+    g.selectAll('.mainBars').select('.perc')
+    .text(function(d){ return d3.format('0.0%')(d.percent)})
+  }
+  d3.select(self.frameElement).style('height',  '800px')
+</script>
+</body>
+</html>

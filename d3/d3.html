@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    #chart {
+      width: 1200px;
+      height: 900px;
+      margin: auto;
+    }
+  </style>
+</head>
+<body>
+<script src="./d3.js"></script>
+<div id="chart"></div>
+<script>
+  const data = Array.from({length: 1000}).map(() => {
+    return { x: Math.random() * 1200, y: Math.random() * 900 }
+  })
+  let svg = d3.select('#chart')
+  .append('svg')
+  .attr("width", '100%')
+  .attr('height', '100%')
+  .append('g')
+
+  let line = d3.line()
+  .x((d) => d.x)
+  .y((d) => d.y)
+  let path = svg.append('path')
+  .attr("fill", "none")
+  .attr("stroke", "steelblue")
+  .attr("stroke-width", 1.5)
+  .attr("stroke-linejoin", "round")
+  .attr("stroke-linecap", "round")
+  data.forEach((item, index) => {
+    if (index) {
+      let t = 1000 / 5
+      let [current, delay] = [data.slice(0, index), t * (index - 1)]
+      path.transition().delay(delay).duration(0).ease(d3.easeLinear).attr('d', line(current.concat([current[current.length - 1]])))
+      path.transition().delay(delay).duration(t).ease(d3.easeLinear).attr('d', line(data.slice(0, index + 1)))
+    }
+  })
+</script>
+</body>
+</html>
