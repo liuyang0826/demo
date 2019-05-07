@@ -1,0 +1,9 @@
+{
+  "name": "atomic-class",
+  "version": "1.0.0",
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not ie <= 8"
+  ]
+}

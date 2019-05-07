@@ -3285,7 +3285,7 @@
         if (o.state === RUNNING) {
           o.state = ENDED;
           o.timer.stop();
-          o.on.call("interrupt", node, node.__data__, o.index, o.group);
+          o.on.call("interrupt", node, node.__data__, o.atomic, o.group);
           delete schedules[i];
         }
 
@@ -3314,14 +3314,14 @@
       // Dispatch the start event.
       // Note this must be done before the tween are initialized.
       self.state = STARTING;
-      self.on.call("start", node, node.__data__, self.index, self.group);
+      self.on.call("start", node, node.__data__, self.atomic, self.group);
       if (self.state !== STARTING) return; // interrupted
       self.state = STARTED;
 
       // Initialize the tween, deleting null tween.
       tween = new Array(n = self.tween.length);
       for (i = 0, j = -1; i < n; ++i) {
-        if (o = self.tween[i].value.call(node, node.__data__, self.index, self.group)) {
+        if (o = self.tween[i].value.call(node, node.__data__, self.atomic, self.group)) {
           tween[++j] = o;
         }
       }
@@ -3339,7 +3339,7 @@
 
       // Dispatch the end event.
       if (self.state === ENDING) {
-        self.on.call("end", node, node.__data__, self.index, self.group);
+        self.on.call("end", node, node.__data__, self.atomic, self.group);
         stop();
       }
     }
@@ -3369,7 +3369,7 @@
       active = schedule$$1.state > STARTING && schedule$$1.state < ENDING;
       schedule$$1.state = ENDED;
       schedule$$1.timer.stop();
-      if (active) schedule$$1.on.call("interrupt", node, node.__data__, schedule$$1.index, schedule$$1.group);
+      if (active) schedule$$1.on.call("interrupt", node, node.__data__, schedule$$1.atomic, schedule$$1.group);
       delete schedules[i];
     }
 
@@ -6420,7 +6420,7 @@
         tree = quadtree(nodes, x, y).visitAfter(prepare);
         for (i = 0; i < n; ++i) {
           node = nodes[i];
-          ri = radii[node.index], ri2 = ri * ri;
+          ri = radii[node.atomic], ri2 = ri * ri;
           xi = node.x + node.vx;
           yi = node.y + node.vy;
           tree.visit(apply);
@@ -6430,7 +6430,7 @@
       function apply(quad, x0, y0, x1, y1) {
         var data = quad.data, rj = quad.r, r = ri + rj;
         if (data) {
-          if (data.index > node.index) {
+          if (data.atomic > node.atomic) {
             var x = xi - data.x - data.vx,
             y = yi - data.y - data.vy,
             l = x * x + y * y;
@@ -6451,7 +6451,7 @@
     }
 
     function prepare(quad) {
-      if (quad.data) return quad.r = radii[quad.data.index];
+      if (quad.data) return quad.r = radii[quad.data.atomic];
       for (var i = quad.r = 0; i < 4; ++i) {
         if (quad[i] && quad[i].r > quad.r) {
           quad.r = quad[i].r;
@@ -6463,7 +6463,7 @@
       if (!nodes) return;
       var i, n = nodes.length, node;
       radii = new Array(n);
-      for (i = 0; i < n; ++i) node = nodes[i], radii[node.index] = +radius(node, i, nodes);
+      for (i = 0; i < n; ++i) node = nodes[i], radii[node.atomic] = +radius(node, i, nodes);
     }
 
     force.initialize = function(_) {
@@ -6487,7 +6487,7 @@
   }
 
   function index(d) {
-    return d.index;
+    return d.atomic;
   }
 
   function find(nodeById, nodeId) {
@@ -6510,7 +6510,7 @@
     if (links == null) links = [];
 
     function defaultStrength(link) {
-      return 1 / Math.min(count[link.source.index], count[link.target.index]);
+      return 1 / Math.min(count[link.source.atomic], count[link.target.atomic]);
     }
 
     function force(alpha) {
@@ -6543,12 +6543,12 @@
         link = links[i], link.index = i;
         if (typeof link.source !== "object") link.source = find(nodeById, link.source);
         if (typeof link.target !== "object") link.target = find(nodeById, link.target);
-        count[link.source.index] = (count[link.source.index] || 0) + 1;
-        count[link.target.index] = (count[link.target.index] || 0) + 1;
+        count[link.source.atomic] = (count[link.source.atomic] || 0) + 1;
+        count[link.target.atomic] = (count[link.target.atomic] || 0) + 1;
       }
 
       for (i = 0, bias = new Array(m); i < m; ++i) {
-        link = links[i], bias[i] = count[link.source.index] / (count[link.source.index] + count[link.target.index]);
+        link = links[i], bias[i] = count[link.source.atomic] / (count[link.source.atomic] + count[link.target.atomic]);
       }
 
       strengths = new Array(m), initializeStrength();
@@ -6758,7 +6758,7 @@
       if (!nodes) return;
       var i, n = nodes.length, node;
       strengths = new Array(n);
-      for (i = 0; i < n; ++i) node = nodes[i], strengths[node.index] = +strength(node, i, nodes);
+      for (i = 0; i < n; ++i) node = nodes[i], strengths[node.atomic] = +strength(node, i, nodes);
     }
 
     function accumulate(quad) {
@@ -6780,7 +6780,7 @@
         q = quad;
         q.x = q.data.x;
         q.y = q.data.y;
-        do strength += strengths[q.data.index];
+        do strength += strengths[q.data.atomic];
         while (q = q.next);
       }
 
@@ -6819,7 +6819,7 @@
       }
 
       do if (quad.data !== node) {
-        w = strengths[quad.data.index] * alpha / l;
+        w = strengths[quad.data.atomic] * alpha / l;
         node.vx += x * w;
         node.vy += y * w;
       } while (quad = quad.next);
@@ -16217,8 +16217,8 @@
     edge.right = right;
     if (v0) setEdgeEnd(edge, left, right, v0);
     if (v1) setEdgeEnd(edge, right, left, v1);
-    cells[left.index].halfedges.push(index);
-    cells[right.index].halfedges.push(index);
+    cells[left.atomic].halfedges.push(index);
+    cells[right.atomic].halfedges.push(index);
     return edge;
   }
 
@@ -16378,7 +16378,7 @@
   }
 
   function createCell(site) {
-    return cells[site.index] = {
+    return cells[site.atomic] = {
       site: site,
       halfedges: []
     };
@@ -16858,7 +16858,7 @@
           s0 = s1;
           e1 = edges[halfedges[j]];
           s1 = e1.left === site ? e1.right : e1.left;
-          if (s0 && s1 && i < s0.index && i < s1.index && triangleArea(site, s0, s1) < 0) {
+          if (s0 && s1 && i < s0.atomic && i < s1.atomic && triangleArea(site, s0, s1) < 0) {
             triangles.push([site.data, s0.data, s1.data]);
           }
         }
@@ -16892,7 +16892,7 @@
           var edge = that.edges[e], v = edge.left;
           if ((v === cell.site || !v) && !(v = edge.right)) return;
           var vx = x - v[0], vy = y - v[1], v2 = vx * vx + vy * vy;
-          if (v2 < d2) d2 = v2, i1 = v.index;
+          if (v2 < d2) d2 = v2, i1 = v.atomic;
         });
       } while (i1 !== null);
 

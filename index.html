@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="liuyang">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>index</title>
+</head>
+<body>
+<form action="">
+  <input type="text">
+  <button type="submit">121212</button>
+</form>
+<script>
+var oForm = document.getElementsByTagName("form")[0]
+var oButton1 = document.getElementsByTagName("button")[0]
+oForm.onsubmit = function (e) {
+  e.preventDefault()
+};
+oButton1.onclick = function () {
+  console.log(1);
+};
+</script>
+</body>
+</html>

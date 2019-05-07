@@ -1,0 +1,19 @@
+.mat {margin: auto}
+
+// 4 - 30
+@for $i from 0 through 13 {
+  .m#{4 + 2 * $i} {margin: #{4 + 2 * $i}px;}
+  .mt#{4 + 2 * $i} {margin-top: #{4 + 2 * $i}px;}
+  .mr#{4 + 2 * $i} {margin-right: #{4 + 2 * $i}px;}
+  .mb#{4 + 2 * $i} {margin-bottom: #{4 + 2 * $i}px;}
+  .ml#{4 + 2 * $i} {margin-left: #{4 + 2 * $i}px;}
+}
+
+// 40 - 60
+@for $i from 0 through 2 {
+  .m#{40 + 10 * $i} {margin: #{40 + 10 * $i}px;}
+  .mt#{40 + 10 * $i} {margin-top: #{40 + 10 * $i}px;}
+  .mr#{40 + 10 * $i} {margin-right: #{40 + 10 * $i}px;}
+  .mb#{40 + 10 * $i} {margin-bottom: #{40 + 10 * $i}px;}
+  .ml#{40 + 10 * $i} {margin-left: #{40 + 10 * $i}px;}
+}

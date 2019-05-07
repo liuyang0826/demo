@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="liuyang">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>button</title>
+  <style>
+  * {
+    margin: 0;padding: 0;
+  }
+  .wrap {
+    width: 500px;
+    margin: 200px auto;
+  }
+  button {
+    position: relative;
+    height: 32px;
+    line-height: 32px;
+    padding: 0 20px;
+    box-sizing: border-box;
+    outline: none;
+    border: none;
+    -webkit-appearance: none;
+    background-color: #ff0000;
+    color: #fff;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: .3s;
+  }
+  button:active {
+    background: #cc0000;
+  }
+  .click:after {
+    content: "";
+    position: absolute;
+    box-sizing: border-box;
+    left: 0;
+    top: 0;
+    width: calc(100% + 6px);
+    height: calc(100% + 6px);
+    transform: translate3d(-3px, -3px, 0);
+    opacity: .5;
+    border: 3px solid #ff0000;
+    border-radius: 4px;
+    animation: fn .3s;
+  }
+  @keyframes fn {
+    to {
+      width: calc(100% + 8px);
+      height: calc(100% + 8px);
+      transform: translate3d(-4px, -4px, 0);
+      opacity: 0;
+    }
+  }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <button>
+    <span>按 钮</span>
+  </button>
+</div>
+<script>
+var oButton = document.querySelector("button")
+oButton.onmouseup = function () {
+  this.classList.add("click")
+  setTimeout(() => {
+    this.classList.remove("click")
+  }, 300)
+}
+setInterval(() => {
+  document.querySelectorAll("[name=radio1]")[~~(Math.random()*3)].click();
+  setTimeout(()=>{
+    document.querySelector("button").click();
+  }, 400)
+}, 4000)
+
+(function f () {
+  document.querySelectorAll("[name=radio1]")[~~(Math.random()*3)].click();
+  setTimeout(()=>{
+    document.querySelector("button").click();
+  }, 400);
+  setTimeout(f, 6000)
+})()
+</script>
+</body>
+</html>

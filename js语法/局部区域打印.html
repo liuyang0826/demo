@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>自定义标题</title>
+  <link rel="stylesheet" href="./css.css">
+</head>
+<body>
+啊啊啊啊啊啊啊啊啊
+<div id="test">
+  <div class="test">
+    <h1>标题</h1>
+    部分内容
+  </div>
+</div>
+<script src="www.baidu.com"></script>
+<div id="btn" onclick="myPrint(test)">打印</div>
+<script>
+function myPrint(dom){
+  var newWindow = window.open("", "_blank");
+  var scripts = document.body.innerHTML.match(/<script([\s\S]*?)<\/script>/g) || []
+  newWindow.document.write('<html lang="zh">' + document.head.innerHTML + '<body>' + dom.innerHTML + scripts.join('') + '<script>window.onload = function () {window.print();window.close()}<\/script></body></html>');
+  newWindow.document.close();
+}
+</script>
+</body>
+</html>

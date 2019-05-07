@@ -1,0 +1,19 @@
+$start: 12;
+$step: 2;
+// 4 - 60
+
+@for $i from 0 through 10 {
+  .fsz#{$start + $step * $i} {font-size: #{$start + $step * $i}px;}
+}
+
+@for $i from 1 through 6 {
+  .fw#{100 * $i} {font-weight: 100 * $i;}
+}
+
+.fwb {font-weight: bold;}
+
+.c#3 {color: #333;}
+
+.c#6 {color: #666;}
+
+.c#9 {color: #999;}

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="liuyang">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>自动高度</title>
+  <style>
+  * {
+    margin: 0;
+    padding: 0;
+  }
+  .top {
+    height: 100px;
+    background: red;
+  }
+  .main {
+    position: relative;
+    left: 0;
+    right: 0;
+    top: 100px;
+    bottom: 100px;
+    height: auto;
+    background: orange;
+  }
+  .footer {
+    height: 100px;
+    background: blue;
+  }
+  </style>
+</head>
+<body>
+<div class="top"></div>
+<div class="main"></div>
+<div class="footer"></div>
+</body>
+</html>

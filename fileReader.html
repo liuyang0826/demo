@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="liuyang">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>fileReader</title>
+</head>
+<body>
+<img src="./logo.svg" alt="">
+<input type="file" id="file">
+<script>
+var fr = new FileReader();
+var oImage = document.getElementsByTagName("img")[0];
+loadImageToBlob(oImage.src, function (blob) {
+  console.log(blob);
+  var fd = new FormData();
+  fd.append("file", blob);
+  console.log(fd);
+  fr.readAsArrayBuffer(blob)
+  fr.onload = function (res) {
+    console.log(res);
+  }
+})
+file.onchange = function (e) {
+  console.log(e.target.files[0]);
+}
+function loadImageToBlob(url, callback) {
+
+  if(!url || !callback) return false;
+
+  var xhr = new XMLHttpRequest();
+
+  xhr.open('get', url, true);
+
+  xhr.responseType = 'blob';
+
+  xhr.onload = function() {
+
+    // 注意这里的this.response 是一个blob对象 就是文件对象
+
+    callback(this.status === 200 ? this.response : false);
+
+  }
+
+  xhr.send();
+
+  return true;
+
+}
+</script>
+</body>
+</html>

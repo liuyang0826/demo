@@ -9230,7 +9230,7 @@
 
       var scope = this;
 
-      var indices = geometry.index !== null ? geometry.index.array : undefined;
+      var indices = geometry.atomic !== null ? geometry.atomic.array : undefined;
       var attributes = geometry.attributes;
 
       var positions = attributes.position.array;
@@ -11213,7 +11213,7 @@
 
       }
 
-      if ( name === 'index' ) {
+      if ( name === 'atomic.scss' ) {
 
         console.warn( 'THREE.BufferGeometry.addAttribute: Use .setIndex() for index attribute.' );
         this.setIndex( attribute );
@@ -12170,7 +12170,7 @@
 
       // index
 
-      var index = source.index;
+      var index = source.atomic;
 
       if ( index !== null ) {
 
@@ -15136,9 +15136,9 @@
       var geometry = event.target;
       var buffergeometry = geometries[ geometry.id ];
 
-      if ( buffergeometry.index !== null ) {
+      if ( buffergeometry.atomic !== null ) {
 
-        attributes.remove( buffergeometry.index );
+        attributes.remove( buffergeometry.atomic );
 
       }
 
@@ -15201,7 +15201,7 @@
 
     function update( geometry ) {
 
-      var index = geometry.index;
+      var index = geometry.atomic;
       var geometryAttributes = geometry.attributes;
 
       if ( index !== null ) {
@@ -15242,7 +15242,7 @@
 
       var indices = [];
 
-      var geometryIndex = geometry.index;
+      var geometryIndex = geometry.atomic;
       var geometryAttributes = geometry.attributes;
 
       // console.time( 'wireframe' );
@@ -22667,7 +22667,7 @@
 
       //
 
-      var index = geometry.index;
+      var index = geometry.atomic;
       var position = geometry.attributes.position;
       var rangeFactor = 1;
 
@@ -26563,12 +26563,12 @@
 
       vertex = new Vector3();
 
-      if ( geometry.index !== null ) {
+      if ( geometry.atomic !== null ) {
 
         // indexed BufferGeometry
 
         position = geometry.attributes.position;
-        indices = geometry.index;
+        indices = geometry.atomic;
         groups = geometry.groups;
 
         if ( groups.length === 0 ) {
@@ -37506,7 +37506,7 @@
 
       var geometry = new BufferGeometry();
 
-      var index = json.data.index;
+      var index = json.data.atomic;
 
       if ( index !== undefined ) {
 

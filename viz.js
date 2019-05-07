@@ -285,11 +285,11 @@
           return ["M", t, ",", n, "C", t, ",", c, " ", e, ",", c, ",", e, ",", r, "L", i, ",", u, "C", i, ",", d, " ", o, ",", d, ",", o, ",", s, "z"].join("")
         }
         var r = d3.map(c.secondary, function(t) {
-          return t.index
+          return t.atomic
         })
         , a = t.edgeMode();
         return c.primary.map(function(t) {
-          var a = r.get(t.index);
+          var a = r.get(t.atomic);
           return {
             path: "vertical" === f ? n(t.x + t.width, t.y + t.height, a.x - a.width, a.y + a.height, a.x - a.width, a.y - a.height, t.x + t.width, t.y - t.height) : e(t.x - t.width, t.y + t.height, a.x - a.width, a.y - a.height, a.x + a.width, a.y - a.height, t.x + t.width, t.y + t.height),
             primary: t.primary,
@@ -767,10 +767,10 @@
         return t.indexsubindex
       });
       k.forEach(function(n) {
-        if (n.subindex == n.index)
+        if (n.subindex == n.atomic)
           return n.endStartAngle = n.startAngle,
           void (n.endEndAngle = n.startAngle);
-        var e = t.get(n.subindex + "-" + n.index);
+        var e = t.get(n.subindex + "-" + n.atomic);
         n.endStartAngle = e.startAngle,
         n.endEndAngle = e.startAngle
       }),
@@ -863,12 +863,12 @@
         return t.source
       });
       w.forEach(function(n) {
-        if (n.subindex == n.index) {
+        if (n.subindex == n.atomic) {
           var e = s.get(n.source);
           return n.endStartAngle = e.startAngle,
           void (n.endEndAngle = e.endAngle)
         }
-        var r = u.get(n.subindex + "-" + n.index);
+        var r = u.get(n.subindex + "-" + n.atomic);
         n.endStartAngle = r.startAngle,
         n.endEndAngle = r.endAngle,
         n.source !== t && (n.startAngle = n.endAngle,

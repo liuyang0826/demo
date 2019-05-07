@@ -1,0 +1,17 @@
+// 4 - 30
+@for $i from 0 through 13 {
+  .p#{4 + 2 * $i} {padding: #{4 + 2 * $i}px;}
+  .pt#{4 + 2 * $i} {padding-top: #{4 + 2 * $i}px;}
+  .pr#{4 + 2 * $i} {padding-right: #{4 + 2 * $i}px;}
+  .pb#{4 + 2 * $i} {padding-bottom: #{4 + 2 * $i}px;}
+  .pl#{4 + 2 * $i} {padding-left: #{4 + 2 * $i}px;}
+}
+
+// 40 - 60
+@for $i from 0 through 2 {
+  .p#{40 + 10 * $i} {padding: #{40 + 10 * $i}px;}
+  .pt#{40 + 10 * $i} {padding-top: #{40 + 10 * $i}px;}
+  .pr#{40 + 10 * $i} {padding-right: #{40 + 10 * $i}px;}
+  .pb#{40 + 10 * $i} {padding-bottom: #{40 + 10 * $i}px;}
+  .pl#{40 + 10 * $i} {padding-left: #{40 + 10 * $i}px;}
+}

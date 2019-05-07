@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="liuyang">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>index</title>
+  <style>
+  * {
+    margin: 0;padding: 0;
+  }
+
+  main {
+    display: flex;
+    margin-left: 20px;
+    align-items: center;
+  }
+
+  .radar {
+    width: 500px;
+    height: 500px;
+    margin: auto;
+  }
+
+  .bar {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .item {
+    /*height: 170px;*/
+    user-select: none;
+  }
+  </style>
+  <script src="https://cdn.bootcss.com/echarts/4.2.1-rc1/echarts.min.js"></script>
+  <script src="./d3.js"></script>
+</head>
+<body>
+<main>
+  <div class="left">
+    <div class="radar"></div>
+  </div>
+  <div class="right">
+    <div class="bar">
+      <div class="item"></div>
+      <div class="item"></div>
+      <div class="item"></div>
+      <div class="item"></div>
+    </div>
+  </div>
+</main>
+<script>
+var myChart = echarts.init(document.getElementsByClassName('radar')[0])
+var option = {
+  title: {
+    // text: "基础雷达图"
+  },
+  tooltip: {},
+  legend: {
+    show: false
+  },
+  radar: {
+    name: {
+      textStyle: {
+        color: [ '#666' ]
+      }
+    },
+    splitArea: {
+      areaStyle: {
+        color: [ '#fff' ]
+      }
+    },
+    axisLine: {
+      lineStyle: {
+        color: [ '#fff' ]
+      }
+    },
+    indicator: [
+      { name: '规模水平', max: 60 },
+      { name: '创业指数', max: 60 },
+      { name: '创新指数', max: 60 },
+      { name: '投资活力', max: 60 },
+      { name: '经营活力', max: 60 },
+      { name: '生命力', max: 60 },
+      { name: '集聚水平', max: 60 },
+      { name: '资本水平', max: 60 }
+    ]
+  },
+  series: {
+    type: 'radar',
+    data: [
+      {
+        value: [ 60, 50, 45, 55, 50, 30, 40, 46 ],
+        name: '产业评分',
+        itemStyle: {
+          color: '#3498db'
+        }
+      }
+    ]
+  }
+}
+myChart.setOption(option)
+</script>
+<script>
+let data = [
+  {
+    province: '重庆',
+    num: 60
+  },
+  {
+    province: '北京',
+    num: 70
+  },
+  {
+    province: '上海',
+    num: 80
+  },
+  {
+    province: '杭州',
+    num: 50
+  },
+  {
+    province: '黑龙江',
+    num: 40
+  },
+  {
+    province: '内蒙古',
+    num: 40
+  },
+  {
+    province: '深圳',
+    num: 40
+  },
+  {
+    province: '深圳',
+    num: 40
+  },
+  {
+    province: '深圳',
+    num: 40
+  },
+  {
+    province: '深圳',
+    num: 40
+  },
+  {
+    province: '深圳',
+    num: 40
+  },
+  {
+    province: '深圳',
+    num: 40
+  },
+  {
+    province: '深圳',
+    num: 40
+  },
+  {
+    province: '深圳',
+    num: 40
+  },
+  {
+    province: '深圳',
+    num: 40
+  },
+  {
+    province: '深圳',
+    num: 40
+  },
+  {
+    province: '深圳',
+    num: 40
+  },
+  {
+    province: '深圳',
+    num: 40
+  },
+  {
+    province: '深圳',
+    num: 40
+  },
+  {
+    province: '深圳',
+    num: 40
+  },
+  {
+    province: '深圳',
+    num: 40
+  },
+  {
+    province: '深圳',
+    num: 40
+  },
+  {
+    province: '深圳',
+    num: 40
+  },
+  {
+    province: '深圳',
+    num: 40
+  },
+  {
+    province: '深圳',
+    num: 40
+  },
+  {
+    province: '深圳',
+    num: 40
+  },
+  {
+    province: '深圳',
+    num: 40
+  },
+  {
+    province: '深圳',
+    num: 40
+  },
+  {
+    province: '深圳',
+    num: 40
+  },
+  {
+    province: '深圳',
+    num: 40
+  },
+  {
+    province: '深圳',
+    num: 40
+  }
+]
+let currentProvince = '上海'
+
+class BarChart {
+
+  static margin = { top: 50, right: 10, bottom: 20, left: 10 }
+
+  static rect = { width: 960, height: 80 }
+
+  constructor (el) {
+    this.el = el
+    this.init()
+  }
+
+  init () {
+
+    const { width, height } = BarChart.rect
+    const { top, right, bottom, left } = BarChart.margin
+
+    this.svg = d3.select(this.el)
+    .append('svg')
+    .attr('xmlns', 'http://www.w3.org/2000/svg')
+    .attr('version', '1.1')
+    .attr('width', width + left + right)
+    .attr('height', height + top + bottom)
+    // 绘图层
+    let chart = this.svg.append('g')
+    .attr('name', 'chart')
+    .attr('transform', 'translate(' + left + ',' + top + ')')
+
+    chart.append('g')
+    .attr('fill', 'currentColor')
+    .attr('name', 'xAxis')
+    .attr('transform', 'translate(0,' + height + ')')
+
+    chart.append('g')
+    .attr('fill', 'currentColor')
+    .attr('name', 'yAxis')
+    .attr('transform', 'translate(0, 0)')
+
+    chart.append('g')
+    .attr('name', 'barWrap')
+
+    chart.append('g')
+    .attr('text-anchor', 'middle')
+    .attr('font-size', '12px')
+    .attr('fill', 'currentColor')
+    .attr('name', 'textWrap')
+  }
+
+  draw (data, currentProvince) {
+
+    let scale = BarChart.getScale(data)
+
+    BarChart.drawXAxis({ wrap: this.svg.select('[name=xAxis'), data, xScale: scale.xScale })
+
+    BarChart.drawBar({ wrap: this.svg.select('[name=barWrap'), data, currentProvince, ...scale })
+
+    BarChart.drawText({ wrap: this.svg.select('[name=textWrap'), data, ...scale })
+  }
+
+  static getScale (data) {
+    let xScale = d3.scaleLinear()
+    .domain([ 0.5, data.length + 0.5 ])
+    .range([ 0, BarChart.rect.width ])
+
+    let yScale = d3.scaleLinear()
+    .domain([ 0, d3.max(data, d => d.num) ]).nice()
+    .range([ BarChart.rect.height, 0 ])
+
+    return { xScale, yScale }
+  }
+
+  static drawXAxis ({ wrap, data, xScale }) {
+    wrap
+    .call(d3.axisBottom(xScale)
+    .ticks(data.length)
+    .tickFormat((d, i) => data[i].province))
+  }
+
+  static drawBar ({ wrap, data, currentProvince, xScale, yScale }) {
+
+    const { width, height } = BarChart.rect
+
+    let barWidth = Math.min(width / data.length * 0.4, 80)
+
+    BarChart.enterToWrap({ wrap, data, type: 'rect' })
+
+    wrap.selectAll('rect')
+    .data(data)
+    .attr('x', (d, i) => xScale(i + 1) - barWidth / 2)
+    .attr('width', barWidth)
+    .attr('y', height)
+    .attr('height', 0)
+    // 过渡效果
+    .transition()
+    .duration(600)
+    .ease(d3.easeLinear)
+    .attr('y', (d) => yScale(d.num))
+    .attr('height', d => height - yScale(d.num))
+    .attr('fill', d => d.province === currentProvince ? '#f00' : '#3498db')
+
+    BarChart.exitFromWrap({ wrap, data, type: 'rect' })
+  }
+
+  static drawText ({ wrap, data, xScale, yScale }) {
+
+    BarChart.enterToWrap({ wrap, data, type: 'text' })
+
+    wrap
+    .selectAll('text')
+    .data(data)
+    .text(d => d.num)
+    .attr('x', (d, i) => xScale(i + 1))
+    .attr('y', d => yScale(d.num) - 10)
+
+    BarChart.exitFromWrap({ wrap, data, type: 'text' })
+  }
+
+  static enterToWrap ({ wrap, type, data }) {
+    wrap.selectAll(type)
+    .data(data)
+    .enter()
+    .append(type)
+  }
+
+  static exitFromWrap ({ wrap, type, data }) {
+    wrap.selectAll(type)
+    .data(data)
+    .exit()
+    .remove()
+  }
+}
+
+var aItem = document.querySelectorAll('.item')
+aItem.forEach(function (item, index) {
+  var chart = new BarChart(item)
+  chart.draw(data, currentProvince)
+})
+</script>
+</body>
+</html>

@@ -3830,9 +3830,9 @@ function parse_BrtColor(data) {
 function write_BrtColor(color, o) {
 	if(!o) o = new_buf(8);
 	if(!color||color.auto) { o.write_shift(4, 0); o.write_shift(4, 0); return o; }
-	if(color.index) {
+	if(color.atomic) {
 		o.write_shift(1, 0x02);
-		o.write_shift(1, color.index);
+		o.write_shift(1, color.atomic);
 	} else if(color.theme) {
 		o.write_shift(1, 0x06);
 		o.write_shift(1, color.theme);

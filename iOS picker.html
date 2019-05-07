@@ -1,34 +1,43 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Title</title>
-  <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
-  <style>
-    .loading {
-      z-index: 99999;
-      position: fixed;
-      left: 45%;
-      top: 0;
-      width: 100px;
-      height: 100px;
-      overflow: hidden;
-      background: #000;
-    }
-  </style>
-</head>
-<body>
-<div class="btn">点击</div>
-<div class="loading"></div>
 <script>
-  $(function () {
-    $('.btn').click(function () {
-      $('.loading').show()
-      setTimeout(function () {
-        $('.loading').hide()
-      }, 2000)
-    })
+var tree = [
+  {
+    value: 1,
+    children: [
+      {
+        value: 3,
+        children: [
+          {
+            value: 6,
+            children: []
+          }
+        ]
+      },
+      {
+        value: 7,
+        children: [
+          {
+            value: 8,
+            children: []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    value: 2,
+    children: [
+      {
+        value: 4,
+        children: []
+      }
+    ]
+  }
+];
+function f (tree) {
+  tree.forEach((node) => {
+    console.log(node);
+    f(node.children)
   })
+}
+f(tree)
 </script>
-</body>
-</html>
