@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="liuyang">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>calendar</title>
+  <style>
+
+  body {
+    width: 490px;
+    margin: auto;
+  }
+  td {
+    height: 28px;
+    padding: 0 10px;
+    text-align: center;
+  }
+
+  th {
+    height: 32px;
+  }
+  </style>
+</head>
+<body>
+<div>
+  <label>
+    年份：
+    <select id="year">
+      <option value="2018">2018</option>
+      <option value="2019">2019</option>
+      <option value="2020">2020</option>
+      <option value="2021">2021</option>
+    </select>
+  </label>
+  <label>
+    月份：
+    <select id="month">
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+      <option value="6">6</option>
+      <option value="7">7</option>
+      <option value="8">8</option>
+      <option value="9">9</option>
+      <option value="10">10</option>
+      <option value="11">11</option>
+      <option value="12">12</option>
+    </select>
+  </label>
+  <button>确定</button>
+</div>
+<table style="width: 100%;margin-top: 20px;table-layout: fixed;border-collapse: collapse;" border="1">
+  <thead>
+  <tr>
+    <th>星期一</th>
+    <th>星期二</th>
+    <th>星期三</th>
+    <th>星期四</th>
+    <th>星期五</th>
+    <th>星期六</th>
+    <th>星期日</th>
+  </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+<script>
+var oYear = document.querySelector('#year')
+var oMonth = document.querySelector('#month')
+
+render(oYear.value, oMonth.value)
+
+document.querySelector('button').onclick = function () {
+  console.log(+oMonth.value)
+  render(+oYear.value, +oMonth.value)
+}
+
+function render (year, month) {
+  var start = new Date(year, month - 1, 1)
+  var end = new Date(year, month, 0)
+  var startDay = start.getDay() - 1
+  var endDay = end.getDay() - 1
+  var lines = Math.ceil((end.getDate() - start.getDate() + 1 + startDay) / 7)
+
+  console.log(lines, endDay)
+
+  var tbody = document.querySelector('tbody')
+
+  tbody.innerHTML = ''
+
+  var documentFragment = document.createDocumentFragment()
+
+  for (var line = 0; line < lines; line++) {
+    var tr = document.createElement('tr')
+    for (var j = 0; j < 7; j++) {
+      var td = document.createElement('td')
+      if ((line === 0 && j >= startDay) || (line === lines - 1 && j <= endDay) || (line > 0 && line < lines - 1)) {
+        var text = document.createTextNode(1 + line * 7 - startDay + j)
+        td.appendChild(text)
+      }
+      tr.appendChild(td)
+    }
+    documentFragment.appendChild(tr)
+  }
+
+  tbody.appendChild(documentFragment)
+}
+</script>
+</body>
+</html>

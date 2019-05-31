@@ -8031,7 +8031,7 @@ function parse_sst_xml(data, opts) {
 			var o = parse_si(ss[i].trim(), opts);
 			if(o != null) s[s.length] = o;
 		}
-		sst = parsexmltag(sst[1]); s.Count = sst.count; s.Unique = sst.uniqueCount;
+		sst = parsexmltag(sst[1]); s.Count = sst.select; s.Unique = sst.uniqueCount;
 	}
 	return s;
 }

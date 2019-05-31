@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="400" height="100">
+    <path d="M0 50 Q100,0 200 50 Q300,100 400 50 v50 h-400 v-50" fill="#F0F1F1">
+        <animate attributeName="d"
+                 values="
+                 M0 50 Q100,0 200 50 Q300,100 400 50 v50 h-400 v-50;
+                 M0 50 Q100,100 200 50 Q300,0 400 50 v50 h-400 v-50;
+                 M0 50 Q100,0 200 50 Q300,100 400 50 v50 h-400 v-50;"
+                 dur="3s" repeatCount="indefinite"/>
+        <animate attributeName="fill"
+                 values="#F0F1F1;#ff0000;#F0F1F1"
+                 dur="4s"
+                 repeatCount="indefinite"/>
+    </path>
+</svg>

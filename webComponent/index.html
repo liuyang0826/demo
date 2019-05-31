@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="liuyang">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>index</title>
+  <style>
+  .color {
+    color: blue !important;
+  }
+  </style>
+</head>
+<body>
+<template id="hello-world">
+  <link rel="stylesheet" href="./helloworld.css">
+  <p>
+    web component
+    <slot></slot>
+    <span class="color">hello world</span>
+  </p>
+</template>
+<hello-world>
+  <div>qqqqqq</div>
+</hello-world>
+<hello-world></hello-world>
+<div id="root"></div>
+<script src="helloworld.js"></script>
+<!--<script src="https://tencent.github.io/omi/packages/omi/dist/omi.esm.js"></script>-->
+<script type="module">
+
+import { define, WeElement, render, html, createRef } from 'https://tencent.github.io/omi/packages/omi/dist/omi.esm.js'
+
+console.log(createRef)
+
+define('my-counter', class extends WeElement {
+
+  static observe = true
+
+  static css = `h1{
+    span: red;
+  }`
+
+  install () {
+    this.data.count = 1
+  }
+
+  sub = () => {
+    this.data.select--
+  }
+
+  add = () => {
+    this.data.select++
+    console.log(this.myRef.current)
+  }
+
+  myRef = createRef()
+
+  render () {
+    return html`
+        <div>
+          <button onClick=${this.sub}>-</button>
+          <span ref=${this.myRef}>${this.data.select}</span>
+          <button onClick=${this.add}>+</button>
+        </div>
+        `
+  }
+})
+
+console.log(html`<my-counter/>`)
+
+render(html`<my-counter/>`, '#root')
+</script>
+
+</body>
+</html>

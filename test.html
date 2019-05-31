@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="liuyang">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>test</title>
+  <style>
+  body {
+    width: 500px;
+    margin: auto;
+  }
+
+  .box {
+    position: relative;
+    border: 1px solid #f00;
+    border-top: none;
+    border-radius: 8px;
+    height: 200px;
+    margin-top: 200px;
+  }
+
+  .box:before {
+    content: "";
+    position: absolute;
+    top: -1px;
+    z-index: -1;
+    height: 100%;
+    border-top: 1px solid #f00;
+    left: 0;
+    width: 20px;
+    border-radius: 8px 0;
+  }
+
+  .title {
+    height: 20px;
+    line-height: 20px;
+    position: relative;
+    top: -10px;
+    margin-left: 25px;
+    display: flex;
+  }
+
+  .name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #469094;
+    font-size: 16px;
+    letter-spacing: 1.97px;
+  }
+
+  .num {
+    flex: none;
+    height: 20px;
+    padding: 0 10px;
+    color: #f00;
+    font-size: 12px;
+    letter-spacing: 0.78px;
+    border: 1px solid #f00;
+    border-radius: 10px;
+    text-align: center;
+    margin-left: 10px;
+  }
+
+  .line {
+    position: relative;
+    margin-left: 14px;
+    margin-top: 9.5px;
+    flex: auto;
+    height: 20px;
+    border-radius: 0 8px;
+    border-top: 1px solid #f00;
+  }
+
+  .line:before {
+    content: "";
+    position: absolute;
+    left: -4px;
+    top: -3px;
+    width: 6px;
+    height: 6px;
+    background-color: #f00;
+  }
+  </style>
+</head>
+<body>
+<div class="box">
+  <div class="title">
+    <div class="name">标题字数可以增加减少</div>
+    <div class="num">数量 100</div>
+    <div class="line"></div>
+  </div>
+</div>
+<script>
+var obj = {
+  a: 100,
+  __proto__: {
+    a: 200,
+    fn: function () {
+      console.log(this.a);
+    }
+  }
+};
+obj.fn();
+
+var a = (function () {
+  var num = 0;
+  return function () {
+    num++;
+    return num;
+  };
+})();
+console.log(a());
+console.log(a());
+console.log(a());
+console.log(a());
+</script>
+</body>
+</html>

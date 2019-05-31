@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="liuyang">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>数组去重</title>
+</head>
+<body>
+<script>
+var arr = [1,2,3,5,5,2,8,1,5,1,2,3,4,5,6,7,9]
+
+function fn (arr) {
+  var result = []
+  var index = 0
+  for(var i = 0; i < arr.length; i++) {
+    for (var j = 0; j < arr.length; j++) {
+      if (arr[i] === arr[j]) {
+        if (i === j) {
+          result[index] = arr[i]
+          index++
+        } else {
+          break
+        }
+      }
+    }
+  }
+  return result
+}
+
+</script>
+</body>
+</html>
