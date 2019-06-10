@@ -9,10 +9,12 @@
   * {
     margin: 0;padding: 0;
   }
+
   .wrap {
     width: 500px;
     margin: 200px auto;
   }
+
   button {
     position: relative;
     height: 32px;
@@ -28,10 +30,12 @@
     border-radius: 4px;
     transition: .3s;
   }
+
   button:active {
     background: #cc0000;
   }
-  .click:after {
+
+  .button:focus-within {
     content: "";
     position: absolute;
     box-sizing: border-box;
@@ -45,6 +49,7 @@
     border-radius: 4px;
     animation: fn .3s;
   }
+
   @keyframes fn {
     to {
       width: calc(100% + 8px);
@@ -62,27 +67,13 @@
   </button>
 </div>
 <script>
-var oButton = document.querySelector("button")
+var oButton = document.querySelector("button");
 oButton.onmouseup = function () {
-  this.classList.add("click")
+  this.classList.add("click");
   setTimeout(() => {
-    this.classList.remove("click")
-  }, 300)
-}
-setInterval(() => {
-  document.querySelectorAll("[name=radio1]")[~~(Math.random()*3)].click();
-  setTimeout(()=>{
-    document.querySelector("button").click();
-  }, 400)
-}, 4000)
-
-(function f () {
-  document.querySelectorAll("[name=radio1]")[~~(Math.random()*3)].click();
-  setTimeout(()=>{
-    document.querySelector("button").click();
-  }, 400);
-  setTimeout(f, 6000)
-})()
+    this.classList.remove("click");
+  }, 300);
+};
 </script>
 </body>
 </html>

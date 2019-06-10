@@ -7,7 +7,68 @@
   <title>valToNum</title>
 </head>
 <body>
+<input type="text">
 <script>
+
+function numFormat () {
+  let [ index, firstIsZero, firstIsMinus, hasPoint, lastChar ] = [ 0, false, false, false, null ];
+  return function (val) {
+    console.log(index, firstIsZero, firstIsMinus, hasPoint);
+    val = String(val);
+    let currChar = val[index];
+    if (val.length > index) {
+      switch (index) {
+        case 0:
+          if (!(/[\d\-]/.test(currChar))) { // 第一位数字和-
+            val = "";
+          } else {
+            if (currChar === "0") {
+              firstIsZero = true;
+            } else if (currChar === "-") {
+              firstIsMinus = true;
+            }
+          }
+          break;
+        case 1:
+          if (currChar === ".") { // 不允许 -.
+            if (firstIsMinus) {
+              val = "-";
+            } else {
+              hasPoint = true;
+            }
+          } else if (firstIsZero && currChar !== ".") { // 只允许 0.
+            val = "0";
+          } else if (!(/[\d]/.test(currChar))) {
+            val = val.substr(0, index);
+          }
+          break;
+        default:
+          if (currChar === ".") {
+            if (hasPoint) {
+              val =  val.substr(0, index); // 只有一个小数点
+            } else {
+              hasPoint = true;
+            }
+          } else if (!(/\d/.test(currChar))) {
+            val =  val.substr(0, index);
+          }
+      }
+    } else {
+
+    }
+    index = val.length;
+    return val;
+  };
+}
+
+var valToNum1 = numFormat();
+
+document.querySelector('input').oninput = function () {
+  this.value = valToNum1(this.value);
+  console.log(this.value);
+};
+
+
 function valToNum (val) {
   val = String(val);
   let [ index, len, firstIsZero, firstIsMinus, hasPoint ] = [ 0, val.length, false, false, false ];

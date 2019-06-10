@@ -5,116 +5,139 @@
   <meta name="author" content="liuyang">
   <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
   <title>test</title>
-  <style>
-  body {
-    width: 500px;
-    margin: auto;
-  }
-
-  .box {
-    position: relative;
-    border: 1px solid #f00;
-    border-top: none;
-    border-radius: 8px;
-    height: 200px;
-    margin-top: 200px;
-  }
-
-  .box:before {
-    content: "";
-    position: absolute;
-    top: -1px;
-    z-index: -1;
-    height: 100%;
-    border-top: 1px solid #f00;
-    left: 0;
-    width: 20px;
-    border-radius: 8px 0;
-  }
-
-  .title {
-    height: 20px;
-    line-height: 20px;
-    position: relative;
-    top: -10px;
-    margin-left: 25px;
-    display: flex;
-  }
-
-  .name {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    color: #469094;
-    font-size: 16px;
-    letter-spacing: 1.97px;
-  }
-
-  .num {
-    flex: none;
-    height: 20px;
-    padding: 0 10px;
-    color: #f00;
-    font-size: 12px;
-    letter-spacing: 0.78px;
-    border: 1px solid #f00;
-    border-radius: 10px;
-    text-align: center;
-    margin-left: 10px;
-  }
-
-  .line {
-    position: relative;
-    margin-left: 14px;
-    margin-top: 9.5px;
-    flex: auto;
-    height: 20px;
-    border-radius: 0 8px;
-    border-top: 1px solid #f00;
-  }
-
-  .line:before {
-    content: "";
-    position: absolute;
-    left: -4px;
-    top: -3px;
-    width: 6px;
-    height: 6px;
-    background-color: #f00;
-  }
-  </style>
 </head>
 <body>
-<div class="box">
-  <div class="title">
-    <div class="name">标题字数可以增加减少</div>
-    <div class="num">数量 100</div>
-    <div class="line"></div>
-  </div>
-</div>
+<ul id="root0"></ul>
+<ul id="root1"></ul>
+<ul id="root2"></ul>
 <script>
-var obj = {
-  a: 100,
-  __proto__: {
-    a: 200,
-    fn: function () {
-      console.log(this.a);
-    }
+var menu = [
+  {
+    data: "1-1",
+    children: [
+      {
+        data: "1-2-1",
+        children: [
+          {
+            data: "1-3-1",
+            children: []
+          }
+        ]
+      },
+      {
+        data: "1-2-2",
+        children: [
+          {
+            data: "1-3-2",
+            children: []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    data: "2-1",
+    children: [
+      {
+        data: "2-2-1",
+        children: []
+      },
+      {
+        data: "2-2-2",
+        children: [
+          {
+            data: "2-3-1",
+            children: [
+              {
+                data: "2-4-1",
+                children: [
+                  {
+                    data: "2-5-1",
+                    children: []
+                  },
+                  {
+                    data: "2-5-2",
+                    children: []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
   }
-};
-obj.fn();
+];
+var oRoot0 = document.getElementById("root0");
+var oRoot1 = document.getElementById("root1");
+var oRoot2 = document.getElementById("root2");
 
-var a = (function () {
-  var num = 0;
-  return function () {
-    num++;
-    return num;
-  };
-})();
-console.log(a());
-console.log(a());
-console.log(a());
-console.log(a());
+// 深度优先 - 递归实现
+function each0 (data, ul) {
+  data.forEach((item) => {
+    console.log(item);
+    each0(item.children, createElement(ul, item));
+  });
+}
+
+// 广度优先
+function each1 (data, ul) {
+  var queue = [];
+  queue.push({
+    ul: ul,
+    children: data
+  });
+  while (queue.length) {
+    var currentNode = queue.shift();
+    currentNode.children.forEach((item) => {
+      console.log(item);
+      queue.push({
+        ul: createElement(currentNode.ul, item),
+        ...item
+      });
+    });
+  }
+}
+
+// 深度优先 - 循环实现
+function each2 (data, ul) {
+  var stack = [];
+  stack.push({
+    ul: ul,
+    children: data
+  });
+  while (stack.length) {
+    var currentNode = stack.pop();
+    currentNode.children.forEach((item) => {
+      console.log(item);
+      stack.push({
+        ul: createElement(currentNode.ul, item),
+        ...item
+      });
+    });
+  }
+}
+
+
+function createElement (parent, data) {
+  var oLi = document.createElement("li");
+  parent.appendChild(oLi);
+  var oDiv = document.createElement("div");
+  oLi.appendChild(oDiv);
+  var oText = document.createTextNode(data.data);
+  oDiv.appendChild(oText);
+  if (data.children.length) {
+    var oUl = document.createElement("ul");
+    oLi.appendChild(oUl);
+    return oUl
+  }
+}
+
+each0(menu, oRoot0);
+console.log("/////////");
+each1(menu, oRoot1);
+console.log("/////////");
+each2(menu, oRoot2);
 </script>
 </body>
 </html>
