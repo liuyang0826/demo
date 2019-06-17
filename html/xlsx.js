@@ -18833,7 +18833,7 @@ var HTML_ = (function() {
 		if(DENSE != null && opts.dense == null) opts.dense = DENSE;
 		var ws = opts.dense ? ([]) : ({});
 		var mtch = str.match(/<table/i);
-		if(!mtch) throw new Error("Invalid HTML: could not find <table>");
+		if(!mtch) throw new Error("Invalid html: could not find <table>");
 		var mtch2 = str.match(/<\/table/i);
 		var i = mtch.index, j = mtch2 && mtch2.index || str.length;
 		var rows = split_regex(str.slice(i, j), /(:?<tr[^>]*>)/i, "<tr>");

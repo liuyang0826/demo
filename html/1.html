@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="liuyang">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>1</title>
+  <style>
+  * {
+    margin: 0;padding: 0;
+  }
+
+  .box {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    width: 100px;
+    height: 100px;
+    background: #000;
+    transform: translate(-50%, -50%);
+    color: #ffffff;
+  }
+  </style>
+  <script src="https://cdn.bootcss.com/vue/2.6.10/vue.js"></script>
+  <script src="../lib/draggable.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<script>
+Vue.directive("draggable", {
+  inserted: function (el) {
+    el.$draggable = draggable(el);
+    el.$draggable.start();
+  },
+  unbind: function (el) {
+    console.log(el.innerHTML);
+    el.$draggable.destroy();
+  }
+});
+let app = new Vue({
+  el: "#app",
+  data: {
+    show: true,
+  },
+  template: `
+  <div>
+  <div class="box" v-draggable>1</div>
+    <div class="box" v-draggable v-if="show">2</div>
+  <button @click="show = !show">按钮</button>
+</div>
+  `
+});
+</script>
+</body>
+</html>

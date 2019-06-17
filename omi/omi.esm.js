@@ -137,7 +137,7 @@ function applyRef(ref, value) {
 
 /**
  * Call a function asynchronously, as soon as possible. Makes
- * use of HTML Promise to schedule the callback if available,
+ * use of html Promise to schedule the callback if available,
  * otherwise falling back to `setTimeout` (mainly for IE<11).
  * @type {(callback: function) => void}
  */

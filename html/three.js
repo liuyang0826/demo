@@ -15831,7 +15831,7 @@
 				size = 2;
 
 			} else {
-				
+
 				type = gl.UNSIGNED_BYTE;
 				size = 1;
 			}
@@ -19570,7 +19570,7 @@
 			}
 
 			scope.numPlanes = nPlanes;
-			
+
 			return dstArray;
 
 		}
@@ -32438,7 +32438,7 @@
 				var regex = handlers[ i ];
 				var loader  = handlers[ i + 1 ];
 
-				if ( regex.test( file ) ) {
+				if ( regex.index( file ) ) {
 
 					return loader;
 
