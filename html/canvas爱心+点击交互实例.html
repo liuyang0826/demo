@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="liuyang">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>test</title>
+  <style>
+  * {
+    margin: 0;padding: 0;
+  }
+
+  body {
+    background: #000;
+  }
+
+  canvas {
+    display: block;
+    width: 100vw;
+    height: 100vh;
+  }
+  </style>
+</head>
+<body>
+<canvas></canvas>
+<script>
+const oCanvas = document.querySelector("canvas");
+const width = oCanvas.width = document.documentElement.clientWidth;
+const height = oCanvas.height = document.documentElement.clientHeight;
+const ctx = oCanvas.getContext("2d");
+
+class Heart {
+  static pointNum = 24;
+  static angleInterval = Math.PI / Heart.pointNum * 2;
+  static maxOffset = 14;
+  static maxR = 1.1;
+
+  constructor (relativeCenter, relativeAngle) {
+    this.relativeCenter = relativeCenter;
+    this.relativeAngle = relativeAngle;
+    this.offset = Math.random() * Heart.maxOffset;
+    this.fillStyle = "pink";
+  }
+
+  get center () {
+    return Heart.getCurrentPoint(this.relativeCenter, this.offset, this.relativeAngle);
+  }
+
+  get r () {
+    return Heart.maxR * this.offset / Heart.maxOffset;
+  }
+
+  static getCurrentPoint (center, r, angle) {
+    return {
+      x: center.x + r * (16 * Math.pow(Math.sin(angle), 3)),
+      y: center.y - r * (13 * Math.cos(angle) - 5 * Math.cos(2 * angle) - 2 * Math.cos(3 * angle) - Math.cos(4 * angle))
+    };
+  }
+
+  createPath (point) {
+    let angle = 0;
+    let startPoint = Heart.getCurrentPoint(this.center, this.r, angle);
+    ctx.beginPath();
+    ctx.fillStyle = this.fillStyle;
+    ctx.moveTo(startPoint.x, startPoint.y);
+    for (let i = 0; i < Heart.pointNum; i++) {
+      angle += Heart.angleInterval;
+      let currentPoint = Heart.getCurrentPoint(this.center, this.r, angle);
+      ctx.lineTo(currentPoint.x, currentPoint.y);
+    }
+    if (point && ctx.isPointInPath(point.x, point.y)) {
+      return point;
+    }
+  }
+
+  render () {
+    this.createPath();
+    ctx.fill();
+  }
+
+  update () {
+    if (this.offset < Heart.maxOffset) {
+      this.offset += .05;
+      this.render();
+    } else {
+      this.destroy && this.destroy();
+    }
+  }
+
+}
+
+const pointNum = 144;
+const centerPoint = {
+  x: width / 2,
+  y: height / 2
+};
+const r = 14;
+let heartArr = [];
+let timer;
+for (let i = 0; i < pointNum; i++) {
+  newHeart();
+}
+
+function newHeart () {
+  let angle = Math.random() * Math.PI * 2;
+  let currentPoint = Heart.getCurrentPoint(centerPoint, r, angle);
+  let heart = new Heart(currentPoint, angle);
+  heartArr.push(heart);
+  heart.render();
+  heart.destroy = function () {
+    heartArr.splice(heartArr.findIndex(d => d === this), 1);
+    newHeart();
+  };
+}
+
+animate();
+
+function animate () {
+  ctx.clearRect(0, 0, width, height);
+  heartArr.forEach((heart) => {
+    heart.update();
+  });
+  requestAnimationFrame(animate);
+}
+
+oCanvas.addEventListener("mousemove", function (e) {
+  let x = e.pageX - oCanvas.getBoundingClientRect().left;
+  let y = e.pageY - oCanvas.getBoundingClientRect().top;
+  let heart = heartArr.find((item) => item.createPath({ x, y }));
+  if (heart) {
+    heart.fillStyle = "red";
+  }
+});
+</script>
+</body>
+</html>
