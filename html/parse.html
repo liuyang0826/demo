@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="liuyang">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>parse</title>
+</head>
+<body>
+<div>
+  <div class="id">asasas</div>
+</div>
+<script>
+const htmlStr = `<div><p>1212</p></div>`;
+parseHTML(htmlStr)
+function parseHTML (html) {
+  var stack = [];
+  var index = 0;
+  var last, lastTag;
+  console.log(html.match(/^<([a-zA-Z_][\-\.0-9_a-zA-Za-zA-Z\u00B7\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u037D\u037F-\u1FFF\u200C-\u200D\u203F-\u2040\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]*)/));
+  // while (html) {
+  //   last = html;
+  //
+  // }
+}
+</script>
+</body>
+</html>
