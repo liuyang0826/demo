@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="liuyang">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>水管网</title>
+  <style>
+  * {
+    margin: 0;padding: 0;
+  }
+
+  body {
+    /*background: #131f30;*/
+  }
+
+  #wrap {
+    height: 100vh;
+    width: 1920px;
+  }
+
+  svg {
+    width: 100%;height: 100%;
+    display: block;
+  }
+  </style>
+</head>
+<body>
+<div id="wrap">
+</div>
+<script>
+class Grid {
+  constructor (el) {
+    this.el = el;
+    this.svg = Grid.createElement("svg");
+    el.appendChild(this.svg);
+  }
+
+  append ({ position, direction, length, startArrow, endArrow }) {
+    let g = Grid.createElement("g");
+    let line = Grid.drawLine(position, direction, length);
+    g.appendChild(line);
+    if (startArrow) {
+      let arrow = Grid.drawArrow(position, direction === "vertical" ? "top" : "left");
+      g.appendChild(arrow);
+    }
+    if (endArrow) {
+      let arrow = Grid.drawArrow({
+        x: position.x + (direction === "vertical" ? 0 : length),
+        y: position.y + (direction === "vertical" ? length : 0),
+      }, direction === "vertical" ? "bottom" : "right");
+      g.appendChild(arrow);
+    }
+    this.svg.appendChild(g);
+  }
+
+  static createElement (tag) {
+    return document.createElementNS("http://www.w3.org/2000/svg", tag);
+  }
+
+  static drawLine ({ x, y }, direction, length) {
+    let path = Grid.createElement("path");
+    path.setAttribute("d", `M${x} ${y}${direction.charAt(0)}${length}`);
+    path.setAttribute("stroke-width", 1);
+    path.setAttribute("stroke", "#43607B");
+    path.setAttribute("fill", "none");
+    return path;
+  }
+
+  static drawArrow ({ x, y }, direction) {
+    let path = Grid.createElement("path");
+    let w = 16, h = 6;
+    switch (direction) {
+      case "top":
+        path.setAttribute("d", `M${x} ${y + w - 1} l-${h} -${w} h${h * 2} l-${h} ${w}`);
+        break;
+      case "right":
+        path.setAttribute("d", `M${x + 1} ${y} l-${w} -${h} v${h * 2} l${w} -${h}`);
+        break;
+      case "bottom":
+        path.setAttribute("d", `M${x} ${y + 1} l-${h} -${w} h${h * 2} l-${h} ${w}`);
+        break;
+      case "left":
+        path.setAttribute("d", `M${x + w - 1} ${y} l-${w} -${h} v${h * 2} l${w} -${h}`);
+        break;
+    }
+    path.setAttribute("fill", "#43607B");
+    return path;
+  }
+}
+
+let grid = new Grid(document.getElementById("wrap"));
+const gridData = [
+  { "position": { "x": 200, "y": 30 }, "direction": "horizontal", "length": 500 },
+  { "position": { "x": 200, "y": 30 }, "direction": "vertical", "length": 310 },
+  { "position": { "x": 200, "y": 340 }, "direction": "horizontal", "length": 1340 },
+  { "position": { "x": 1540, "y": 340 }, "direction": "vertical", "length": 200 },
+  { "position": { "x": 450, "y": 30 }, "direction": "vertical", "length": 50, "endArrow": true },
+  { "position": { "x": 450, "y": 220 }, "direction": "vertical", "length": 80, "endArrow": true },
+  { "position": { "x": 450, "y": 300 }, "direction": "horizontal", "length": 850 },
+  { "position": { "x": 1300, "y": 300 }, "direction": "vertical", "length": 90, "endArrow": true },
+  { "position": { "x": 700, "y": 30 }, "direction": "vertical", "length": 50, "endArrow": true },
+  { "position": { "x": 700, "y": 220 }, "direction": "vertical", "length": 80, "endArrow": true },
+  { "position": { "x": 610, "y": 160 }, "direction": "vertical", "length": 230 },
+  { "position": { "x": 610, "y": 160 }, "direction": "horizontal", "length": 20 },
+  { "position": { "x": 360, "y": 390 }, "direction": "horizontal", "length": 250 },
+  { "position": { "x": 360, "y": 160 }, "direction": "vertical", "length": 400 },
+  { "position": { "x": 360, "y": 160 }, "direction": "horizontal", "length": 20 },
+  { "position": { "x": 360, "y": 560 }, "direction": "horizontal", "length": 20, "endArrow": true },
+  { "position": { "x": 520, "y": 160 }, "direction": "horizontal", "length": 20 },
+  { "position": { "x": 540, "y": 50 }, "direction": "vertical", "length": 110 },
+  { "position": { "x": 540, "y": 50 }, "direction": "horizontal", "length": 260 },
+  { "position": { "x": 800, "y": 50 }, "direction": "vertical", "length": 120 },
+  { "position": { "x": 800, "y": 170 }, "direction": "horizontal", "length": 80 },
+  { "position": { "x": 770, "y": 150 }, "direction": "horizontal", "length": 60 },
+  { "position": { "x": 830, "y": 50 }, "direction": "vertical", "length": 100 },
+  { "position": { "x": 830, "y": 50 }, "direction": "horizontal", "length": 530 },
+  { "position": { "x": 1360, "y": 50 }, "direction": "vertical", "length": 110 },
+  { "position": { "x": 1360, "y": 160 }, "direction": "horizontal", "length": 20 },
+  { "position": { "x": 1520, "y": 160 }, "direction": "horizontal", "length": 20 },
+  { "position": { "x": 1520, "y": 160 }, "direction": "vertical", "length": 120 },
+  { "position": { "x": 950, "y": 30 }, "direction": "horizontal", "length": 800 },
+  { "position": { "x": 950, "y": 30 }, "direction": "vertical", "length": 50, "endArrow": true },
+  { "position": { "x": 950, "y": 220 }, "direction": "vertical", "length": 40, "endArrow": true },
+  { "position": { "x": 950, "y": 260 }, "direction": "horizontal", "length": 500 },
+  { "position": { "x": 1020, "y": 160 }, "direction": "horizontal", "length": 20 },
+  { "position": { "x": 1040, "y": 160 }, "direction": "vertical", "length": 120 },
+  { "position": { "x": 1040, "y": 280 }, "direction": "horizontal", "length": 580, "endArrow": true },
+  { "position": { "x": 1200, "y": 40 }, "direction": "vertical", "length": 40, "endArrow": true },
+  { "position": { "x": 1200, "y": 40 }, "direction": "horizontal", "length": 530 },
+  { "position": { "x": 1200, "y": 220 }, "direction": "vertical", "length": 40, "endArrow": true },
+  { "position": { "x": 1270, "y": 160 }, "direction": "horizontal", "length": 20 },
+  { "position": { "x": 1290, "y": 160 }, "direction": "vertical", "length": 120 },
+  { "position": { "x": 1450, "y": 60 }, "direction": "vertical", "length": 20, "endArrow": true },
+  { "position": { "x": 1450, "y": 60 }, "direction": "horizontal", "length": 260 },
+  { "position": { "x": 1450, "y": 220 }, "direction": "vertical", "length": 40, "endArrow": true },
+  { "position": { "x": 1450, "y": 260 }, "direction": "vertical", "length": 130, "endArrow": true },
+  { "position": { "x": 30, "y": 440 }, "direction": "horizontal", "length": 350, "endArrow": true },
+  { "position": { "x": 680, "y": 440 }, "direction": "horizontal", "length": 510, "endArrow": true },
+  { "position": { "x": 1500, "y": 440 }, "direction": "horizontal", "length": 200, "endArrow": true },
+  { "position": { "x": 200, "y": 540 }, "direction": "horizontal", "length": 180, "endArrow": true },
+  { "position": { "x": 680, "y": 540 }, "direction": "horizontal", "length": 510, "endArrow": true },
+  { "position": { "x": 1500, "y": 540 }, "direction": "horizontal", "length": 200, "endArrow": true },
+  { "position": { "x": 270, "y": 640 }, "direction": "horizontal", "length": 110, "endArrow": true },
+  { "position": { "x": 270, "y": 640 }, "direction": "vertical", "length": 200 },
+  { "position": { "x": 680, "y": 640 }, "direction": "horizontal", "length": 300 },
+  { "position": { "x": 1500, "y": 640 }, "direction": "horizontal", "length": 200, "endArrow": true },
+  { "position": { "x": 980, "y": 560 }, "direction": "vertical", "length": 80 },
+  { "position": { "x": 980, "y": 560 }, "direction": "horizontal", "length": 210, "endArrow": true },
+  { "position": { "x": 270, "y": 840 }, "direction": "horizontal", "length": 980 },
+  { "position": { "x": 30, "y": 740 }, "direction": "horizontal", "length": 350, "endArrow": true },
+  { "position": { "x": 680, "y": 740 }, "direction": "horizontal", "length": 510, "endArrow": true },
+  { "position": { "x": 1500, "y": 740 }, "direction": "horizontal", "length": 200, "endArrow": true },
+  { "position": { "x": 30, "y": 810 }, "direction": "horizontal", "length": 400 },
+  { "position": { "x": 430, "y":790 }, "direction": "vertical", "length": 20 },
+  { "position": { "x": 200, "y": 540 }, "direction": "vertical", "length": 350 },
+  { "position": { "x": 200, "y": 890 }, "direction": "horizontal", "length": 1100 },
+  { "position": { "x": 1250, "y": 790 }, "direction": "vertical", "length": 50 },
+  { "position": { "x": 1300, "y": 790 }, "direction": "vertical", "length": 100 },
+];
+
+gridData.forEach((item) => {
+  // item.position.x += 10
+  grid.append(item);
+});
+</script>
+</body>
+</html>

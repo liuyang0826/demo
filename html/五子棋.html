@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="liuyang">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>五子棋</title>
+  <style>
+  * {
+    margin: 0;padding: 0;
+  }
+
+  canvas {
+    width: 810px;
+    height: 810px;
+    display: block;
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
+  </style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+const oCanvas = document.getElementById("canvas");
+const checkerboardLength = 800;
+const checkerboardPadding = 5;
+oCanvas.width = oCanvas.height = checkerboardLength + 2 * checkerboardPadding;
+const ctx = oCanvas.getContext("2d");
+const gridNum = 14;
+const gridLength = checkerboardLength / gridNum;
+const tempMatrix = [
+  []
+];
+
+renderCheckerboard();
+
+function renderCheckerboard () {
+  for (let i = 0; i <= gridNum; i++) {
+    let x = 5 + gridLength * i;
+    ctx.beginPath();
+    ctx.moveTo(x, checkerboardPadding);
+    ctx.lineTo(x, checkerboardLength + checkerboardPadding);
+    ctx.strokeStyle = "#000";
+    ctx.stroke();
+  }
+  for (let i = 0; i <= gridNum; i++) {
+    let y = 5 + gridLength * i;
+    ctx.beginPath();
+    ctx.moveTo(checkerboardPadding, y);
+    ctx.lineTo(checkerboardLength + checkerboardPadding, y);
+    ctx.strokeStyle = "#000";
+    ctx.stroke();
+  }
+}
+
+class ChessPiece {
+  constructor (type) {
+    this.type = type;
+  }
+
+  setPosition ({ x, y }) {
+    this.x = x;
+    this.y = y;
+  }
+
+  render () {
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, gridLength / 2, 0, Math.PI * 2);
+    ctx.fillStyle = this.type;
+    ctx.fill();
+  }
+}
+
+oCanvas.addEventListener("click", function (e) {
+  console.log(e.pageX - this.getBoundingClientRect().left);
+});
+</script>
+</body>
+</html>
