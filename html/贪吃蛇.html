@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="liuyang">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>贪吃蛇</title>
+  <style>
+  * {
+    margin: 0;padding: 0;
+  }
+
+  canvas {
+    width: 960px;
+    height: 800px;
+    display: block;
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    border: 2px solid red;
+  }
+  </style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+const oCanvas = document.getElementById("canvas");
+const width = oCanvas.width = 960;
+const height = oCanvas.height = 800;
+const ctx = oCanvas.getContext("2d");
+const gridNum = 20;
+const gridLength = Math.min(width, height) / gridNum;
+const gridPadding = 1;
+const snakeInitX = gridLength * 1;
+const snakeInitY = gridLength * 0;
+const snakeInitNodeNum = 3;
+
+class NodeItem {
+  constructor (length, padding) {
+    this.length = length;
+    this.padding = padding;
+  }
+
+  setPosition ({ x, y }) {
+    this.x = x;
+    this.y = y;
+  }
+
+  render () {
+    ctx.beginPath();
+    ctx.fillStyle = "red";
+    let length = this.length - 2 * this.padding;
+    ctx.fillRect(this.x + this.padding, this.y + this.padding, length, length);
+  }
+}
+
+class Snake {
+  constructor (x, y, initNodeNum, gridLength, gridPadding) {
+    this.x = x;
+    this.y = y;
+    this.length = initNodeNum;
+    this.gridLength = gridLength;
+    this.gridPadding = gridPadding;
+    this.nodeQueue = [];
+    this.direction = 39;
+  }
+
+  init () {
+    for (let i = 0; i < this.length; i++) {
+      let nodeItem = new NodeItem(this.gridLength, this.gridPadding);
+      nodeItem.setPosition({ x: this.x - this.gridLength * i, y: this.y });
+      this.nodeQueue.push(nodeItem);
+    }
+  }
+
+  render () {
+    this.nodeQueue.forEach((node) => {
+      node.render();
+    });
+  }
+
+  move () {
+    this.prevLastNode = this.nodeQueue.pop();
+    this.nodeQueue.unshift(this.nextHead);
+  }
+
+  get nextHead () {
+    let head = this.nodeQueue[0];
+    let nodeItem = new NodeItem(this.gridLength, this.gridPadding);
+    let x = head.x, y = head.y;
+    switch (this.direction) {
+      case 39:
+        x += head.length;
+        break;
+      case 40:
+        y += head.length;
+        break;
+      case 37:
+        x -= head.length;
+        break;
+      case 38:
+        y -= head.length;
+        break;
+    }
+    nodeItem.setPosition({ x, y });
+    return nodeItem;
+  }
+
+  eat () {
+    let nodeItem = new NodeItem(this.gridLength, this.gridPadding);
+    nodeItem.setPosition({ x: this.prevLastNode.x, y: this.prevLastNode.y });
+    this.nodeQueue.push(nodeItem);
+  }
+}
+
+class Food extends NodeItem {
+  constructor (disablePositions, length, padding) {
+    super(length, padding);
+    this.getNewPosition(disablePositions);
+  }
+
+  getNewPosition (disablePositions) {
+    let x = (~~(Math.random() * gridNum)) * this.length;
+    let y = (~~(Math.random() * gridNum)) * this.length;
+    return disablePositions.some(d => d.x === x && d.y === y)
+    ? this.getNewPosition(disablePositions)
+    : super.setPosition({ x, y });
+  }
+}
+
+let timer = null;
+let snake = new Snake(snakeInitX, snakeInitY, snakeInitNodeNum, gridLength, gridPadding);
+let food = new Food(snake.nodeQueue, gridLength, gridPadding);
+snake.init();
+run();
+
+function run () {
+  clearTimeout(timer);
+  ctx.clearRect(0, 0, width, height);
+  snake.move();
+  check();
+  snake.render();
+  food.render();
+  timer = setTimeout(run, 500);
+}
+
+function check () {
+  let head = snake.nodeQueue[0];
+  if (head.x === food.x && head.y === food.y) {
+    snake.eat();
+    food.getNewPosition(snake.nodeQueue);
+  }
+}
+
+document.addEventListener("keydown", function (e) {
+  let reversedMap = {
+    37: 39,
+    39: 37,
+    38: 40,
+    40: 38
+  };
+  if (reversedMap[e.which] && snake.direction !== reversedMap[e.which] && e.which !== snake.direction) {
+    snake.direction = e.which;
+    run();
+  }
+});
+</script>
+</body>
+</html>
