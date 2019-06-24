@@ -6,37 +6,34 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
   <title>五子棋</title>
   <style>
-    * {
-      margin: 0;padding: 0;
-    }
+  * {
+    margin: 0;padding: 0;
+  }
 
-    canvas {
-      width: 810px;
-      height: 810px;
-      display: block;
-      position: fixed;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      background: brown;
-    }
+  canvas {
+    width: 760px;
+    height: 760px;
+    display: block;
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background: brown;
+  }
   </style>
 </head>
 <body>
 <canvas id="canvas"></canvas>
 <script>
 const oCanvas = document.getElementById("canvas");
-const checkerboardLength = 800;
+const checkerboardLength = 700;
 const checkerboardPadding = 30;
 oCanvas.width = oCanvas.height = checkerboardLength + 2 * checkerboardPadding;
 const ctx = oCanvas.getContext("2d");
+const chessPieceType = [ "white", "black" ];
+
 const gridNum = 14;
 const gridLength = checkerboardLength / gridNum;
-const tempMatrix = [
-  []
-];
-
-renderCheckerboard();
 
 function renderCheckerboard () {
   for (let i = 0; i <= gridNum; i++) {
@@ -57,11 +54,12 @@ function renderCheckerboard () {
   }
 }
 
-function getPositionOnCheckerboard ({ x, y }) {
-  console.log(x, x / gridLength, gridLength / 2);
+function getPositionOnCheckerboard (e, el) {
+  let x = e.pageX - el.getBoundingClientRect().left;
+  let y = e.pageY - el.getBoundingClientRect().top;
   return {
-    x: x - x % gridLength + checkerboardPadding + (x % gridLength > gridLength / 2 ? gridLength : 0),
-    y: y - y % gridLength + checkerboardPadding + (y % gridLength > gridLength / 2 ? gridLength : 0)
+    xIndex: Math.round((x - checkerboardPadding) / gridLength),
+    yIndex: Math.round((y - checkerboardPadding) / gridLength)
   };
 }
 
@@ -70,28 +68,178 @@ class ChessPiece {
     this.type = type;
   }
 
-  setPosition ({ x, y }) {
-    this.x = x;
-    this.y = y;
+  setPosition ({ xIndex, yIndex }) {
+    this.xIndex = xIndex;
+    this.yIndex = yIndex;
   }
 
   render () {
     ctx.beginPath();
-    ctx.arc(this.x, this.y, gridLength / 2 - 2, 0, Math.PI * 2);
-    ctx.fillStyle = this.type;
+    ctx.arc(checkerboardPadding + this.xIndex * gridLength, checkerboardPadding + this.yIndex * gridLength, gridLength / 2 - 2, 0, Math.PI * 2);
+    ctx.fillStyle = chessPieceType[this.type];
     ctx.fill();
   }
 }
 
-oCanvas.addEventListener("click", function (e) {
-  let chessPiece = new ChessPiece("white");
-  chessPiece.setPosition(getPositionOnCheckerboard({
-    x: e.pageX - this.getBoundingClientRect().left,
-    y: e.pageY - this.getBoundingClientRect().top
-  }));
+renderCheckerboard();
+let step = 0;
+// 棋盘 15*15 矩阵
+const tableMatrix = Array.from({ length: 15 })
+.map(() => Array.from({ length: 15 })
+.map(() => null));
+const whiteMatrix = Array.from({ length: 15 })
+.map(() => Array.from({ length: 15 })
+.map(() => []));
+const blackMatrix = Array.from({ length: 15 })
+.map(() => Array.from({ length: 15 })
+.map(() => []));
+
+oCanvas.addEventListener("click", userNextStep);
+
+function userNextStep (e) {
+  let position = getPositionOnCheckerboard(e, this);
+  if (tableMatrix[position.yIndex][position.xIndex] !== null) {
+    return;
+  }
+  nextStep(position);
+  autoNextStep();
+}
+
+// 下子
+function nextStep (position) {
+  let chessPiece = new ChessPiece(step % 2);
+  chessPiece.setPosition(position);
   chessPiece.render();
-  console.log(e.pageX - this.getBoundingClientRect().left);
-});
+  tableMatrix[position.yIndex][position.xIndex] = chessPiece.type;
+  step++;
+}
+
+// 自动计算下一步落子
+function autoNextStep () {
+  for (let yIndex = 0; yIndex < tableMatrix.length; yIndex++) {
+    for (let xIndex = 0; xIndex < tableMatrix[yIndex].length; xIndex++) {
+      tableMatrix[yIndex][xIndex] === null && getAroundInfo(xIndex, yIndex);
+    }
+  }
+  nextStep(getAutoPosition());
+}
+
+// 算法
+function getAutoPosition () {
+  let x = 0, y = 0, max = 0, maxArr = [];
+  for (let yIndex = 0; yIndex < tableMatrix.length; yIndex++) {
+    for (let xIndex = 0; xIndex < tableMatrix[yIndex].length; xIndex++) {
+      if (tableMatrix[yIndex][xIndex] === null) {
+        let currentMax = Math.max(...whiteMatrix[yIndex][xIndex].map(d => d.num + d.ableNum * .6)
+        .concat(blackMatrix[yIndex][xIndex].map(d => d.num + d.ableNum)));
+        if (currentMax > max) {
+          max = currentMax;
+          maxArr = [];
+        }
+        if (currentMax >= max) {
+          x = xIndex;
+          y = yIndex;
+        }
+        if (currentMax === max) {
+          maxArr.push({ currentMax, xIndex: x, yIndex: y });
+        }
+      }
+    }
+  }
+  return maxArr[~~(maxArr.length * Math.random())];
+}
+
+// 计算纵横斜线
+function getAroundInfo (xIndex, yIndex) {
+  whiteMatrix[yIndex][xIndex] = [ getLRInfo(0), getTBInfo(0), getLtRbInfo(0), getLbRtInfo(0) ];
+  blackMatrix[yIndex][xIndex] = [ getLRInfo(1), getTBInfo(1), getLtRbInfo(1), getLbRtInfo(1) ];
+
+  function getLRInfo (type) {
+    let num = 0, ableNum = 2, x = xIndex - 1;
+    while (x >= 0 && tableMatrix[yIndex][x] === type) {
+      x--;
+      num++;
+    }
+    if (x === -1 || tableMatrix[yIndex][x] !== null) {
+      ableNum--;
+    }
+    x = xIndex + 1;
+    while (x < 15 && tableMatrix[yIndex][x] === type) {
+      x++;
+      num++;
+    }
+    if (x === 15 || tableMatrix[yIndex][x] !== null) {
+      ableNum--;
+    }
+    return { num, ableNum };
+  }
+
+  function getTBInfo (type) {
+    let num = 0, ableNum = 2, y = yIndex - 1;
+    while (y >= 0 && tableMatrix[y][xIndex] === type) {
+      y--;
+      num++;
+    }
+    if (y === -1 || tableMatrix[y][xIndex] !== null) {
+      ableNum--;
+    }
+    y = yIndex + 1;
+    while (y < 15 && tableMatrix[y][xIndex] === type) {
+      y++;
+      num++;
+    }
+    if (y === 15 || tableMatrix[y][xIndex] !== null) {
+      ableNum--;
+    }
+    return { num, ableNum };
+  }
+
+  function getLtRbInfo (type) {
+    let num = 0, ableNum = 2, x = xIndex - 1, y = yIndex - 1;
+    while (x >= 0 && y >= 0 && tableMatrix[y][x] === type) {
+      x--;
+      y--;
+      num++;
+    }
+    if (x === -1 || y === -1 || tableMatrix[y][x] !== null) {
+      ableNum--;
+    }
+    x = xIndex + 1;
+    y = yIndex + 1;
+    while (x < 15 && y < 15 && tableMatrix[y][x] === type) {
+      x++;
+      y++;
+      num++;
+    }
+    if (x === 15 || y === 15 || tableMatrix[y][x] !== null) {
+      ableNum--;
+    }
+    return { num, ableNum };
+  }
+
+  function getLbRtInfo (type) {
+    let num = 0, ableNum = 2, x = xIndex - 1, y = yIndex + 1;
+    while (x >= 0 && y < 15 && tableMatrix[y][x] === type) {
+      x--;
+      y++;
+      num++;
+    }
+    if (x === -1 || y === 15 || tableMatrix[y][x] !== null) {
+      ableNum--;
+    }
+    x = xIndex + 1;
+    y = yIndex - 1;
+    while (x < 15 && y >= 0 && tableMatrix[y][x] === type) {
+      x++;
+      y--;
+      num++;
+    }
+    if (x === 15 || y === -1 || tableMatrix[y][x] !== null) {
+      ableNum--;
+    }
+    return { num, ableNum };
+  }
+}
 </script>
 </body>
 </html>
