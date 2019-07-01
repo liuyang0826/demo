@@ -5,46 +5,114 @@
   <meta name="author" content="liuyang">
   <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
   <title>parse</title>
-  <style>
-  .box {
-    margin-top: 500px;
-    position: relative;
-  }
-
-  .inner {
-    position: absolute;
-    top: 600px;
-    height: 50px;
-    background: #000;
-    width: 100%;
-  }
-  </style>
 </head>
 <body>
-<div class="box">
-  <div class="inner">asasas</div>
-</div>
 <script>
-var canMeasureWater = function (x, y, z) {
-  if (x + y === z || z === 0) {
-    return true;
-  }
-  if (x + y < z) {
-    return false;
-  }
-  return z % gcd(x, y) === 0;
+let buffer = `
+var a = 100; /* 这是一段注释 */
+const stateMap = { /* 状态map */
+  literal: "literal",
+  beforeComment: "beforeComment",
+  comment: "comment",
+  beforeCommentClose: "beforeCommentClose",
+  commentClose: "commentClose"
+};
+console.log(a);
+`;
+let state;
+let index;
+let char;
+let startIndex;
+let tokens;
+const stateMap = {
+  literal: "literal",
+  beforeComment: "beforeComment",
+  comment: "comment",
+  beforeCommentClose: "beforeCommentClose",
+  commentClose: "commentClose"
 };
 
-function gcd (x, y) {
-  if (y === 0) {
-    return x;
-  }
-  return gcd(y, x % y);
+function init () {
+  state = stateMap.literal;
+  index = 0;
+  startIndex = 0;
+  tokens = [];
 }
 
-console.log(gcd(31237, 22002));
+function tokenizer () {
+  while (index < buffer.length) {
+    char = buffer.charAt(index);
+    switch (state) {
+      case stateMap.literal:
+        parseLiteral();
+        break;
+      case stateMap.beforeComment:
+        parseBeforeComment();
+        break;
+      case stateMap.comment:
+        parseComment();
+        break;
+      case stateMap.beforeCommentClose:
+        parseBeforeCommentClose();
+        break;
+      case stateMap.commentClose:
+        parseLiteral();
+        break;
+    }
+    index++;
+  }
+  switch (state) {
+    case stateMap.literal:
+    case stateMap.commentClose:
+      emitToken(stateMap.literal, stateMap.literal, buffer.length);
+      break;
+    case stateMap.comment:
+      emitToken(stateMap.comment, stateMap.comment, buffer.length);
+      break;
+  }
+}
 
-console.log(canMeasureWater(31237, 220213, 1));
+function emitToken (kind, newState, end, newStart) {
+  let value = buffer.substring(startIndex, end);
+  tokens.push({ type: kind, startIndex, end, value });
+  state = newState;
+  startIndex = newStart;
+}
+
+function parseLiteral () {
+  if (char === "/") {
+    state = stateMap.beforeComment;
+  }
+}
+
+function parseBeforeComment () {
+  if (char === "*") {
+    emitToken(stateMap.literal, stateMap.comment, index - 1, index - 1);
+  } else {
+    state = stateMap.literal;
+  }
+}
+
+function parseComment () {
+  if (char === "*") {
+    state = stateMap.beforeCommentClose;
+  }
+}
+
+function parseBeforeCommentClose () {
+  if (char === "/") {
+    emitToken(stateMap.comment, stateMap.commentClose, index + 1, index + 1);
+  } else {
+    state = stateMap.comment;
+  }
+}
+
+init();
+tokenizer();
+console.log(buffer);
+console.log(tokens);
+console.log(tokens.filter(d => d.type === stateMap.literal).map(d => d.value).join(""));
+
 </script>
 </body>
 </html>
