@@ -26,12 +26,12 @@
 <canvas id="canvas"></canvas>
 <script>
 const oCanvas = document.getElementById("canvas");
-const checkerboardLength = 700;
 const checkerboardPadding = 30;
-oCanvas.width = oCanvas.height = checkerboardLength + 2 * checkerboardPadding;
+oCanvas.width = oCanvas.height = parseInt(window.getComputedStyle(oCanvas).width);
+const checkerboardLength = oCanvas.width - checkerboardPadding * 2;
 const ctx = oCanvas.getContext("2d");
-const chessPieceType = [ "white", "black" ];
 
+const chessPieceType = [ "white", "black" ];
 const gridNum = 14;
 const gridLength = checkerboardLength / gridNum;
 
@@ -126,6 +126,7 @@ function autoNextStep () {
 
 // 算法
 function getAutoPosition () {
+  // console.log(whiteMatrix);
   let x = 0, y = 0, max = 0, maxArr = [];
   for (let yIndex = 0; yIndex < tableMatrix.length; yIndex++) {
     for (let xIndex = 0; xIndex < tableMatrix[yIndex].length; xIndex++) {

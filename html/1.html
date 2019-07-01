@@ -20,6 +20,12 @@
     transform: translate(-50%, -50%);
     color: #ffffff;
   }
+  #modal {
+    width: 300px;
+    height: 300px;
+    background: #000;
+    color: #fff;
+  }
   </style>
   <script src="./vue.js"></script>
   <script src="../lib/draggable.js"></script>
@@ -27,6 +33,7 @@
 </head>
 <body>
 <div id="app"></div>
+  <div id="modal"><div>21212</div></div>
 <script>
 Vue.directive("draggable", {
   inserted: function (el) {
@@ -55,8 +62,15 @@ let app = new Vue({
 <script>
 "yyyy-MM-dd".replace(/d{1,4}|M{1,4}/g, function ($0) {
   console.log(arguments);
-})
+});
 
+document.addEventListener("click", function () {
+  document.getElementById("modal").style.display = "none"
+});
+
+document.getElementById("modal").addEventListener("click", function (e) {
+  e.stopPropagation();
+});
 
 </script>
 </body>
