@@ -14,137 +14,152 @@
 </style>
 
 <body>
-<svg width="800" height="700"></svg>
-<div class="panel panel-default">
-  <div class="panel-heading">Panel heading without title</div>
-  <div class="panel-body">
-  </div>
-</div>
+<div id="chart" style="width: 900px;height: 700px;"></div>
+<button id="btn">点击</button>
 <script>
-let data = [
-  [
-    { x: 0, y: 30 }, { x: 1, y: 8 }, { x: 2, y: 10 }, { x: 3, y: 14 }, { x: 4, y: 10 }, { x: 5, y: 11 }, {
-    x: 6, y: 22
-  }, { x: 7, y: 17 }, { x: 12, y: 14 }, { x: 14, y: 18 }, { x: 20, y: 20 }
-  ]
-];
-let svg = d3.select("svg"),
-margin = { top: 20, right: 20, bottom: 50, left: 50 },
-areaWidth = svg.attr("width") - margin.left - margin.right,
-areaHeight = svg.attr("height") - margin.top - margin.bottom,
+class D3Render {
+  constructor ({ el, margin, width, height }) {
+    this.el = d3.select(el);
+    this.margin = margin;
+    this.width = width;
+    this.height = height;
+    this.appendElement();
+  }
 
-g = svg.append("g")
-.attr("transform", `translate(${margin.left},${margin.top})`)
-.attr("width", areaWidth)
-.attr("height", areaHeight);
+  appendElement () {
+    let svg = this.el.append("svg");
+    svg.attr("width", this.width + this.margin.left + this.margin.right);
+    svg.attr("height", this.height + this.margin.top + this.margin.bottom);
 
-let xScale = d3.scaleLinear()
-.domain([ 0, 22 ])
-.range([ 0, areaWidth ]);
+    let chart = this.chart = svg.append("g")
+    .attr("transform", `translate(${margin.left},${margin.top})`)
+    .attr("width", areaWidth)
+    .attr("height", areaHeight);
 
-let yScale = d3.scaleLinear()
-.domain([ 40, 0 ])
-.range([ 0, areaHeight ]);
-let xAxis = d3.axisBottom(xScale);
-let yAxis = d3.axisLeft(yScale);
-let line = d3.line()
-.curve(d3.curveStepAfter)
+    this.xAxisG = chart.append("g")
+    .attr("transform", `translate(0,${areaHeight})`);
 
-.x(function (d) {
-  return xScale(d.x);
-})
-.y(function (d) {
-  return yScale(d.y);
-});
+    this.yAxisG = chart.append("g");
 
-let t = d3.transition()
-.duration(500)
-.ease(d3.easeLinear);
+    this.zoomRect = svg.append("rect")
+    .attr("width", this.width + this.margin.left + this.margin.right)
+    .attr("height", this.height + this.margin.top + this.margin.bottom)
+    .attr("fill", "none")
+    .attr("pointer-events", "all");
 
-let xGrooup = g.append("g")
-.attr("transform", `translate(0,${areaHeight})`)
-.call(xAxis);
+    this.xTop = chart.append("g");
 
-let yGroup = g.append("g")
-.attr("transform", `translate(0,0)`)
-.call(yAxis);
+    this.brushBox = svg.append("g")
+    .attr("transform", `translate(${this.margin.left},${this.margin.top})`)
+    .attr("fill", "red");
+  }
 
-g.append("clipPath")
-.attr("id", "clip")
-.append("rect")
-.attr("width", areaWidth)
-.attr("height", areaHeight);
+  renderData (data) {
+    let xScale = d3.scaleLinear()
+    .domain([ 0.5, data.length + .5 ])
+    .range([ 0, this.width ]);
 
-let updateLine = g.append("g")
-.attr("class", "chart")
-.selectAll("line")
-.data(data);
+    let yScale = d3.scaleLinear()
+    .domain([ 700, 0 ])
+    .range([ 0, this.height ]);
 
-let enterLine = updateLine.enter();
-let exitLine = updateLine.exit();
-let path = enterLine.append("path")
-.attr("clip-path", "url(#clip)")
-.attr("class", "line")
-.attr("d", line)
-.attr("fill", "none")
-.attr("stroke", 0)
-.transition(t)
-.attr("stroke-width", 2)
-.attr("stroke", "green");
-exitLine.remove();
+    let xAxis = d3.axisBottom(xScale)
+    .ticks(data.length)
+    .tickPadding(10)
+    .tickFormat((d, i) => data[d - 1] && data[d - 1].x);
 
-let zoom = d3.zoom()
-.scaleExtent([ 1, 8 ])
-.translateExtent([ [ 0, 0 ], [ areaWidth, areaHeight ] ])
-.on("zoom", zoomed);
-let zoomRect = svg.append("rect")
-.attr("width", areaWidth)
-.attr("height", areaHeight)
-.attr("fill", "none")
-.attr("pointer-events", "all")
-.call(zoom);
+    let yAxis = d3.axisLeft(yScale);
 
-let brush = d3.brushX()
-.extent([ [ 0, 0 ], [ areaWidth, 20 ] ])
-.on("brush end", brushed);
+    this.xAxisG.call(xAxis);
 
-let xBrush = d3.scaleLinear().range([ 0, areaWidth ])
-.domain(xScale.domain());
+    this.yAxisG.call(yAxis);
 
-let xTop = d3.axisTop(xBrush);
-let brushBox = svg.append("g")
-.attr("transform", `translate(${margin.left},${margin.top})`)
-.attr("class", "brushBox");
+    this.chart.append("g")
+    .attr("class", "chart")
+    .selectAll("rect")
+    .data(data)
+    .enter()
+    .append("rect")
+    .attr("class", "rect")
+    .attr("x", (d, i) => xScale(i + 1) - 10)
+    .attr("y", d => yScale(d.y))
+    .attr("width", 20)
+    .attr("height", d => areaHeight - yScale(d.y))
+    .attr("fill", "red");
 
-brushBox.append("g")
-.attr("fill", "black")
-.call(xTop);
+    let zoom = d3.zoom()
+    .scaleExtent([ 1, 8 ])
+    .translateExtent([
+      [ 0, 0 ],
+      [ this.width + this.margin.left + this.margin.right, this.height + this.margin.top + this.margin.bottom ]
+    ])
+    .on("zoom", zoomed.bind(this));
 
-brushBox.append("g")
-.attr("class", "brush")
-.attr("fill", "red")
-.call(brush)
-.call(brush.move, xScale.range())
-.selectAll("rect")
-.attr("width", areaWidth)
-.attr("height", 20);
+    this.zoomRect.call(zoom);
 
-function zoomed () {
-  let t = d3.event.transform.rescaleX(xScale);
-  xGrooup.call(xAxis.scale(t));
-  g.select("path.line").attr("d", line.x(function (d) {
-    return t(d.x);
-  }));
-  console.log(1);
-  brushBox.select(".brush").call(brush.move, xScale.range().map(d3.event.transform.invertX, d3.event.transform));
+    let brush = d3.brushX()
+    .extent([ [ 0, 0 ], [ areaWidth + margin.left + margin.right, 20 ] ])
+    .on("brush", brushed.bind(this));
+
+    let xBrush = d3.scaleLinear()
+    .range([ 0, areaWidth ])
+    .domain(xScale.domain());
+
+    this.xTop.call(d3.axisTop(xBrush)
+    .ticks(data.length)
+    .tickPadding(10)
+    .tickFormat((d, i) => data[d - 1] && data[d - 1].x));
+
+    this.brushBox
+    .call(brush)
+    .call(brush.move, xScale.range())
+    .selectAll("rect.section")
+    .attr("width", this.width)
+    .attr("height", 20);
+
+    function zoomed () {
+      let t = d3.event.transform.rescaleX(xScale);
+      this.xAxisG.call(xAxis.scale(t));
+      this.brushBox.call(brush.move, xScale.range().map(d3.event.transform.invertX, d3.event.transform));
+      // 数据图形缩放
+      this.chart.selectAll("rect.rect")
+      .attr("x", (d, i) => t(i + 1) - d3.event.transform.k * 10)
+      .attr("width", d3.event.transform.k * 20);
+    }
+
+    function brushed () {
+      if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
+      let s = d3.event.selection || xScale.range();
+      xScale.domain(s.map(xBrush.invert, xBrush));
+      this.zoomRect.call(zoom.transform, d3.zoomIdentity.scale(this.width / (s[1] - s[0]))
+      .translate(-s[0], 0));
+    }
+  }
 }
 
-function brushed () {
-  if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
-  let s = d3.event.selection || xScale.range();
-  console.log(s.map(xBrush.invert, xBrush));
-  zoomRect.call(zoom.transform, d3.zoomIdentity.scale(areaWidth / (s[1] - s[0]))
-  .translate(-s[0], 0));
+let svg = d3.select("svg"),
+margin = { top: 50, right: 50, bottom: 50, left: 50 },
+areaWidth = 1000,
+areaHeight = 600;
+
+let d3Render = new D3Render({
+  el: "#chart",
+  margin,
+  width: areaWidth,
+  height: areaHeight
+});
+d3Render.renderData(createData());
+
+function createData(){
+  return Array.from({ length: ~~(Math.random() * 7) }).map(() => {
+    return {
+      x: ~~(Math.random() * 7) + 2012, y: ~~(Math.random() * 7) * 100
+    }
+  })
+}
+
+btn.onclick = function () {
+  d3Render.renderData(createData());
 }
 </script>
 </body>
