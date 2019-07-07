@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <script src="./vue.js"></script>
+  <script src="./d3.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<script>
+Vue.component("D3Chart", {
+  props: {
+    data: {
+      type: Array
+    },
+    margin: {
+      type: Object
+    },
+    width: Number,
+    height: Number
+  },
+  template: `<div></div>`,
+  computed: {
+    xScale () {
+      return d3.scaleLinear()
+      .domain([ 0.5, this.data.length + .5 ])
+      .range([ 0, this.width ]);
+    },
+    yScale () {
+      return d3.scaleLinear()
+      .domain([ 700, 0 ])
+      .range([ 0, this.height ]);
+    },
+    xAxis () {
+      return d3.axisBottom(this.xScale)
+      .ticks(this.data.length)
+      .tickPadding(10)
+      .tickFormat((d, i) => this.data[d - 1] && this.data[d - 1].x);
+    },
+    yAxis () {
+      return d3.axisLeft(this.yScale);
+    },
+    zoom () {
+      return d3.zoom()
+      .scaleExtent([ 1, 8 ])
+      .translateExtent([
+        [ 0, 0 ],
+        [ this.width + this.margin.left + this.margin.right, this.height + this.margin.top + this.margin.bottom ]
+      ])
+      .on("zoom", () => {
+        let t = d3.event.transform.rescaleX(this.xScale);
+        this.xAxisG.call(this.xAxis.scale(t));
+        this.brushBox.call(this.brush.move, this.xScale.range().map(d3.event.transform.invertX, d3.event.transform));
+        // 数据图形缩放
+        this.chart.selectAll("rect.rect")
+        .attr("x", (d, i) => t(i + 1) - d3.event.transform.k * 10)
+        .attr("width", d3.event.transform.k * 20);
+      });
+    },
+    xBrushScale () {
+      return d3.scaleLinear()
+      .range([ 0, this.width ])
+      .domain(this.xScale.domain());
+    },
+    brush () {
+      return d3.brushX()
+      .extent([ [ 0, 0 ], [ this.width + this.margin.left + this.margin.right, 20 ] ])
+      .on("brush", () => {
+        if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
+        let s = d3.event.selection || this.xScale.range();
+        this.xScale.domain(s.map(this.xBrushScale.invert, this.xBrushScale));
+        this.zoomRect.call(this.zoom.transform, d3.zoomIdentity.scale(this.width / (s[1] - s[0]))
+        .translate(-s[0], 0));
+      });
+    },
+    xTopAxis () {
+      return d3.axisTop(this.xBrushScale)
+      .ticks(this.data.length)
+      .tickPadding(10)
+      .tickFormat((d, i) => this.data[d - 1] && this.data[d - 1].x);
+    }
+  },
+  mounted () {
+    this.initElement();
+    this.render();
+  },
+  updated () {
+    console.log("updated");
+    this.render();
+  },
+  watch: {
+    data () {
+      this.render();
+    }
+  },
+  methods: {
+    initElement () {
+      let svg = d3.select(this.$el).append("svg");
+      svg.attr("width", this.width + this.margin.left + this.margin.right);
+      svg.attr("height", this.height + this.margin.top + this.margin.bottom);
+
+      let chart = this.chart = svg.append("g")
+      .attr("transform", `translate(${this.margin.left},${this.margin.top})`)
+      .attr("width", this.width)
+      .attr("height", this.height);
+
+      this.xAxisG = chart.append("g")
+      .attr("transform", `translate(0,${this.height})`);
+
+      this.yAxisG = chart.append("g");
+
+      this.barG = chart.append("g");
+
+      this.xTopAxisG = chart.append("g");
+
+      this.zoomRect = svg.append("rect")
+      .attr("width", this.width + this.margin.left + this.margin.right)
+      .attr("height", this.height + this.margin.top + this.margin.bottom)
+      .attr("fill", "none")
+      .attr("pointer-events", "all");
+
+      this.brushBox = svg.append("g")
+      .attr("transform", `translate(${this.margin.left},${this.margin.top})`)
+      .attr("fill", "red");
+    },
+    render () {
+      this.xAxisG.call(this.xAxis);
+
+      this.yAxisG.call(this.yAxis);
+
+      this.renderBar();
+
+      this.xTopAxisG.call(this.xTopAxis);
+
+      this.zoomRect.call(this.zoom);
+
+      this.brushBox
+      .call(this.brush)
+      .call(this.brush.move, this.xScale.range())
+      .selectAll("rect.section")
+      .attr("width", this.width)
+      .attr("height", 20);
+    },
+    renderBar () {
+      this.barG
+      .selectAll("rect")
+      .data(this.data)
+      .enter()
+      .append("rect");
+      this.barG
+      .selectAll("rect")
+      .attr("class", "rect")
+      .attr("x", (d, i) => this.xScale(i + 1) - 10)
+      .attr("y", d => this.yScale(d.y))
+      .attr("width", 20)
+      .attr("height", d => this.height - this.yScale(d.y))
+      .attr("fill", "red");
+      this.barG
+      .selectAll("rect")
+      .data(this.data)
+      .exit()
+      .remove();
+    }
+  }
+});
+
+function createData () {
+  return Array.from({ length: ~~(Math.random() * 4 + 3) }).map(() => {
+    return {
+      x: ~~(Math.random() * 7) + 2012, y: ~~(Math.random() * 6 + 1) * 100
+    };
+  });
+}
+
+new Vue({
+  el: "#app",
+  data: {
+    margin: { top: 50, right: 50, bottom: 50, left: 50 },
+    width: 1000,
+    height: 600,
+    data: createData()
+  },
+  methods: {
+    newData () {
+      this.data = createData();
+    }
+  },
+  template: `<div>
+              <d3-chart :data="data" :margin="margin" :width="width" :height="height"></d3-chart>
+              <button @click="newData">点击</button>
+            </div>`
+});
+</script>
+</body>
+</html>
