@@ -130,7 +130,7 @@ class D3Render {
     function brushed () {
       if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
       let s = d3.event.selection || xScale.range();
-      xScale.domain(s.map(xBrush.invert, xBrush));
+      // xScale.domain(s.map(xBrush.invert, xBrush));
       this.zoomRect.call(zoom.transform, d3.zoomIdentity.scale(this.width / (s[1] - s[0]))
       .translate(-s[0], 0));
     }

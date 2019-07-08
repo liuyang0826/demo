@@ -65,11 +65,11 @@ Vue.component("D3Chart", {
     },
     brush () {
       return d3.brushX()
-      .extent([ [ 0, 0 ], [ this.width + this.margin.left + this.margin.right, 20 ] ])
+      .extent([ [ 0, 0 ], [ this.width, 20 ] ])
       .on("brush", () => {
         if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
         let s = d3.event.selection || this.xScale.range();
-        this.xScale.domain(s.map(this.xBrushScale.invert, this.xBrushScale));
+        // this.xScale.domain(s.map(this.xBrushScale.invert, this.xBrushScale));
         this.zoomRect.call(this.zoom.transform, d3.zoomIdentity.scale(this.width / (s[1] - s[0]))
         .translate(-s[0], 0));
       });
@@ -83,10 +83,6 @@ Vue.component("D3Chart", {
   },
   mounted () {
     this.initElement();
-    this.render();
-  },
-  updated () {
-    console.log("updated");
     this.render();
   },
   watch: {
