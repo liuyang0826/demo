@@ -6,8 +6,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
   <title>1</title>
   <script type="text/javascript"
-          src="https://webapi.amap.com/maps?v=1.4.15&key=8102777f375dc3a362b2983d531aee59"></script>
-  <script src="https://webapi.amap.com/loca?v=1.3.2&key=8102777f375dc3a362b2983d531aee59"></script>
+          src="https://webapi.amap.com/maps?v=1.4.15&key=c1a1851e1d65f6e01d47c4781a4be455"></script>
+  <script src="https://webapi.amap.com/loca?v=1.3.2&key=c1a1851e1d65f6e01d47c4781a4be455"></script>
   <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
   <script src="../d3/d3.js"></script>
   <style>
@@ -17,8 +17,8 @@
 
   #container {
     margin: auto;
-    width: 800px;
-    height: 600px;
+    width: 1200px;
+    height: 800px;
   }
   </style>
 </head>
@@ -26,219 +26,94 @@
 <div id="container"></div>
 <script>
 // 116.3683244,39.915085
-const NORMAL_COLOR = '#B0B0B0'
-const CENTER_COLOR = '#3dd24f'
-const START_COLOR = '#E3F0FF'
-const STOP_COLOR = '#6482EA'
+const NORMAL_COLOR = "#B0B0B0";
+const CENTER_COLOR = "#3dd24f";
+const START_COLOR = "#E3F0FF";
+const STOP_COLOR = "#6482EA";
 const colorCompute = (c) => d3.interpolate(d3.rgb(START_COLOR), d3.rgb(STOP_COLOR))(
 d3.scaleLinear()
 .domain([ 0, 150 ])
-.range([ 0, 1 ])(c))
+.range([ 0, 1 ])(c));
 
-const centerMap = {}
-$.get("https://restapi.amap.com/v3/config/district?key=8102777f375dc3a362b2983d531aee59&keywords=中国&subdistrict=1", function (res) {
-  res.districts[0].districts.forEach((d) => {
-    centerMap[d.name] = d.center
-  })
-  console.log(centerMap);
+const provinceList = [
+  { "name": "内蒙古", "center": "111.670801,40.818311" },
+  { "name": "河南", "center": "113.665412,34.757975" },
+  { "name": "新疆", "center": "87.617733,43.792818" },
+  { "name": "辽宁", "center": "123.429096,41.796767" },
+  { "name": "湖北", "center": "114.298572,30.584355" },
+  { "name": "广东", "center": "113.280637,23.125178" },
+  { "name": "黑龙江", "center": "126.642464,45.756967" },
+  { "name": "江苏", "center": "118.767413,32.041544" },
+  { "name": "陕西", "center": "108.948024,34.263161" },
+  { "name": "山东", "center": "117.000923,36.675807" },
+  { "name": "西藏", "center": "91.132212,29.660361" },
+  { "name": "福建", "center": "119.306239,26.075302" },
+  { "name": "安徽", "center": "117.283042,31.86119" },
+  { "name": "贵州", "center": "106.713478,26.578343" },
+  { "name": "重庆", "center": "106.504962,29.533155" },
+  { "name": "上海", "center": "121.472644,31.231706" },
+  { "name": "湖南", "center": "112.982279,28.19409" },
+  { "name": "海南", "center": "110.33119,20.031971" },
+  { "name": "广西", "center": "108.320004,22.82402" },
+  { "name": "台湾", "center": "121.509062,25.044332" },
+  { "name": "河北", "center": "114.502461,38.045474" },
+  { "name": "青海", "center": "101.778916,36.623178" },
+  { "name": "香港", "center": "114.173355,22.320048" },
+  { "name": "浙江", "center": "120.153576,30.287459" },
+  { "name": "江西", "center": "115.892151,28.676493" },
+  { "name": "甘肃", "center": "103.823557,36.058039" },
+  { "name": "澳门", "center": "113.54909,22.198951" },
+  { "name": "宁夏", "center": "106.278179,38.46637" },
+  { "name": "四川", "center": "104.065735,30.659462" },
+  { "name": "吉林", "center": "125.3245,43.886841" },
+  { "name": "云南", "center": "102.712251,25.040609" },
+  { "name": "山西", "center": "112.549248,37.857014" },
+  { "name": "北京", "center": "116.405285,39.904989" },
+  { "name": "天津", "center": "117.190182,39.125596" }
+];
 
-  const flowData = [
-    {
-      "capital": 29305042702,
-      "inflow": "北京市",
-      "number": 22805,
-      "outflow": "广东省"
-    }, {
-      "capital": 620041956,
-      "inflow": "北京市",
-      "number": 19508,
-      "outflow": "上海市"
-    }, {
-      "capital": 182493038,
-      "inflow": "北京市",
-      "number": 9577,
-      "outflow": "浙江省"
-    }, {
-      "capital": 108258850,
-      "inflow": "北京市",
-      "number": 9131,
-      "outflow": "江苏省"
-    }, {
-      "capital": 108236716,
-      "inflow": "北京市",
-      "number": 7268,
-      "outflow": "山东省"
-    }, {
-      "capital": 111640480,
-      "inflow": "北京市",
-      "number": 7101,
-      "outflow": "天津市"
-    }, {
-      "capital": 75638337,
-      "inflow": "北京市",
-      "number": 6136,
-      "outflow": "河北省"
-    }, {
-      "capital": 102058816,
-      "inflow": "北京市",
-      "number": 4009,
-      "outflow": "辽宁省"
-    }, {
-      "capital": 66577823,
-      "inflow": "北京市",
-      "number": 3475,
-      "outflow": "福建省"
-    }, {
-      "capital": 61547642,
-      "inflow": "北京市",
-      "number": 3332,
-      "outflow": "河南省"
-    }, {
-      "capital": 62134035,
-      "inflow": "北京市",
-      "number": 3199,
-      "outflow": "四川省"
-    }, {
-      "capital": 60804843,
-      "inflow": "北京市",
-      "number": 3149,
-      "outflow": "湖北省"
-    }, {
-      "capital": 189753781,
-      "inflow": "北京市",
-      "number": 2646,
-      "outflow": "内蒙古自治区"
-    }, {
-      "capital": 33715179,
-      "inflow": "北京市",
-      "number": 2563,
-      "outflow": "西藏自治区"
-    }, {
-      "capital": 157963441,
-      "inflow": "北京市",
-      "number": 2401,
-      "outflow": "安徽省"
-    }, {
-      "capital": 90798538,
-      "inflow": "北京市",
-      "number": 2278,
-      "outflow": "海南省"
-    }, {
-      "capital": 180313238,
-      "inflow": "北京市",
-      "number": 2268,
-      "outflow": "江西省"
-    }, {
-      "capital": 120342992,
-      "inflow": "北京市",
-      "number": 2110,
-      "outflow": "重庆市"
-    }, {
-      "capital": 28800383,
-      "inflow": "北京市",
-      "number": 2077,
-      "outflow": "湖南省"
-    }, {
-      "capital": 60277639,
-      "inflow": "北京市",
-      "number": 1997,
-      "outflow": "陕西省"
-    }, {
-      "capital": 217663420,
-      "inflow": "北京市",
-      "number": 1942,
-      "outflow": "黑龙江省"
-    }, {
-      "capital": 74433163,
-      "inflow": "北京市",
-      "number": 1879,
-      "outflow": "新疆维吾尔自治区"
-    }, {
-      "capital": 83238664,
-      "inflow": "北京市",
-      "number": 1871,
-      "outflow": "山西省"
-    }, {
-      "capital": 55250722,
-      "inflow": "北京市",
-      "number": 1351,
-      "outflow": "吉林省"
-    }, {
-      "capital": 23479192,
-      "inflow": "北京市",
-      "number": 1092,
-      "outflow": "广西壮族自治区"
-    }, {
-      "capital": 14131894,
-      "inflow": "北京市",
-      "number": 1053,
-      "outflow": "甘肃省"
-    }, {
-      "capital": 31217717,
-      "inflow": "北京市",
-      "number": 980,
-      "outflow": "云南省"
-    }, {
-      "capital": 17462816,
-      "inflow": "北京市",
-      "number": 795,
-      "outflow": "贵州省"
-    }, {
-      "capital": 3363613,
-      "inflow": "北京市",
-      "number": 431,
-      "outflow": "宁夏回族自治区"
-    }, {
-      "capital": 7490408,
-      "inflow": "北京市",
-      "number": 302,
-      "outflow": "青海省"
-    }
-  ];
-
-  const dataRange = {
-    min: d3.min(flowData, d => d.number),
-    max: d3.max(flowData, d => d.number)
-  }
-
-  const map = new AMap.Map("container", {
-    features: ['bg', 'road'],
-    zoom: 4,
-    zoomEnable:  false,
-    dragEnable:  false,
-    center: [104.4976, 36.1697]
-  });
-
-  const layer = new Loca.DistrictLayer({
-    map: map,
-    // fitView: true
-  });
-
-  const data = flowData.map((item) => {
-    return {
-      ...item,
-      center: centerMap[item.outflow]
-    }
-  })
-
-  layer.setData(data, {
-    lnglat: "center"
-  });
-
-  layer.setOptions({
-    style: {
-      color: (res) => {
-        let current = res.feature.points[0].rawData;
-        return colorCompute((((current.number - dataRange.min) / (dataRange.max - dataRange.min)) || 0) * 150);
-      },
-      border: () => {
-        console.log(1);
-      }
-    }
-  });
-
-  layer.render();
+const map = new AMap.Map(document.getElementById('container'), {
+  mapStyle: "amap://styles/ff4b53cb52d6ddd96a240dca6a45b046",
+  zoom: 4,
+  zoomEnable: true,
+  dragEnable: true,
+  center: [ 104.4976, 36.1697 ]
 });
+
+new Loca.DistrictLayer({
+  map: map,
+  // fitView: true
+})
+.setData(provinceList, {
+  lnglat: "center"
+})
+.setOptions({
+  style: {
+    color: (res) => {
+      return colorCompute((Math.random()) * 150);
+    },
+    opacity: 1
+  }
+})
+.render();
+
+new Loca.LabelsLayer({
+  map: map
+})
+.setData(provinceList, {
+  lnglat: "center"
+})
+.setOptions({
+  style: {
+    color: (res) => {
+      return colorCompute((Math.random()) * 150);
+    },
+    text: function (data) {
+      return data.value.name;
+    }
+  }
+})
+.render();
 
 
 </script>
