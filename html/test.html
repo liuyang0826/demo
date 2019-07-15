@@ -5,65 +5,15 @@
   <meta name="author" content="liuyang">
   <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
   <title>test</title>
-  <style>
-  * {
-    margin: 0;padding: 0;
-  }
-
-  ul {
-    display: flex;
-    width: 400px;
-    margin: auto;
-    margin-top: 100px;
-  }
-
-  li {
-    list-style: none;
-    border: 1px solid red;
-    flex: 1;
-  }
-
-  .modal {
-    width: 400px;
-    margin: auto;
-    height: 0;
-    overflow: hidden;
-    background: #000;
-    color: #fff;
-    transition: .3s;
-  }
-
-  .show {
-    height: 200px;
-  }
-  </style>
 </head>
 <body>
-<ul>
-  <li>1</li>
-  <li>2</li>
-  <li>3</li>
-  <li>4</li>
-</ul>
-<div class="modal"></div>
 <script>
-var aLi = document.querySelectorAll("li");
-var oModal = document.querySelector(".modal");
-Array.from(aLi).forEach((li, index) => {
-  li.onmouseenter = function () {
-    oModal.classList.add("show");
-    oModal.innerHTML = this.innerHTML;
-  };
-  li.onmouseleave = function () {
-    oModal.classList.remove("show");
-  };
-});
-oModal.onmouseenter = function () {
-  oModal.classList.add("show");
-}
-oModal.onmouseleave = function () {
-  oModal.classList.remove("show");
-}
+/*
+*  data是某班十个学生小学六年的成绩
+*  要求： 将每一年的成绩进行排名，从第二年起显示出每个学生相比前一年名次的变化（上升多少名或者下降多少名）
+* */
+let data = Array.from({ length: 6 }).map(() => [ "张三", "李四", "王五", "赵四", "张伟", "王伟", "张杰", "李杰", "王强", "王军" ].sort(() => Math.random() - 0.5).map((name) => ({ name: name, grades: ~~(Math.random() * 100) })));
+console.log(data);
 </script>
 </body>
 </html>
