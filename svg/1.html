@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="liuyang">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>1</title>
+  <style>
+  * {
+    margin: 0;padding: 0;
+  }
+
+  #root {
+    width: 800px;height: 800px;
+    border: 1px solid red;
+    margin: 50px auto;
+  }
+  </style>
+</head>
+<body>
+<div id="root">
+  <canvas width="800" height="800" id="canvas"></canvas>
+</div>
+<script>
+let canvas = document.getElementById("canvas");
+let ctx = canvas.getContext("2d");
+const aroundSpace = 30;
+
+function getRightLeft (p1, p2) {
+  let x = (p1.x + p2.x) / 2;
+  return [
+    p1,
+    { x: x, y: p1.y },
+    { x: x, y: p2.y },
+    p2
+  ];
+}
+
+function getRightTop (p1, p2) {
+  let x = (p1.x + p2.x) / 2;
+  return [
+    p1,
+    { x: p2.x, y: p1.y },
+    p2
+  ];
+}
+
+function getRightRight (p1, p2) {
+  return [
+    p1,
+    { x: p2.x + aroundSpace, y: p1.y },
+    { x: p2.x + aroundSpace, y: p2.y },
+    p2
+  ];
+}
+
+function getRightBottom (p1, p2) {
+  let x = (p1.x + p2.x) / 2;
+  return [
+    p1,
+    { x: x, y: p1.y },
+    { x: x, y: p2.y + aroundSpace },
+    { x: p2.x, y: p2.y + aroundSpace },
+    p2
+  ];
+}
+
+function draw (paths) {
+  ctx.beginPath();
+  ctx.moveTo(paths[0].x, paths[0].y);
+  paths.slice(1).forEach((item) => {
+    ctx.lineTo(item.x, item.y);
+  });
+  ctx.stroke();
+}
+
+draw(getRightLeft({ x: 100, y: 100 }, { x: 600, y: 600 }));
+draw(getRightTop({ x: 100, y: 100 }, { x: 600, y: 600 }));
+draw(getRightRight({ x: 100, y: 100 }, { x: 600, y: 600 }));
+draw(getRightBottom({ x: 100, y: 100 }, { x: 600, y: 600 }));
+
+</script>
+</body>
+</html>
