@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="liuyang">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>grid</title>
+  <style>
+  * {
+    margin: 0;padding: 0;
+  }
+  .container {
+    display: grid;
+    grid-template: "a b" 100px "c d" 100px "e f" 100px / 100px 100px;
+    grid-gap: 10px 10px;
+  }
+  .item {
+    border: 1px solid red;
+  }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="item"></div>
+  <div class="item"></div>
+  <div class="item"></div>
+  <div class="item"></div>
+  <div class="item"></div>
+  <div class="item"></div>
+</div>
+</body>
+</html>

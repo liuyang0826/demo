@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="liuyang">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>test</title>
+  <style>
+  * {
+    margin: 0;padding: 0;
+  }
+
+  #box {
+    position: relative;
+    width: 800px;
+    height: 800px;
+    margin: 50px auto;
+    border: 1px solid red;
+  }
+
+  .tip {
+    position: absolute;
+    left: 0;top: 0;
+    background: #000;
+    width: 50px;
+    height: 50px;
+    border-radius: 4px;
+    transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1) 0s;
+  }
+  </style>
+</head>
+<body>
+<div id="box">
+  <div class="tip" id="tip"></div>
+</div>
+<script>
+let oBox = document.getElementById("box");
+let oTip = document.getElementById("tip");
+let distance = 20;
+oBox.addEventListener("mousemove", function (e) {
+  let pLeft = oBox.getBoundingClientRect().left;
+  let pTop = oBox.getBoundingClientRect().top;
+  setTransform({
+    x: e.clientX - pLeft,
+    y: e.clientY - pTop
+  }, oBox, oTip);
+});
+
+function setTransform (offsetPos, parent, self) {
+  let distance = 20;
+  let x = offsetPos.x + distance;
+  let y = offsetPos.y + distance;
+  let sWidth = self.clientWidth;
+  let sHeight = self.clientHeight;
+  if (x + sWidth > parent.clientWidth) {
+    x = x - 2 * distance - sWidth;
+  }
+  if (y + sHeight > parent.clientHeight) {
+    y = y - 2 * distance - sHeight;
+  }
+  self.style.transition = `transform 0.4s cubic-bezier(0.23, 1, 0.32, 1) 0s`;
+  self.style.transform = `translate3d(${x}px, ${y}px, 0px)`;
+}
+</script>
+</body>
+</html>

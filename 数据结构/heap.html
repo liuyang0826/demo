@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="liuyang">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>heap</title>
+</head>
+<body>
+<script>
+class Heap {
+  constructor () {
+    this.heap = [];
+  }
+
+  add (item) {
+    this.heap.push(item);
+    let sIndex = this.heap.length - 1;
+    while (sIndex > 0) {
+      let pIndex = ~~((sIndex - 1) / 2);
+      let temp = this.heap[sIndex];
+      if (this.heap[pIndex] <= temp) {
+        this.heap[sIndex] = this.heap[pIndex];
+        this.heap[pIndex] = temp;
+        sIndex = pIndex;
+      } else {break;}
+    }
+  }
+}
+
+let heap = new Heap();
+for (let i = 0; i < 7; i ++) {
+  heap.add(~~(Math.random() * 100));
+}
+console.log(heap.heap);
+</script>
+</body>
+</html>
