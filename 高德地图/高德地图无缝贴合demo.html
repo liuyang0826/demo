@@ -20,20 +20,21 @@
   }
   </style>
   <script type="text/javascript"
-          src="https://webapi.amap.com/maps?v=1.4.15&key=c1a1851e1d65f6e01d47c4781a4be455&plugin=AMap.MouseTool,AMap.PolyEditor,AMap.Polyline"></script>
+          src="https://webapi.amap.com/maps?v=1.4.15&key=c1a1851e1d65f6e01d47c4781a4be455&plugin=AMap.MouseTool,AMap.PolyEditor,AMap.Polyline,AMap.Scale"></script>
 </head>
 <body>
 <div class="main">
   <div id="container"></div>
   <div class="handle">
-    <button onclick="fitPath()">贴合</button>
+    <button onclick="mergePath()">贴合</button>
   </div>
 </div>
 <script>
 var map = new AMap.Map("container", {
-  center: [ 116.434381, 39.898515 ],
-  zoom: 14
+  center: [ 106.537386,29.714694 ],
+  zoom: 16
 });
+map.addControl(new AMap.Scale());
 var mouseTool = new AMap.MouseTool(map);
 
 mouseTool.polygon({
@@ -60,7 +61,7 @@ mouseTool.on("draw", function (event) {
 });
 
 function drawPolyline (paths) {
-  let $paths = [...paths, paths[0]];
+  let $paths = [ ...paths, paths[0] ];
   var path = $paths.map((item) => {
     return new AMap.LngLat(item.Q, item.P);
   });
@@ -73,23 +74,25 @@ function drawPolyline (paths) {
   map.add(polyline);
   polylineList.push(polyline);
 }
-
-function fitPath () {
+let count = 0;
+function mergePath () {
   for (var i = 0; i < pathsList.length - 1; i++) {
     for (var j = 0; j < pathsList[i].length; j++) {
       let target = pathsList[i][j];
-      for (var k = i + 1; k < pathsList.length; k++) {
+      for (var m = i + 1; m < pathsList.length; m++) {
         let distanceList = [];
-        for (var l = 0; l < pathsList[k].length; l++) {
-          let point = pathsList[k][l];
+        for (var n = 0; n < pathsList[m].length; n++) {
+          let point = pathsList[m][n];
+          count++;
           distanceList.push({
-            index1: k,
-            index2: l,
+            index1: m,
+            index2: n,
             distance: AMap.GeometryUtil.distance([ target.Q, target.P ], [ point.Q, point.P ])
           });
         }
         let minDistance = Math.min(...(distanceList.map(d => d.distance)));
-        if (minDistance < 200) {
+        console.log(minDistance);
+        if (minDistance < 20) { // 判定为同一个点的阈值
           let min = distanceList.find(d => d.distance === minDistance);
           pathsList[min.index1][min.index2] = target;
         }
@@ -100,7 +103,8 @@ function fitPath () {
   map.remove(polylineList);
   pathsList.forEach((paths) => {
     drawPolyline(paths);
-  })
+  });
+  console.log(count, pathsList);
 }
 </script>
 </body>
