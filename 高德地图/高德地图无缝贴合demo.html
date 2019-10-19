@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="丿Coder">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>test</title>
+  <style>
+  * {
+    margin: 0;padding: 0;
+  }
+
+  .main {
+    display: flex;
+    height: 100vh;
+  }
+
+  #container {
+    width: 90%;
+  }
+  </style>
+  <script type="text/javascript"
+          src="https://webapi.amap.com/maps?v=1.4.15&key=c1a1851e1d65f6e01d47c4781a4be455&plugin=AMap.MouseTool,AMap.PolyEditor,AMap.Polyline"></script>
+</head>
+<body>
+<div class="main">
+  <div id="container"></div>
+  <div class="handle">
+    <button onclick="fitPath()">贴合</button>
+  </div>
+</div>
+<script>
+var map = new AMap.Map("container", {
+  center: [ 116.434381, 39.898515 ],
+  zoom: 14
+});
+var mouseTool = new AMap.MouseTool(map);
+
+mouseTool.polygon({
+  strokeColor: "#FF33FF",
+  strokeOpacity: 1,
+  strokeWeight: 1,
+  fillColor: "#1791fc",
+  fillOpacity: 0.4,
+  // 线样式还支持 'dashed'
+  strokeStyle: "solid",
+  // strokeStyle是dashed时有效
+  // strokeDasharray: [30,10],
+});
+var pathsList = [];
+var polylineList = [];
+mouseTool.on("draw", function (event) {
+  map.remove(event.obj);
+  let paths = event.obj.getPath();
+  pathsList.push(paths.slice());
+  drawPolyline(paths);
+  // 开启编辑模式
+  // polylineEditor = new AMap.PolyEditor(map, polyline);
+  // polylineEditor.open();
+});
+
+function drawPolyline (paths) {
+  let $paths = [...paths, paths[0]];
+  var path = $paths.map((item) => {
+    return new AMap.LngLat(item.Q, item.P);
+  });
+  var polyline = new AMap.Polyline({
+    path: path,
+    borderWeight: 2, // 线条宽度，默认为 1
+    strokeColor: "red", // 线条颜色
+    lineJoin: "round" // 折线拐点连接处样式
+  });
+  map.add(polyline);
+  polylineList.push(polyline);
+}
+
+function fitPath () {
+  for (var i = 0; i < pathsList.length - 1; i++) {
+    for (var j = 0; j < pathsList[i].length; j++) {
+      let target = pathsList[i][j];
+      for (var k = i + 1; k < pathsList.length; k++) {
+        let distanceList = [];
+        for (var l = 0; l < pathsList[k].length; l++) {
+          let point = pathsList[k][l];
+          distanceList.push({
+            index1: k,
+            index2: l,
+            distance: AMap.GeometryUtil.distance([ target.Q, target.P ], [ point.Q, point.P ])
+          });
+        }
+        let minDistance = Math.min(...(distanceList.map(d => d.distance)));
+        if (minDistance < 200) {
+          let min = distanceList.find(d => d.distance === minDistance);
+          pathsList[min.index1][min.index2] = target;
+        }
+      }
+    }
+  }
+  // 重绘图形
+  map.remove(polylineList);
+  pathsList.forEach((paths) => {
+    drawPolyline(paths);
+  })
+}
+</script>
+</body>
+</html>
