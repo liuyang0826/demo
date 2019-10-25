@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="liuyang">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>map</title>
+</head>
+<body>
+<script>
+let map = new Map();
+let fn = function () {
+  console.log(1);
+};
+map.set(fn, 100);
+map.forEach(function () {
+  console.log(arguments);
+});
+let mapIter = map.entries();
+console.log(mapIter.next());
+// console.log(map.get(fn));
+</script>
+</body>
+</html>
