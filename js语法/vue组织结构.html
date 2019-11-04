@@ -6,43 +6,23 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
   <title>test</title>
   <style>
-  .org-tree {
+  .tree-node, .tree-node-outer {
     text-align: center;
-  }
-
-  .org-tree-node, .org-tree-node-children {
     position: relative;
     margin: 0;
     padding: 0;
     list-style-type: none
   }
 
-  .org-tree-node-children:after, .org-tree-node-children:before, .org-tree-node:after, .org-tree-node:before {
+  .tree-node-outer:after, .tree-node-outer:before, .tree-node:after, .tree-node:before {
     transition: all .35s
   }
 
-  .org-tree-node-label {
-    position: relative;
-    display: inline-block
-  }
-
-  .org-tree-node-label .org-tree-node-label-inner {
-    padding: 10px 15px;
-    text-align: center;
-    border-radius: 3px;
-    border: 1px solid #ccc;
-  }
-
-  .org-tree-node {
+  .tree-node .tree-node {
     padding-top: 20px;
   }
 
-  .org-tree-node.collapsed, .org-tree-node.is-leaf {
-    padding-left: 10px;
-    padding-right: 10px
-  }
-
-  .org-tree-node:after, .org-tree-node:before {
+  .tree-node .tree-node:after, .tree-node .tree-node:before {
     content: "";
     position: absolute;
     top: 0;
@@ -51,28 +31,28 @@
     height: 19px
   }
 
-  .org-tree-node:after {
+  .tree-node .tree-node:after {
     left: 50%;
     border-left: 1px solid #ddd
   }
 
-  .org-tree-node:not(:first-child):before, .org-tree-node:not(:last-child):after {
+  .tree-node:not(:first-child):before, .tree-node:not(:last-child):after {
     border-top: 1px solid #ddd
   }
 
-  .org-tree > .org-tree-node {
+  .org-tree > .tree-node {
     padding-top: 0
   }
 
-  .org-tree > .org-tree-node:after {
+  .org-tree > .tree-node:after {
     border-left: 0
   }
 
-  .org-tree-node-children {
+  .tree-node-outer .tree-node-outer {
     padding-top: 20px;
   }
 
-  .org-tree-node-children:before {
+  .tree-node-outer .tree-node-outer:before {
     content: "";
     position: absolute;
     top: 0;
@@ -82,7 +62,7 @@
     border-left: 1px solid #ddd
   }
 
-  .org-tree-node .method {
+  .tree-node .method {
     position: absolute;
     right: -10px;
     top: 30px;
@@ -95,120 +75,36 @@
 <div id="app"></div>
 <script src="https://cdn.bootcss.com/vue/2.6.10/vue.js"></script>
 <script>
-// 判断是否叶子节点
-const isLeaf = (data, prop) => {
-  return !(Array.isArray(data[prop]) && data[prop].length > 0);
-};
-
-// 创建 node 节点
-const renderNode = (h, data, context) => {
-  const { props } = context;
-  const cls = ["org-tree-node"];
-  const childNodes = [];
-  const children = data[props.props.children];
-
-  if (isLeaf(data, props.props.children)) {
-    cls.push("is-leaf");
-  }
-
-  childNodes.push(renderLabel(h, data, context));
-
-  childNodes.push(renderChildren(h, children, context));
-
-  if (data.method) {
-    childNodes.push(h("div", {
-      domProps: {
-        className: "method"
-      }
-    }, data.method));
-  }
-
-  return h("td", {
-    domProps: {
-      className: cls.join(" ")
-    }
-  }, childNodes);
-};
-
-// 创建 label 节点
-const renderLabel = (h, data, context) => {
-  const { props, listeners } = context;
-  const label = data[props.props.label];
-  const renderContent = props.renderContent;
-  const clickHandler = listeners["on-node-click"];
-
-  const childNodes = [];
-  if (typeof renderContent === "function") {
-    let vnode = renderContent(h, data);
-
-    vnode && childNodes.push(vnode);
-  } else {
-    childNodes.push(label);
-  }
-
-  const cls = ["org-tree-node-label-inner"];
-  let { labelWidth, selectedClassName, selectedKey } = props;
-
-  if (typeof labelWidth === "number") {
-    labelWidth += "px";
-  }
-
-  // add selected class and key from props
-  if (typeof selectedClassName === "function") {
-    selectedClassName = selectedClassName(data);
-  }
-
-  selectedClassName && selectedKey && data[selectedKey] && cls.push(selectedClassName);
-
-  return h("div", {
-    domProps: {
-      className: "org-tree-node-label"
-    }
-  }, [
-    h("div", {
-      domProps: {
-        className: cls.join(" ")
-      },
-      style: { width: labelWidth },
-      on: {
-        click: e => clickHandler && clickHandler(e, data)
-      }
-    }, childNodes)
-  ]);
-};
-
-// 创建 node 子节点
-const renderChildren = (h, list, context) => {
-  if (Array.isArray(list) && list.length) {
-    const children = list.map(item => {
-      return renderNode(h, item, context);
-    });
-
-    return h("table", {
-      domProps: {
-        className: "org-tree-node-children",
-        cellSpacing: 0
-      }
-    }, children);
-  }
-  return "";
-};
-
-const render = (h, context) => {
-  const { props } = context;
-  return renderNode(h, props.data, context);
-};
-
-const Tree = Vue.component("Tree", {
+Vue.component("OrgTreeNode", {
+  name: "OrgTreeNode",
+  props: {
+    data: { type: Array, required: true },
+    renderContent: {type: Function, required: true}
+  },
   components: {
-    OrgTreeNode: {
-      render,
+    RenderContent: {
+      render: (h, context) => {
+        return context.props.renderContent(h, context.props.data, context)
+      },
       functional: true
     }
   },
+  template: `
+  <table class="tree-node-outer" cellspacing="0">
+    <td v-for="(item, index) in data" :key="index" class="tree-node" :class="{'is-leaf': item.children && item.children.length}">
+      <div class="tree-node-label">
+        <RenderContent :render-content="renderContent" :data="item"/>
+      </div>
+      <OrgTreeNode :data="item.children" v-if="item.children" :render-content="renderContent"></OrgTreeNode>
+    </td>
+  </table>
+  `
+})
+
+const Tree = Vue.component("Tree", {
   props: {
     data: {
-      type: Object,
+      type: Array,
       required: true
     },
     props: {
@@ -225,21 +121,14 @@ const Tree = Vue.component("Tree", {
     selectedClassName: [Function, String]
   },
   template: `
-    <table cellspacing="0" class="org-tree">
-      <org-tree-node
-        :data="data"
-        :props="props"
-        :label-width="labelWidth"
-        :render-content="renderContent"
-        @on-node-click="(e, data) => {$emit('on-node-click', e, data)}"
-      />
-    </table>
+    <OrgTreeNode :data="data" :render-content="renderContent">
+</OrgTreeNode>
   `
 });
 new Vue({
   el: "#app",
   data: {
-    data: {
+    data: [{
       label: "指标",
       children: [
         {
@@ -318,9 +207,11 @@ new Vue({
           ]
         }
       ]
-    }
+    }]
   },
-  template: `<tree :data="data"></tree>`
+  template: `<tree :data="data" :render-content="(h, data) => h('div', data.label)">
+
+</tree>`
 });
 
 </script>
