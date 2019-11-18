@@ -133,7 +133,7 @@ new Vue({
             if (item.type === types.LP || item.type === types.logic) return;
             break;
           case types.operator:
-            if (item.type === types.RP || item.type === types.operator) return;
+            if (item.type === types.RP || item.type === types.operator || item.type === types.point) return;
             break;
           case types.logic:
             if (item.type !== types.LP) return;
