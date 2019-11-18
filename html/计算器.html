@@ -23,6 +23,18 @@
 <body>
 <div id="app"></div>
 <script>
+let id = 1;
+const types = {
+  logic: id++,
+  LP: id++,
+  RP: id++,
+  operator: id++,
+  value: id++,
+  point: id++,
+  remove: id++,
+  none: id++,
+  equal: id++
+};
 new Vue({
   el: "#app",
   template: `
@@ -39,57 +51,57 @@ new Vue({
     resultList: [],
     keyTable: [
       [
-        { type: "logic", value: "&&" },
-        { type: "logic", value: "||" },
-        { type: "", value: "" },
-        { type: "", value: "" }
+        { type: types.logic, value: "&&" },
+        { type: types.logic, value: "||" },
+        { type: types.none, value: "" },
+        { type: types.none, value: "" }
       ],
       [
-        { type: "LP", value: "(" },
-        { type: "RP", value: ")" },
-        { type: "remove", value: "⬅" },
-        { type: "operator", value: "÷" }
+        { type: types.LP, value: "(" },
+        { type: types.RP, value: ")" },
+        { type: types.remove, value: "⬅" },
+        { type: types.operator, value: "÷" }
       ],
       [
-        { type: "value", value: "7" },
-        { type: "value", value: "8" },
-        { type: "value", value: "9" },
-        { type: "operator", value: "×" },
+        { type: types.value, value: "7" },
+        { type: types.value, value: "8" },
+        { type: types.value, value: "9" },
+        { type: types.operator, value: "×" },
       ],
       [
-        { type: "value", value: "4" },
-        { type: "value", value: "5" },
-        { type: "value", value: "6" },
-        { type: "operator", value: "-" },
+        { type: types.value, value: "4" },
+        { type: types.value, value: "5" },
+        { type: types.value, value: "6" },
+        { type: types.operator, value: "-" },
       ],
       [
-        { type: "value", value: "1" },
-        { type: "value", value: "2" },
-        { type: "value", value: "3" },
-        { type: "operator", value: "+" },
+        { type: types.value, value: "1" },
+        { type: types.value, value: "2" },
+        { type: types.value, value: "3" },
+        { type: types.operator, value: "+" },
       ],
       [
-        { type: "value", value: "0", colspan: 2 },
-        { type: "point", value: "." },
-        { type: "equal", value: "=" },
+        { type: types.value, value: "0", colspan: 2 },
+        { type: types.point, value: "." },
+        { type: types.equal, value: "=" },
       ]
     ],
-    status: "start",
+    status: types.none,
     lpNum: 0,
     rpNum: 0
   },
   methods: {
     handleClick (item) {
       if (item.value === "") return;
-      if (item.type === "remove") {
+      if (item.type === types.remove) {
         if (this.resultList.length) {
           let removeItem = this.resultList.splice(this.resultList.length - 1, 1)[0];
           this.status = this.resultList.length ? this.resultList[this.resultList.length - 1].type : "start";
           switch (removeItem.type) {
-            case "LP":
+            case types.LP:
               this.lpNum--;
               break;
-            case "RP":
+            case types.RP:
               if (this.rpNum === this.lpNum) {
                 return;
               }
@@ -99,39 +111,39 @@ new Vue({
         }
       } else {
         switch (this.status) {
-          case "start":
-            if ((item.type === "operator" && item.value !== "-") || item.type === "RP") return;
+          case types.none:
+            if ((item.type === types.operator && item.value !== "-") || item.type === types.RP) return;
             break;
-          case "LP":
-            if (item.type === "operator") {
+          case types.LP:
+            if (item.type === types.operator) {
               if (item.value !== "-") {
                 return;
               }
-            } else if (item.type !== "value") {
+            } else if (item.type !== types.value) {
               return;
             }
             break;
-          case "point":
-            if (item.type !== "value") return;
+          case types.point:
+            if (item.type !== types.value) return;
             break;
-          case "RP":
-            if (item.type !== "operator" && item.type !== "logic") return;
+          case types.RP:
+            if (item.type !== types.operator && item.type !== types.logic) return;
             break;
-          case "value":
-            if (item.type === "LP") return;
+          case types.value:
+            if (item.type === types.LP || item.type === types.logic) return;
             break;
-          case "operator":
-            if (item.type === "RP" || item.type === "operator") return;
+          case types.operator:
+            if (item.type === types.RP || item.type === types.operator) return;
             break;
-          case "logic":
-            if (item.type !== "LP") return;
+          case types.logic:
+            if (item.type !== types.LP) return;
             break;
         }
         switch (item.type) {
-          case "LP":
+          case types.LP:
             this.lpNum++;
             break;
-          case "RP":
+          case types.RP:
             if (this.rpNum === this.lpNum) {
               return;
             }
