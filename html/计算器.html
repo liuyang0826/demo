@@ -11,6 +11,7 @@
     margin: auto;
     border-collapse: collapse;
   }
+
   td {
     border: 1px solid #ccc;
     height: 40px;
@@ -27,25 +28,119 @@ new Vue({
   template: `
   <div>
   <div class="view" style="text-align:center;">{{resultList.map(d => d.value).join('')}}</div>
-  <table class="table" @click="handleClick">
-  <tr><td></td><td>(</td><td>)</td><td>÷</td></tr>
-  <tr><td>7</td><td>8</td><td>9</td><td>×</td></tr>
-  <tr><td>4</td><td>5</td><td>6</td><td>-</td></tr>
-  <tr><td>1</td><td>2</td><td>3</td><td>+</td></tr>
-  <tr><td colspan="2">0</td><td>.</td><td>=</td></tr>
+  <table class="table">
+  <tr v-for="(items, index) in keyTable" :key="index">
+    <td v-for="(item, index) in items" :key="index" :colspan="item.colspan" @click="handleClick(item)">{{item.value}}</td>
+  </tr>
 </table>
 </div>
   `,
   data: {
-    resultList: []
+    resultList: [],
+    keyTable: [
+      [
+        { type: "logic", value: "&&" },
+        { type: "logic", value: "||" },
+        { type: "", value: "" },
+        { type: "", value: "" }
+      ],
+      [
+        { type: "LP", value: "(" },
+        { type: "RP", value: ")" },
+        { type: "remove", value: "⬅" },
+        { type: "operator", value: "÷" }
+      ],
+      [
+        { type: "value", value: "7" },
+        { type: "value", value: "8" },
+        { type: "value", value: "9" },
+        { type: "operator", value: "×" },
+      ],
+      [
+        { type: "value", value: "4" },
+        { type: "value", value: "5" },
+        { type: "value", value: "6" },
+        { type: "operator", value: "-" },
+      ],
+      [
+        { type: "value", value: "1" },
+        { type: "value", value: "2" },
+        { type: "value", value: "3" },
+        { type: "operator", value: "+" },
+      ],
+      [
+        { type: "value", value: "0", colspan: 2 },
+        { type: "point", value: "." },
+        { type: "equal", value: "=" },
+      ]
+    ],
+    status: "start",
+    lpNum: 0,
+    rpNum: 0
   },
   methods: {
-    handleClick(e) {
-      this.resultList.push({
-        type: 'value',
-        value: e.target.innerHTML
-      })
-      this.result += e.target.innerHTML
+    handleClick (item) {
+      if (item.value === "") return;
+      if (item.type === "remove") {
+        if (this.resultList.length) {
+          let removeItem = this.resultList.splice(this.resultList.length - 1, 1)[0];
+          this.status = this.resultList.length ? this.resultList[this.resultList.length - 1].type : "start";
+          switch (removeItem.type) {
+            case "LP":
+              this.lpNum--;
+              break;
+            case "RP":
+              if (this.rpNum === this.lpNum) {
+                return;
+              }
+              this.rpNum--;
+              break;
+          }
+        }
+      } else {
+        switch (this.status) {
+          case "start":
+            if ((item.type === "operator" && item.value !== "-") || item.type === "RP") return;
+            break;
+          case "LP":
+            if (item.type === "operator") {
+              if (item.value !== "-") {
+                return;
+              }
+            } else if (item.type !== "value") {
+              return;
+            }
+            break;
+          case "point":
+            if (item.type !== "value") return;
+            break;
+          case "RP":
+            if (item.type !== "operator" && item.type !== "logic") return;
+            break;
+          case "value":
+            if (item.type === "LP") return;
+            break;
+          case "operator":
+            if (item.type === "RP" || item.type === "operator") return;
+            break;
+          case "logic":
+            if (item.type !== "LP") return;
+            break;
+        }
+        switch (item.type) {
+          case "LP":
+            this.lpNum++;
+            break;
+          case "RP":
+            if (this.rpNum === this.lpNum) {
+              return;
+            }
+            this.rpNum++;
+            break;
+        }
+        this.resultList.push(item);
+        this.status = item.type;
+      }
     }
   }
 });
