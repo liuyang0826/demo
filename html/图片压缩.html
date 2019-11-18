@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="liuyang">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>test</title>
+</head>
+<body>
+<input type="file" accept="image/*">
+<script>
+document.querySelector("input").onchange = async function selectImage (e) {
+  let file = e.target.files[0];
+  compress(file, 1024 * 1024);
+};
+
+function readImage (file) {
+  return new Promise(resolve => {
+    let fr = new FileReader();
+    fr.onload = ({ target }) => {
+      fr.onload = null;
+      resolve(target.result);
+    };
+    fr.readAsDataURL(file);
+  });
+}
+
+function getWidthHeight (data) {
+  return new Promise(resolve => {
+    let image = new Image();
+    image.onload = () => {
+      image.onload = null;
+      let { width, height } = image;
+      resolve({ width, height, image });
+    };
+    image.src = data;
+  });
+}
+
+function canvas2Blob (canvas, type) {
+  let data = window.atob(canvas.toDataURL().split(",")[1]);
+  var buffer = new Uint8Array(new ArrayBuffer(data.length));
+  for (var i = 0; i < data.length; i++) {
+    buffer[i] = data.charCodeAt(i);
+  }
+  let Builder = window.WebKitBlobBuilder || window.MozBlobBuilder || window.MSBlobBuilder;
+  let blob;
+
+  if (Builder) {
+    let builder = new Builder();
+    builder.append(buffer);
+    blob = builder.getBlob(type);
+  } else {
+    blob = new window.Blob([buffer], { type: type });
+  }
+  return blob;
+}
+
+async function compress (imageFile, target) {
+  let type = imageFile.type;
+  let data = await readImage(imageFile);
+  let source = await getWidthHeight(data);
+  let scale = (target / imageFile.size);
+  let canvas = document.createElement("canvas");
+  canvas.width = source.width * scale;
+  canvas.height = source.height * scale;
+  let ctx = canvas.getContext("2d");
+  ctx.drawImage(source.image, 0, 0, source.width, source.height, 0, 0, canvas.width, canvas.height);
+  document.body.appendChild(canvas);
+  return canvas2Blob(canvas, "image/png");
+}
+</script>
+</body>
+</html>
