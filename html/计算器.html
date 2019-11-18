@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="liuyang">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>计算器</title>
+  <style>
+  .table {
+    width: 800px;
+    margin: auto;
+    border-collapse: collapse;
+  }
+  td {
+    border: 1px solid #ccc;
+    height: 40px;
+    text-align: center;
+  }
+  </style>
+  <script src="https://cdn.bootcss.com/vue/2.6.10/vue.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<script>
+new Vue({
+  el: "#app",
+  template: `
+  <div>
+  <div class="view" style="text-align:center;">{{resultList.map(d => d.value).join('')}}</div>
+  <table class="table" @click="handleClick">
+  <tr><td></td><td>(</td><td>)</td><td>÷</td></tr>
+  <tr><td>7</td><td>8</td><td>9</td><td>×</td></tr>
+  <tr><td>4</td><td>5</td><td>6</td><td>-</td></tr>
+  <tr><td>1</td><td>2</td><td>3</td><td>+</td></tr>
+  <tr><td colspan="2">0</td><td>.</td><td>=</td></tr>
+</table>
+</div>
+  `,
+  data: {
+    resultList: []
+  },
+  methods: {
+    handleClick(e) {
+      this.resultList.push({
+        type: 'value',
+        value: e.target.innerHTML
+      })
+      this.result += e.target.innerHTML
+    }
+  }
+});
+</script>
+<table>
+  <tr></tr>
+</table>
+</body>
+</html>
