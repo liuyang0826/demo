@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="丿Coder">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>1</title>
+<body>
+<input type="file">
+<script>
+function getIdPathFormTree (targetId, tree) {
+  let paths = [];
+  let stop = false;
+
+  function getPath (tree) {
+    for (let i = 0; i < tree.length; i++) {
+      paths.push(tree[i].id);
+      if (tree[i].id === targetId) {
+        stop = true;
+        return;
+      }
+      if (tree[i].children && tree[i].children.length) {
+        getPath(tree[i].children);
+      }
+      if (stop) {
+        return;
+      }
+      paths.pop();
+    }
+  }
+  getPath(tree);
+  return paths;
+}
+
+console.log(getIdPathFormTree(5, [
+  {
+    id: 1,
+    children: [
+      {
+        id: 4,
+        children: [
+          {
+            id: 24,
+            children: [
+              {
+                id: 26
+              }
+            ]
+          },
+          {
+            id: 64,
+            children: [
+              {
+                id: 66
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 2,
+    children: [
+      {
+        id: 6,
+        children: [
+          {
+            id: 8
+          }
+        ]
+      },
+      {
+        id: 88,
+        children: [
+          {
+            id: 11111,
+            children: [
+              {
+                id: 5
+              }
+            ]
+          }
+        ]
+      },
+      {
+        id: 655,
+        children: [
+          {
+            id: 855
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 6,
+    children: [
+      {
+        id: 8
+      }
+    ]
+  },
+  {
+    id: 9,
+    children: [
+      {
+        id: 18
+      }
+    ]
+  },
+]))
+</script>
+</body>
+</html>

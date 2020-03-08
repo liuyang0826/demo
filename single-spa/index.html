@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="丿Coder">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>index</title>
+  <script src="single-spa.min.js"></script>
+  <script src="../html/vue.js"></script>
+  <script type="text/javascript"
+          src="https://webapi.amap.com/maps?v=1.4.15&key=c1a1851e1d65f6e01d47c4781a4be455&plugin=AMap.MouseTool,AMap.PolyEditor,AMap.Polyline,AMap.Scale"></script>
+</head>
+<body>
+<div id="root1" style="height: 300px;"></div>
+<div id="root2" style="height: 300px;"></div>
+<script>
+let code1 = `
+this["app1"] = function () {
+  return {
+    bootstrap: async function () {},
+    mount: async function () {
+      new Vue({
+        el: "#root1",
+        data: {
+          map: null
+        },
+        mounted () {
+          this.map = new window.AMap.Map(this.$el, {
+            viewMode: "3D"
+          });
+          console.log(this.map)
+        }
+      });
+    },
+    unmount: async function () {}
+  };
+}()`;
+let code2 = `
+this["app2"] = function () {
+  return {
+    bootstrap: async function () {},
+    mount: async function () {
+      new Vue({
+        el: "#root2",
+        data: {
+          map: null
+        },
+        mounted () {
+          this.map = new window.AMap.Map(this.$el, {
+            viewMode: "3D"
+          });
+          console.log(this.map)
+        }
+      });
+    },
+    unmount: async function () {}
+  };
+}()`;
+
+window.proxy = window;
+
+eval(";(function(window){;".concat(code1, "\n}).bind(window.proxy)(window.proxy);"));
+eval(";(function(window){;".concat(code2, "\n}).bind(window.proxy)(window.proxy);"));
+let { registerApplication, start } = singleSpa;
+registerApplication("app1", window.app1, () => true);
+registerApplication("app2", window.app2, () => true);
+start();
+</script>
+</body>
+</html>
