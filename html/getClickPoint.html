@@ -23,6 +23,7 @@
     position: absolute;
     width: 6px;
     height: 6px;
+    transform: translate(-50%, -50%);
     background: #fff;
     border-radius: 50%;
   }
@@ -46,7 +47,7 @@ new Vue({
       <button @click="handleCopy">复制</button>
       <span>{{message}}</span>
     </div>
-    <div class="img" style="width: 1215px;height: 717px;margin: 20px auto 0;" @click="handleClick">
+    <div class="img" style="width: 1215px;height: 717px;margin: 20px auto 0;" @click="handleClick" @contextmenu.prevent="handleClear">
       <div class="dot" v-for="(item, index) in pointList" :key="index" :style="{left: item[0] + 'px', top: item[1] + 'px'}"></div>
     </div>
   </div>
@@ -62,6 +63,7 @@ new Vue({
       this.start = "";
     },
     handleClear () {
+      this.message = "";
       this.pointList = [];
     },
     handleCopy () {
