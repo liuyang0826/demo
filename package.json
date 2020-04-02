@@ -16,7 +16,10 @@
     "url": "https://github.com/1161906592/demo/issues"
   },
   "homepage": "https://github.com/1161906592/demo#readme",
-  "dependencies": {},
+  "dependencies": {
+    "axios": "^0.19.2",
+    "jsdom": "^16.0.1"
+  },
   "devDependencies": {
     "@babel/core": "^7.4.5",
     "@babel/polyfill": "^7.4.4",

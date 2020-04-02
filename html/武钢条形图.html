@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="丿Coder">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>test</title>
+<!--  <script src="https://cdn.bootcss.com/echarts/4.1.0/echarts.min.js"></script>-->
+  <style>
+  * {
+    margin: 0;padding: 0;
+  }
+  .test {
+    width: 140px;
+    display: block;
+  }
+  .test:after {
+    display: block;
+    width: 100%;
+    content: "啊啊啊啊啊啊啊啊啊啊";
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  </style>
+</head>
+<body>
+<input class="test"/>
+<div id="app" style="height: 100vh;"></div>
+<script>
+// Generate mock data
+var data = [
+  {
+    "id": null,
+    "tapNo": 81039215,
+    "tapHole": 2,
+    "startTime": 1577573622000,
+    "slagTime": 1577574300000,
+    "endTime": 1577581965000,
+    "comeTime": 1577385321000,
+    "tpcInfoDesc": "Y035/Y044/Y062/Y027",
+    "tpcNum": 4,
+    "remark": null,
+    "tapValues": {
+      "actWeight": 857,
+      "theoryTapSpeed": 0.1295,
+      "hmMinutes": 139.05,
+      "slagPercent": 91.87342682488314,
+      "theoryWeight": 1011.2823,
+      "secondSlagMinutes": 0,
+      "secondTap": 0,
+      "tapSpeed": 8.304713189623676,
+      "hmDuration": 139.05,
+      "secondHmMinutes": 0,
+      "temp1": 1483,
+      "slagMinutes": 11.3,
+      "slagDuration": 11.3,
+      "diffWeight": 125.21770000000004
+    },
+    "hmAnalysis": {
+      "P": 0.00123,
+      "Mn": 0.00127,
+      "Cu": 0.00008,
+      "C": 0,
+      "S": 0.00018,
+      "Ti": 0.00049,
+      "Si": 0.00497,
+      "Cr": 0.00006
+    },
+    "slagAnalysis": {
+      "K2O": 0.00004,
+      "Al2O3": 0.16221,
+      "MnO": 0.00103,
+      "B2": 1.27771,
+      "CaO": 0.41081,
+      "B3": 1.49475,
+      "FeO": 0.0006,
+      "B4": 0.99351,
+      "S": 0.00981,
+      "MgO": 0.06978,
+      "Na2O": 0.00004,
+      "ZnO": 0,
+      "SiO2": 0.32152,
+      "TiO2": 0.0059
+    },
+    "secondTapping": null
+  },
+  {
+    "id": null,
+    "tapNo": 81039214,
+    "tapHole": 4,
+    "startTime": 1577563848000,
+    "slagTime": 1577565323000,
+    "endTime": 1577572059000,
+    "comeTime": 1577540138000,
+    "tpcInfoDesc": "Y017/Y028/Y033/Y066/Y058",
+    "tpcNum": 5,
+    "remark": null,
+    "tapValues": {
+      "actWeight": 1370,
+      "theoryTapSpeed": 0.1234,
+      "hmMinutes": 136.85,
+      "slagPercent": 82.03629277798076,
+      "theoryWeight": 698.5423,
+      "secondSlagMinutes": 0,
+      "secondTap": 0,
+      "tapSpeed": 9.403685674547983,
+      "hmDuration": 136.85,
+      "secondHmMinutes": 0,
+      "temp1": 0,
+      "slagMinutes": 24.583333333333332,
+      "slagDuration": 24.583333333333332,
+      "diffWeight": 202.95770000000005
+    },
+    "hmAnalysis": {
+      "P": 0.0011,
+      "Mn": 0.0012,
+      "Cu": 0.00008,
+      "C": 0,
+      "S": 0.00021,
+      "Ti": 0.00042,
+      "Si": 0.00457,
+      "Cr": 0.00006
+    },
+    "slagAnalysis": {
+      "K2O": 0.00004,
+      "Al2O3": 0.16165,
+      "MnO": 0.00101,
+      "B2": 1.28104,
+      "CaO": 0.40987,
+      "B3": 1.49808,
+      "FeO": 0.00037,
+      "B4": 0.99526,
+      "S": 0.00977,
+      "MgO": 0.06944,
+      "Na2O": 0.00004,
+      "ZnO": 0,
+      "SiO2": 0.31995,
+      "TiO2": 0.00592
+    },
+    "secondTapping": null
+  },
+  {
+    "id": null,
+    "tapNo": 81039213,
+    "tapHole": 2,
+    "startTime": 1577556606000,
+    "slagTime": 1577557406000,
+    "endTime": 1577562358000,
+    "comeTime": 1577522235000,
+    "tpcInfoDesc": "Y057/Y012/Y026",
+    "tpcNum": 3,
+    "remark": null,
+    "tapValues": {
+      "actWeight": 901.5,
+      "theoryTapSpeed": 0.1343,
+      "hmMinutes": 95.86666666666666,
+      "slagPercent": 86.09179415855354,
+      "theoryWeight": 699.0277,
+      "secondSlagMinutes": 0,
+      "secondTap": 0,
+      "tapSpeed": 6.130972842901341,
+      "hmDuration": 95.86666666666666,
+      "secondHmMinutes": 0,
+      "temp1": 1499,
+      "slagMinutes": 13.333333333333334,
+      "slagDuration": 13.333333333333334,
+      "diffWeight": -104.52769999999998
+    },
+    "hmAnalysis": {
+      "P": 0.00119,
+      "Mn": 0.00133,
+      "Cu": 0.00008,
+      "C": 0,
+      "S": 0.00019,
+      "Ti": 0.0004,
+      "Si": 0.00382,
+      "Cr": 0.00006
+    },
+    "slagAnalysis": {
+      "K2O": 0.00004,
+      "Al2O3": 0.15601,
+      "MnO": 0.00095,
+      "B2": 1.29108,
+      "CaO": 0.4057,
+      "B3": 1.51049,
+      "FeO": 0.00129,
+      "B4": 1.00938,
+      "S": 0.00968,
+      "MgO": 0.06895,
+      "Na2O": 0.00004,
+      "ZnO": 0,
+      "SiO2": 0.31424,
+      "TiO2": 0.00591
+    },
+    "secondTapping": null
+  },
+  {
+    "id": null,
+    "tapNo": 81039212,
+    "tapHole": 4,
+    "startTime": 1577548823000,
+    "slagTime": null,
+    "endTime": 1577554641000,
+    "comeTime": 1577540138000,
+    "tpcInfoDesc": "Y032/Y050/Y030",
+    "tpcNum": 3,
+    "remark": null,
+    "tapValues": {
+      "actWeight": 895.5,
+      "theoryTapSpeed": 0.1177,
+      "hmMinutes": 96.96666666666667,
+      "slagPercent": 100,
+      "theoryWeight": 807.7292,
+      "secondSlagMinutes": 0,
+      "secondTap": 0,
+      "tapSpeed": 3.4789710085749284,
+      "hmDuration": 96.96666666666667,
+      "secondHmMinutes": 0,
+      "temp1": 1515,
+      "slagMinutes": 0,
+      "slagDuration": 0,
+      "diffWeight": -381.7292
+    },
+    "hmAnalysis": {
+      "P": 0.00137,
+      "Mn": 0.00134,
+      "Cu": 0.00007,
+      "C": 0,
+      "S": 0.0002,
+      "Ti": 0.00048,
+      "Si": 0.00498,
+      "Cr": 0.00006
+    },
+    "slagAnalysis": {
+      "K2O": 0.00004,
+      "Al2O3": 0.15698,
+      "MnO": 0.00097,
+      "B2": 1.32685,
+      "CaO": 0.40271,
+      "B3": 1.54436,
+      "FeO": 0.00366,
+      "B4": 1.0179,
+      "S": 0.00972,
+      "MgO": 0.06602,
+      "Na2O": 0.00004,
+      "ZnO": 0,
+      "SiO2": 0.30351,
+      "TiO2": 0.00553
+    },
+    "secondTapping": null
+  },
+  {
+    "id": null,
+    "tapNo": 81039211,
+    "tapHole": 2,
+    "startTime": 1577539970000,
+    "slagTime": 1577541507000,
+    "endTime": 1577547317000,
+    "comeTime": 1577532517000,
+    "tpcInfoDesc": "Y005/Y020",
+    "tpcNum": 2,
+    "remark": null,
+    "tapValues": {
+      "actWeight": 426,
+      "theoryTapSpeed": 0.1196,
+      "hmMinutes": 122.45,
+      "slagPercent": 79.0798965564176,
+      "theoryWeight": 955.0758,
+      "secondSlagMinutes": 0,
+      "secondTap": 0,
+      "tapSpeed": 12.537813042400199,
+      "hmDuration": 122.45,
+      "secondHmMinutes": 0,
+      "temp1": 1498,
+      "slagMinutes": 25.616666666666667,
+      "slagDuration": 25.616666666666667,
+      "diffWeight": 730.4242
+    },
+    "hmAnalysis": {
+      "P": 0.00161,
+      "Mn": 0.00134,
+      "Cu": 0.00007,
+      "C": 0,
+      "S": 0.00024,
+      "Ti": 0.00051,
+      "Si": 0.00532,
+      "Cr": 0.00006
+    },
+    "slagAnalysis": {
+      "K2O": 0.00004,
+      "Al2O3": 0.15907,
+      "MnO": 0.00194,
+      "B2": 1.14018,
+      "CaO": 0.38787,
+      "B3": 1.34784,
+      "FeO": 0.00361,
+      "B4": 0.9184,
+      "S": 0.00806,
+      "MgO": 0.07064,
+      "Na2O": 0.00004,
+      "ZnO": 0,
+      "SiO2": 0.34018,
+      "TiO2": 0.00725
+    },
+    "secondTapping": null
+  },
+  {
+    "id": null,
+    "tapNo": 81039210,
+    "tapHole": 4,
+    "startTime": 1577530249000,
+    "slagTime": 1577530882000,
+    "endTime": 1577538315000,
+    "comeTime": 1577501758000,
+    "tpcInfoDesc": "Y002/Y024/Y043/Y058/Y045/Y062",
+    "tpcNum": 6,
+    "remark": null,
+    "tapValues": {
+      "actWeight": 1685.5,
+      "theoryTapSpeed": 0.1195,
+      "hmMinutes": 134.43333333333334,
+      "slagPercent": 92.15224398710637,
+      "theoryWeight": 1147.2157,
+      "secondSlagMinutes": 0,
+      "secondTap": 0,
+      "tapSpeed": 8.194677284157587,
+      "hmDuration": 134.43333333333334,
+      "secondHmMinutes": 0,
+      "temp1": 1495,
+      "slagMinutes": 10.55,
+      "slagDuration": 10.55,
+      "diffWeight": 156.28430000000003
+    },
+    "hmAnalysis": {
+      "P": 0.00148,
+      "Mn": 0.00138,
+      "Cu": 0.00007,
+      "C": 0,
+      "S": 0.00023,
+      "Ti": 0.00051,
+      "Si": 0.00493,
+      "Cr": 0.00006
+    },
+    "slagAnalysis": {
+      "K2O": 0.00004,
+      "Al2O3": 0.15599,
+      "MnO": 0.00123,
+      "B2": 1.22461,
+      "CaO": 0.39524,
+      "B3": 1.44066,
+      "FeO": 0.00556,
+      "B4": 0.97123,
+      "S": 0.00873,
+      "MgO": 0.06973,
+      "Na2O": 0.00004,
+      "ZnO": 0,
+      "SiO2": 0.32275,
+      "TiO2": 0.00624
+    },
+    "secondTapping": null
+  },
+  {
+    "id": null,
+    "tapNo": 81039209,
+    "tapHole": 2,
+    "startTime": 1577519410000,
+    "slagTime": 1577521073000,
+    "endTime": 1577528954000,
+    "comeTime": 1577497604000,
+    "tpcInfoDesc": "Y020/Y063/Y028/Y030/Y031",
+    "tpcNum": 5,
+    "remark": null,
+    "tapValues": {
+      "actWeight": 1303.5,
+      "theoryTapSpeed": 0.1257,
+      "hmMinutes": 159.06666666666666,
+      "slagPercent": 82.57544006705784,
+      "theoryWeight": 937.4925,
+      "secondSlagMinutes": 0,
+      "secondTap": 0,
+      "tapSpeed": 8.531731130304168,
+      "hmDuration": 159.06666666666666,
+      "secondHmMinutes": 0,
+      "temp1": 1488,
+      "slagMinutes": 27.716666666666665,
+      "slagDuration": 27.716666666666665,
+      "diffWeight": 198.50750000000005
+    },
+    "hmAnalysis": {
+      "P": 0.00112,
+      "Mn": 0.00131,
+      "Cu": 0.00009,
+      "C": 0,
+      "S": 0.00024,
+      "Ti": 0.00038,
+      "Si": 0.00382,
+      "Cr": 0.00006
+    },
+    "slagAnalysis": {
+      "K2O": 0.00004,
+      "Al2O3": 0.1618,
+      "MnO": 0.00117,
+      "B2": 1.20462,
+      "CaO": 0.39579,
+      "B3": 1.42493,
+      "FeO": 0.00032,
+      "B4": 0.95475,
+      "S": 0.00912,
+      "MgO": 0.07239,
+      "Na2O": 0.00004,
+      "ZnO": 0,
+      "SiO2": 0.32856,
+      "TiO2": 0.0065
+    },
+    "secondTapping": null
+  },
+  {
+    "id": null,
+    "tapNo": 81039208,
+    "tapHole": 4,
+    "startTime": 1577509998000,
+    "slagTime": 1577512235000,
+    "endTime": 1577517987000,
+    "comeTime": 1577485792000,
+    "tpcInfoDesc": "Y005/Y012/Y027/Y045",
+    "tpcNum": 4,
+    "remark": null,
+    "tapValues": {
+      "actWeight": 1136,
+      "theoryTapSpeed": 0.1277,
+      "hmMinutes": 133.15,
+      "slagPercent": 71.99899862310677,
+      "theoryWeight": 648.7223,
+      "secondSlagMinutes": 0,
+      "secondTap": 0,
+      "tapSpeed": 8.406538969616909,
+      "hmDuration": 133.15,
+      "secondHmMinutes": 0,
+      "temp1": 1490,
+      "slagMinutes": 37.28333333333333,
+      "slagDuration": 37.28333333333333,
+      "diffWeight": 199.77769999999998
+    },
+    "hmAnalysis": {
+      "P": 0.0012,
+      "Mn": 0.00123,
+      "Cu": 0.00008,
+      "C": 0,
+      "S": 0.00032,
+      "Ti": 0.00034,
+      "Si": 0.00343,
+      "Cr": 0.00006
+    },
+    "slagAnalysis": {
+      "K2O": 0.00004,
+      "Al2O3": 0.15689,
+      "MnO": 0.00212,
+      "B2": 1.17203,
+      "CaO": 0.39554,
+      "B3": 1.37051,
+      "FeO": 0.00358,
+      "B4": 0.93558,
+      "S": 0.00786,
+      "MgO": 0.06698,
+      "Na2O": 0.00004,
+      "ZnO": 0,
+      "SiO2": 0.33748,
+      "TiO2": 0.00744
+    },
+    "secondTapping": null
+  },
+  {
+    "id": null,
+    "tapNo": 81039207,
+    "tapHole": 2,
+    "startTime": 1577502440000,
+    "slagTime": 1577504057000,
+    "endTime": 1577508496000,
+    "comeTime": 1577497604000,
+    "tpcInfoDesc": "Y057/Y022/Y029",
+    "tpcNum": 3,
+    "remark": null,
+    "tapValues": {
+      "actWeight": 848.5,
+      "theoryTapSpeed": 0.1123,
+      "hmMinutes": 100.93333333333334,
+      "slagPercent": 73.29920739762218,
+      "theoryWeight": 716.733,
+      "secondSlagMinutes": 0,
+      "secondTap": 0,
+      "tapSpeed": 9.406937132239083,
+      "hmDuration": 100.93333333333334,
+      "secondHmMinutes": 0,
+      "temp1": 1488,
+      "slagMinutes": 26.95,
+      "slagDuration": 26.95,
+      "diffWeight": 295.76700000000005
+    },
+    "hmAnalysis": {
+      "P": 0.00116,
+      "Mn": 0.00132,
+      "Cu": 0.00008,
+      "C": 0,
+      "S": 0.00025,
+      "Ti": 0.00038,
+      "Si": 0.00435,
+      "Cr": 0.00007
+    },
+    "slagAnalysis": {
+      "K2O": 0.00004,
+      "Al2O3": 0.15911,
+      "MnO": 0.00133,
+      "B2": 1.18714,
+      "CaO": 0.38551,
+      "B3": 1.39861,
+      "FeO": 0.00103,
+      "B4": 0.93869,
+      "S": 0.00962,
+      "MgO": 0.06867,
+      "Na2O": 0.00004,
+      "ZnO": 0,
+      "SiO2": 0.32474,
+      "TiO2": 0.00647
+    },
+    "secondTapping": null
+  }
+].map(item => {
+  return {
+    value: [
+      item.tapHole - 1,
+      item.startTime,
+      item.slagTime,
+      item.endTime,
+      item.tpcNum,
+      item.tpcInfoDesc,
+    ]
+  };
+});
+
+option = {
+  tooltip: {
+    formatter: function (params) {
+      return `<span style="display:inline-block;margin-right:5px;border-radius:10px;width:10px;height:10px;background-color:#2FC5FF;"></span>铁: ${params.value[4]}吨<br>
+              <span style="display:inline-block;margin-right:5px;border-radius:10px;width:10px;height:10px;background-color:#11FFB5;"></span>渣: ${params.value[5]}吨`;
+    }
+  },
+  grid: {
+    height: 300
+  },
+  xAxis: {
+    scale: true,
+    axisLabel: {
+      formatter: function (data) {
+        var date = new Date(data);
+        return date.getMonth() + "-" + date.getDate() + " " + date.getHours()
+        .toString()
+        .padStart(2, 0) + ":" + date.getMinutes().toString().padStart(2, 0);
+      }
+    },
+    splitLine: {
+      show: false
+    },
+    axisLine: {
+      show: false
+    },
+    axisTick: {
+      show: false
+    }
+  },
+  yAxis: {
+    data: [1, 2, 3, 4, 5, 6],
+    axisLine: {
+      show: false
+    },
+    axisTick: {
+      show: false
+    }
+  },
+  series: [
+    {
+      type: "custom",
+      renderItem: function (params, api) {
+        var categoryIndex = api.value(0);
+        var start = api.coord([api.value(1), categoryIndex]);
+        var center = api.coord([api.value(2), categoryIndex]);
+        var end = api.coord([api.value(3), categoryIndex]);
+        var height = api.size([0, 1])[1] * 0.6;
+        return {
+          type: "group",
+          children: [
+            {
+              type: "rect",
+              shape: {
+                x: start[0],
+                y: start[1] - height / 2,
+                width: center[0] - start[0],
+                height: height
+              },
+              style: {
+                fill: "#2FC5FF"
+              }
+            },
+            {
+              type: "rect",
+              shape: {
+                x: center[0],
+                y: start[1] - height / 2,
+                width: end[0] - center[0],
+                height: height
+              },
+              style: {
+                fill: "#11FFB5"
+              }
+            }
+          ]
+        };
+      },
+      encode: {
+        x: [1, 2, 3],
+        y: 0
+      },
+      data: data
+    }
+  ]
+};
+echarts.init(document.getElementById("app")).setOption(option);
+</script>
+</body>
+</html>
