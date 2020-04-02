@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="丿Coder">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>getClickPoint</title>
+  <style>
+  button {
+    margin-left: 10px;
+  }
+  .text {
+    line-height: 24px;
+  }
+  span {
+    font-size: 14px;
+  }
+  .img {
+    position: relative;
+    background: url("https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1585838150563&di=98772a219419612fc9bd6e006653d748&imgtype=0&src=http%3A%2F%2Fi0.hdslb.com%2Fbfs%2Farticle%2Ff215839abfdf4fee7a9c1ccf69035a769026969e.jpg");
+  }
+  .dot {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: #fff;
+    border-radius: 50%;
+  }
+  </style>
+  <script src="vue.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<script>
+new Vue({
+  el: "#app",
+  template: `
+    <div>
+      <div class="text">
+      起始点
+      <input type="text" v-model="start">
+      <button @click="handleResetStart">确定</button>
+      <span style="margin: 0 20px;">{{JSON.stringify(pointList)}}</span>
+      <button @click="pointList.pop()">删一个</button>
+      <button @click="handleClear">清空</button>
+      <button @click="handleCopy">复制</button>
+      <span>{{message}}</span>
+    </div>
+    <div class="img" style="width: 1215px;height: 717px;margin: 20px auto 0;" @click="handleClick">
+      <div class="dot" v-for="(item, index) in pointList" :key="index" :style="{left: item[0] + 'px', top: item[1] + 'px'}"></div>
+    </div>
+  </div>
+  `,
+  data: {
+    start: "",
+    pointList: [],
+    message: ""
+  },
+  methods: {
+    handleResetStart () {
+      this.pointList = [this.start.split(",").map(d => +d)];
+      this.start = "";
+    },
+    handleClear () {
+      this.pointList = [];
+    },
+    handleCopy () {
+      let input = document.createElement("input");
+      document.body.appendChild(input);
+      input.style.cssText = "opacity:0;position:fixed;left:0;top:0;";
+      input.value = JSON.stringify(this.pointList);
+      input.focus();
+      input.setSelectionRange(0, input.value.length);
+      var res = document.execCommand("copy", true);
+      document.body.removeChild(input);
+      this.message = "复制成功";
+    },
+    handleClick (e) {
+      this.message = "";
+      let x = e.clientX - e.target.offsetLeft;
+      let y = e.clientY - e.target.offsetTop;
+      if (this.pointList.length) {
+        let [x1, y1] = this.pointList[this.pointList.length - 1];
+        let dx = Math.abs(x - x1);
+        let dy = Math.abs(y - y1);
+        if (dx < dy) {
+          y1 = y;
+        } else {
+          x1 = x;
+        }
+        this.pointList.push([x1, y1]);
+      } else {
+        this.pointList = [[x, y]];
+      }
+    }
+  }
+});
+</script>
+</body>
+</html>
