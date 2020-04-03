@@ -6,8 +6,23 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
   <title>getClickPoint</title>
   <style>
+  * {
+    margin: 0;padding: 0;
+  }
   button {
     margin-left: 10px;
+  }
+  .tools {
+    position: fixed;
+    z-index: 99;
+    top: 50px;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    white-space: nowrap;
+    margin: auto;
+    padding: 16px;
+    text-align: center;
   }
   .text {
     line-height: 24px;
@@ -16,13 +31,15 @@
     font-size: 14px;
   }
   .img {
+    width: 1920px;height: 1080px;
     position: relative;
-    background: url("https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1585838150563&di=98772a219419612fc9bd6e006653d748&imgtype=0&src=http%3A%2F%2Fi0.hdslb.com%2Fbfs%2Farticle%2Ff215839abfdf4fee7a9c1ccf69035a769026969e.jpg");
+    background: url("能源环保部炼钢连铸循环水南区工艺流程.png");
   }
   .dot {
     position: absolute;
     width: 6px;
     height: 6px;
+    z-index: 99;
     transform: translate(-50%, -50%);
     background: #fff;
     border-radius: 50%;
@@ -37,17 +54,17 @@ new Vue({
   el: "#app",
   template: `
     <div>
-      <div class="text">
-      起始点
+      <div class="tools">
+      <span>起始点</span>
       <input type="text" v-model="start">
       <button @click="handleResetStart">确定</button>
-      <span style="margin: 0 20px;">{{JSON.stringify(pointList)}}</span>
       <button @click="pointList.pop()">删一个</button>
       <button @click="handleClear">清空</button>
       <button @click="handleCopy">复制</button>
       <span>{{message}}</span>
+      <span style="margin: 0 20px;">{{JSON.stringify(pointList)}}</span>
     </div>
-    <div class="img" style="width: 1215px;height: 717px;margin: 20px auto 0;" @click="handleClick" @contextmenu.prevent="handleClear">
+    <div class="img" @click="handleClick" @contextmenu.prevent="handleClear">
       <div class="dot" v-for="(item, index) in pointList" :key="index" :style="{left: item[0] + 'px', top: item[1] + 'px'}"></div>
     </div>
   </div>
@@ -79,8 +96,8 @@ new Vue({
     },
     handleClick (e) {
       this.message = "";
-      let x = e.clientX - e.target.offsetLeft;
-      let y = e.clientY - e.target.offsetTop;
+      let x = e.pageX - e.target.offsetLeft;
+      let y = e.pageY - e.target.offsetTop;
       if (this.pointList.length) {
         let [x1, y1] = this.pointList[this.pointList.length - 1];
         let dx = Math.abs(x - x1);
