@@ -3,36 +3,39 @@
 <head>
   <meta charset="UTF-8">
   <title>Title</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-    }
-    img {
-      width: 40px;
-      height: 40px;
-    }
-    .a {
-      width: 75px;
-      margin: 100px auto;
-      height: 42px;
-      background-image: linear-gradient(-31deg, #398cfe 0%, #46acff 50%, #51c8ff 100%), linear-gradient(#22b2fa, #22b2fa);
-      box-shadow: 1px 2px 4px 0px rgba(40, 127, 220, 0.3), inset 0px 0px 5px 0px rgba(0, 0, 0, 0.5);
-      clip-path: polygon(0% 0%, 100% 0%, 100% 70%, 50% 100%, 0% 70%);
-    }
-  </style>
 </head>
 <body>
-<div class="a"></div>
-<input type="file" id="file">
+<input type="file" id="file" multiple>
 <script>
-  var input = document.getElementById('file')
-  input.onchange = function (e) {
-    console.log(this.files[0])
-    var a = new FormData()
-    a.append('a', this.files[0])
-    console.log(a.get('a'))
-  }
+var input = document.getElementById("file");
+input.onchange = function (e) {
+  Array.from(this.files).forEach((file, index) => {
+    setTimeout(() => {
+      let fr = new FileReader();
+      fr.readAsArrayBuffer(file);
+      let type = file.type;
+      let name = file.name;
+      let regex = new RegExp("[\\u4E00-\\u9FFF]", "g");
+      for (let i = 0; i < name.length; i++) {
+        if (regex.test(name[i]) && name[i] !== "、") {
+          name = name.substr(i);
+          console.log(name);
+          break;
+        }
+      }
+      fr.onload = function () {
+        let a = document.createElement("a");
+        a.href = (window.URL || window.webkitURL).createObjectURL(
+        new Blob([fr.result], {
+          type: type
+        })
+        );
+        a.download = name;
+        a.click();
+      };
+    }, index * 500)
+  });
+};
 </script>
 </body>
 </html>
