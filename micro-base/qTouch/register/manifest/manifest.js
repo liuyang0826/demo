@@ -122,7 +122,10 @@
       activeRule: pathsInclude(appPathMap.personManage),
       props: { title: "人员管理" }
     }
-  ];
+  ].map(d => ({
+    ...d,
+    entry: d.entry + "?v=" + Date.now()
+  }));
   return {
     appPathMap: appPathMap,
     manifest: manifest

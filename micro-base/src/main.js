@@ -9,7 +9,7 @@ async function main () {
   if (window.isRunRegister) return;
   window.isRunRegister = true;
 
-  const { manifest, appPathMap } = (await window.System.import("/register/manifest/manifest.js")).default;
+  const { manifest, appPathMap } = (await window.System.import("/register/manifest/manifest.js?v=" + Date.now())).default;
 
   // 所有应用都共享的方法
   injectShare({ appPathMap });

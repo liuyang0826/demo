@@ -43,10 +43,10 @@ function _getPrefetchList (PrefetchList) {
   }));
 }
 
-export default function importHTML (url) {
-  return embedHTMLCache[url] || (embedHTMLCache[url] = fetch(url).then((response) => {
-    return response;
-  }).then((html) => {
+export function importEntry (url) {
+  return embedHTMLCache[url] || (embedHTMLCache[url] = fetch(url)
+  .then((response) => response)
+  .then((html) => {
     const $processTpl = processTpl(html, getDomain(url));
     const template = $processTpl.template;
     const scripts = $processTpl.scripts;
@@ -69,14 +69,4 @@ export default function importHTML (url) {
       },
     };
   }));
-}
-
-export function importEntry (entry) {
-  if (!entry) {
-    throw new SyntaxError("entry should not be empty!");
-  } // html entry
-
-  if (typeof entry === "string") {
-    return importHTML(entry);
-  } // config entry
 }

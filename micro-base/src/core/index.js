@@ -25,7 +25,7 @@ export function registerMicroApps(apps, lifeCycles) {
 
       async ({ name: appName }) => {
 
-        const { importScripts, getExternalStyleSheets } = await importEntry(entry + "");
+        const { importScripts, getExternalStyleSheets } = await importEntry(entry);
 
         if (beforeLoad.length) {
           await Promise.all(beforeLoad.map(hook => hook(app)));
