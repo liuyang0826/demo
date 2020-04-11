@@ -1,9 +1,11 @@
 import { navigateToUrl } from "single-spa";
 import { loading } from "../progress";
+import Vue from "vue";
+import VueRouter from "vue-router";
 
 export function injectShare ({ appPathMap }) {
-  window.qTouch =  {
-    navigateToUrl: function(url) {
+  window.qTouch = {
+    navigateToUrl: function (url) {
       navigateToUrl(process.env.BASE_URL + url);
     },
     appPathMap: appPathMap,
@@ -19,5 +21,7 @@ export function injectShare ({ appPathMap }) {
       return false;
     },
     loading: loading
-};
+  };
+  window.Vue = Vue;
+  window.VueRouter = VueRouter;
 }
