@@ -4,12 +4,12 @@ const path = require("path");
 const config = require("./script/config");
 
 const ip = "127.0.0.1";
-const port = 8008;
+const port = 83;
 
 const app = express();
 
 // 静态资源代理 开发环境必须添加，生产如果是独立部署就需要添加对应的代理
-app.use("/microApp", proxy("http://127.0.0.1:80"));
+// app.use("/microApp", proxy("http://127.0.0.1:80"));
 app.use("/test", proxy("http://127.0.0.1:8080"));
 
 // 接口代理
@@ -22,7 +22,8 @@ app.use("/open", proxy(api));
 
 // 开发环境配置
 // 处理静态资源
-app.use("/register", express.static(path.join(config.outputDir, config.publicPath)));
+app.use("/register", express.static(path.join(config.outputDir, "register")));
+app.use("/microApp", express.static(path.join(config.outputDir, "microApp")));
 
 // 处理history state
 app.all("*", function (req, res) {

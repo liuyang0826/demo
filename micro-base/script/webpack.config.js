@@ -22,7 +22,7 @@ fs.copySync(path.join(process.cwd(), "public"), path.join(process.cwd(), config.
 process.env.BASE_URL = "/" + config.outputDir;
 
 const resolveApp = relativePath => path.resolve(fs.realpathSync(process.cwd()), relativePath);
-const assetsPath = (_path) => path.join(config.publicPath, _path);
+const assetsPath = (_path) => path.join("register", _path);
 
 const shouldUseSourceMap = false;
 const isEnvDevelopment = process.env.NODE_ENV === "development";
@@ -90,6 +90,14 @@ module.exports = {
   module: {
     strictExportPresence: true,
     rules: [
+      {
+        test: /\.js$/,
+        use: [
+          {
+            loader: require.resolve("babel-loader")
+          }
+        ]
+      },
       {
         test: /\.css$/,
         use: [

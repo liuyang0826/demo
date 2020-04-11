@@ -1,4 +1,3 @@
 module.exports = {
-  outputDir: "qTouch",
-  publicPath: "register"
+  outputDir: "qTouch"
 };

@@ -1,11 +1,12 @@
 import processTpl from "./process-tpl";
 import { getInlineCode, insertExternalStyle, insertInlineStyle, insertPrefetchLink } from "./utils";
 import fetch from "./xhr";
+
 const styleCache = {};
 const embedHTMLCache = {};
 const prefetchCache = {};
 
-function getDomain(url) {
+function getDomain (url) {
   try {
     // URL 构造函数不支持使用 // 前缀的 url
     const href = new URL(url.startsWith("//") ? "".concat(location.protocol).concat(url) : url);
@@ -16,7 +17,7 @@ function getDomain(url) {
 }
 
 // css样式仅仅是从每个应用复制
-function _getExternalStyleSheets(styles) {
+function _getExternalStyleSheets (styles) {
   return Promise.all(styles.map((styleLink) => {
     if (!styleCache[styleLink]) {
       styleCache[styleLink] = true;
@@ -32,7 +33,7 @@ function _getExternalStyleSheets(styles) {
   }));
 } // for prefetch
 
-function _getPrefetchList(PrefetchList) {
+function _getPrefetchList (PrefetchList) {
   return Promise.all(PrefetchList.map((href) => {
     if (!prefetchCache[href]) {
       prefetchCache[href] = true;
@@ -42,7 +43,7 @@ function _getPrefetchList(PrefetchList) {
   }));
 }
 
-export default function importHTML(url) {
+export default function importHTML (url) {
   return embedHTMLCache[url] || (embedHTMLCache[url] = fetch(url).then((response) => {
     return response;
   }).then((html) => {
@@ -54,20 +55,23 @@ export default function importHTML(url) {
     const prefetchList = $processTpl.prefetchList;
     return {
       template,
-      getExternalStyleSheets: function getExternalStyleSheets() {
+      getExternalStyleSheets: function getExternalStyleSheets () {
         return _getExternalStyleSheets(styles);
       },
-      importScripts: function importScripts() {
+      importScripts: async function importScripts () {
+        for (let i = 0; i < scripts.length; i++) {
+          await window.System.import(scripts[i]);
+        }
         return window.System.import(entry);
       },
-      getPrefetchList: function getPrefetchList() {
+      getPrefetchList: function getPrefetchList () {
         return _getPrefetchList(prefetchList);
       },
     };
   }));
 }
 
-export function importEntry(entry) {
+export function importEntry (entry) {
   if (!entry) {
     throw new SyntaxError("entry should not be empty!");
   } // html entry
