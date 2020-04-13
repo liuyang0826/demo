@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="丿Coder">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>tree</title>
+  <style>
+  * {
+    margin: 0;padding: 0;
+  }
+  .tree {
+    width: 400px;
+    margin: auto;
+    line-height: 32px;
+  }
+  .content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 10px;
+  }
+  .content.bgStyle {
+    background: yellow;
+  }
+  .content.borderStyle {
+    border-bottom: 1px solid green;
+  }
+  em {
+    color: #ff0000;
+    font-style: normal;
+  }
+  </style>
+  <script src="https://cdn.bootcss.com/vue/2.6.10/vue.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<script>
+let TreeNode = Vue.component("TreeNode", {
+  name: "TreeNode",
+  props: {
+    data: { type: Array },
+    $level: { type: Number }
+  },
+  data () {
+    return {
+      curLevel: 0
+    }
+  },
+  created () {
+    this.curLevel = this.$level
+  },
+  template: `
+    <div>
+      <div v-for="(item, index) in data" :key="index">
+        <div class="content" :style="{margin: '0 ' + (curLevel * 16 + 'px')}" :class="(item.leftNode === null && item.rightNode === null) ? '' : curLevel === 0 ? 'bgStyle' : 'borderStyle'">
+          <div class="label" v-html="item.label"></div>
+          <div class="arrow" @click="item.expand = !item.expand" v-if="item.children && item.children.length">{{item.expand ? "收起" : "展开"}}</div>
+        </div>
+        <TreeNode v-if="item.children" :data="item.children" :$level="curLevel + 1" v-show="item.expand"></TreeNode>
+      </div>
+    </div>
+  `,
+});
+let Tree = Vue.component("Tree", {
+  props: {
+    data: { type: Array }
+  },
+  template: `
+    <div class="tree">
+      <TreeNode :data="data" :$level="0"></TreeNode>
+    </div>
+  `,
+  created () {
+    this.each(this.data, (item) => {
+      this.$set(item, "expand", true);
+    })
+  },
+  methods: {
+    each(tree, cb) {
+      tree.forEach((item) => {
+        cb(item);
+        this.each(item.children, cb);
+      })
+    }
+  }
+});
+new Vue({
+  data: {
+    data: [
+      {
+        "id": "085678f9b77c0a8f481c907db0d5dfe8",
+        "parentId": null,
+        "parentName": null,
+        "children": [
+          {
+            "id": "5dd640bf14c5668f20258f4324ce8a7c",
+            "parentId": "085678f9b77c0a8f481c907db0d5dfe8",
+            "parentName": "8#高炉设备",
+            "children": [
+              {
+                "id": "38d7e848b96e37feed184a89696dafc0",
+                "parentId": "5dd640bf14c5668f20258f4324ce8a7c",
+                "parentName": "8#高炉关键参数",
+                "children": [],
+                "label": "高<em>炉</em>安全监控",
+                "code": "glaqjk",
+                "orgCode": "bf08",
+                "baseTypeId": null,
+                "attrs": null,
+                "leftNode": null,
+                "rightNode": null,
+                "level": null
+              },
+              {
+                "id": "436b19d86c9b7dff1d82742631234954",
+                "parentId": "5dd640bf14c5668f20258f4324ce8a7c",
+                "parentName": "8#高炉关键参数",
+                "children": [],
+                "label": "高<em>炉</em>风机",
+                "code": "glfj",
+                "orgCode": "bf08",
+                "baseTypeId": null,
+                "attrs": null,
+                "leftNode": null,
+                "rightNode": null,
+                "level": null
+              },
+              {
+                "id": "880eaeb8626e29eb1828114d4831afdf",
+                "parentId": "5dd640bf14c5668f20258f4324ce8a7c",
+                "parentName": "8#高炉关键参数",
+                "children": [],
+                "label": "高<em><em>炉</em></em>炉顶设备",
+                "code": "f8glldsb",
+                "orgCode": "bf08",
+                "baseTypeId": null,
+                "attrs": null,
+                "leftNode": null,
+                "rightNode": null,
+                "level": null
+              },
+              {
+                "id": "edc2caed3d346312a997221a2c170d17",
+                "parentId": "5dd640bf14c5668f20258f4324ce8a7c",
+                "parentName": "8#高炉关键参数",
+                "children": [],
+                "label": "高<em>炉</em>喷吹制粉",
+                "code": "glpczf",
+                "orgCode": "bf08",
+                "baseTypeId": null,
+                "attrs": null,
+                "leftNode": null,
+                "rightNode": null,
+                "level": null
+              }
+            ],
+            "label": "8#高炉关键参数",
+            "code": "bf08gjcs",
+            "orgCode": null,
+            "baseTypeId": "8c998554df896fd18082d5d4cd173a33",
+            "attrs": null,
+            "leftNode": 5,
+            "rightNode": 6,
+            "level": null
+          },
+          {
+            "id": "a682ed749865d70751551b869156decb",
+            "parentId": "085678f9b77c0a8f481c907db0d5dfe8",
+            "parentName": "8#高炉设备",
+            "children": [
+              {
+                "id": "35279dd87b2fb4f1352812779d60ab52",
+                "parentId": "a682ed749865d70751551b869156decb",
+                "parentName": "8#高炉关键设备",
+                "children": [],
+                "label": "高<em>炉</em>关键设备",
+                "code": "f8glgjsb",
+                "orgCode": "bf08",
+                "baseTypeId": null,
+                "attrs": null,
+                "leftNode": null,
+                "rightNode": null,
+                "level": null
+              }
+            ],
+            "label": "8#高炉关键设备",
+            "code": "bf08glgjsb",
+            "orgCode": null,
+            "baseTypeId": "8c998554df896fd18082d5d4cd173a33",
+            "attrs": null,
+            "leftNode": 4,
+            "rightNode": 5,
+            "level": null
+          }
+        ],
+        "label": "8#高炉设备",
+        "code": "bf08glsb",
+        "orgCode": null,
+        "baseTypeId": "8c998554df896fd18082d5d4cd173a33",
+        "attrs": null,
+        "leftNode": 4,
+        "rightNode": 7,
+        "level": null
+      }
+    ]
+  },
+  template: `
+    <Tree :data="data"></Tree>
+  `
+}).$mount("#app");
+</script>
+</body>
+</html>
