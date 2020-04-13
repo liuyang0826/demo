@@ -9,15 +9,13 @@
   },
   "dependencies": {
     "axios": "^0.19.2",
-    "core-js": "2",
-    "nprogress": "^0.2.0",
-    "vue": "^2.6.11",
-    "vue-router": "^3.1.6"
+    "nprogress": "^0.2.0"
   },
   "devDependencies": {
     "@babel/core": "^7.6.0",
     "@babel/preset-env": "^7.9.5",
     "babel-loader": "^8.1.0",
+    "core-js": "2",
     "cross-env": "^6.0.0",
     "css-loader": "^3.4.2",
     "express": "^4.17.1",

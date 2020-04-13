@@ -1,7 +1,9 @@
 import { navigateToUrl } from "single-spa";
 import { loading } from "../progress";
-import Vue from "vue";
-import VueRouter from "vue-router";
+import { AMapUtils } from "./AMapUtils";
+import { adapterVue } from "./adapterVue";
+// import Vue from "vue";
+// import VueRouter from "vue-router";
 
 export function injectShare ({ appPathMap }) {
   window.qTouch = {
@@ -20,8 +22,12 @@ export function injectShare ({ appPathMap }) {
       }
       return false;
     },
-    loading: loading
+    loading,
+    AMapUtils,
+    Adapters: {
+      vue: adapterVue
+    }
   };
-  window.Vue = Vue;
-  window.VueRouter = VueRouter;
+  // window.Vue = Vue;
+  // window.VueRouter = VueRouter;
 }

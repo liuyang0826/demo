@@ -22,16 +22,25 @@
     errorPage: "/error",
     root: "/root",
     eventCenter: "/eventCenter",
-    userManage: "/userManage",
     processManage: "/qtouchProcess",
     authority: "/qtouchSysMenu",
+    sensorManage: "/qtouchSystemSensorMng",
+    deviceManage: "/deviceMng",
     myProcess: "/userMenu",
+    inspection: "/inspectionModule",
     organization: "/organization_manage",
+    mapConfig: "/mapConfig",
+    geographic: "/qtouchGeo",
     personManage: "/personMng",
-    projectManage: "/projectManage",
-    communityManage: "/communityManage",
-    planManage: "/planManage",
-    jobProcessManage: "/jobProcessManage",
+    vehicleManage: "/carMng",
+    buildingManage: "/buildingMng",
+    floodWarnManage: "/floodWarnManage",
+    codeRuleManage: "/codeRuleManage",
+    regions: "/regions",
+    openPlatform: "/openPlatform",
+    openPath: "/openPath",
+    businessObjectManage: "/business_object",
+    locationManage: "/locationManage"
   };
   var manifest = [
     {
@@ -57,12 +66,6 @@
       activeRule: pathsInclude(appPathMap.errorPage)
     },
     {
-      name: "userManage",
-      entry: "/microApp/userManage.html",
-      activeRule: pathsInclude(appPathMap.userManage),
-      props: { title: "人员管理" }
-    },
-    {
       name: "processManage",
       entry: "/microApp/processManage.html",
       activeRule: pathsInclude(appPathMap.processManage),
@@ -81,6 +84,18 @@
       props: { title: "事件中心" }
     },
     {
+      name: "inspection",
+      entry: "/microApp/inspection.html",
+      activeRule: pathsInclude(appPathMap.inspection),
+      props: { title: "巡查检查" }
+    },
+    {
+      name: "sensorManage",
+      entry: "/microApp/sensorManage.html",
+      activeRule: pathsInclude(appPathMap.sensorManage),
+      props: { title: "传感器管理" }
+    },
+    {
       name: "authority",
       entry: "/microApp/authority.html",
       activeRule: pathsInclude(appPathMap.authority),
@@ -93,34 +108,82 @@
       props: { title: "组织机构" }
     },
     {
-      name: "projectManage",
-      entry: "/ljxqgz-font/projectManage.html",
-      activeRule: pathsInclude(appPathMap.projectManage),
-      props: { title: "项目管理" }
+      name: "deviceManage",
+      entry: "/microApp/deviceManage.html",
+      activeRule: pathsInclude(appPathMap.deviceManage),
+      props: { title: "设备管理" }
     },
+    // {
+    //   name: "mapConfig",
+    //   entry: "/microApp/mapConfig.html",
+    //   activeRule: pathsInclude(appPathMap.mapConfig),
+    //   props: { title: "底图配置" }
+    // },
     {
-      name: "communityManage",
-      entry: "/ljxqgz-font/communityManage.html",
-      activeRule: pathsInclude(appPathMap.communityManage),
-      props: { title: "老旧小区管理" }
-    },
-    {
-      name: "planManage",
-      entry: "/ljxqgz-font/planManage.html",
-      activeRule: pathsInclude(appPathMap.planManage),
-      props: { title: "建设计划管理" }
-    },
-    {
-      name: "jobProcessManage",
-      entry: "/ljxqgz-font/jobProcessManage.html",
-      activeRule: pathsInclude(appPathMap.jobProcessManage),
-      props: { title: "施工进度管理" }
+      name: "qtouchGeo",
+      entry: "/microApp/geographic.html",
+      activeRule: pathsInclude(appPathMap.geographic),
+      props: { title: "地理信息" }
     },
     {
       name: "personManage",
       entry: "/microApp/personManage.html",
       activeRule: pathsInclude(appPathMap.personManage),
       props: { title: "人员管理" }
+    },
+    {
+      name: "vehicleManage",
+      entry: "/microApp/vehicleManage.html",
+      activeRule: pathsInclude(appPathMap.vehicleManage),
+      props: { title: "车辆管理" }
+    },
+    {
+      name: "buildingManage",
+      entry: "/microApp/buildingManage.html",
+      activeRule: pathsInclude(appPathMap.buildingManage),
+      props: { title: "建筑管理" }
+    },
+    {
+      name: "floodWarnManage",
+      entry: "/microApp/floodWarnManage.html",
+      activeRule: pathsInclude(appPathMap.floodWarnManage),
+      props: { title: "内涝报警预警管理" }
+    },
+    {
+      name: "codeRuleManage",
+      entry: "/microApp/codeRuleManage.html",
+      activeRule: pathsInclude(appPathMap.codeRuleManage),
+      props: { title: "编码规则" }
+    },
+    {
+      name: "regions",
+      entry: "/microApp/regions.html",
+      activeRule: pathsInclude(appPathMap.regions),
+      props: { title: "行政区划" }
+    },
+    {
+      name: "openPlatform",
+      entry: "/microApp/openPlatform.html",
+      activeRule: pathsInclude(appPathMap.openPlatform),
+      props: { title: "开放平台" }
+    },
+    {
+      name: "openPath",
+      entry: "/microApp/openPath.html",
+      activeRule: pathsInclude(appPathMap.openPath),
+      props: { title: "开放平台" }
+    },
+    {
+      name: "businessObjectManage",
+      entry: "/microApp/businessObjectManage.html",
+      activeRule: pathsInclude(appPathMap.businessObjectManage),
+      props: { title: "业务对象管理" }
+    },
+    {
+      name: "locationManage",
+      entry: "/microApp/locationManage.html",
+      activeRule: pathsInclude(appPathMap.locationManage),
+      props: { title: "定位管理" }
     }
   ].map(d => ({
     ...d,
