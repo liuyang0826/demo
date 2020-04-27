@@ -15,15 +15,15 @@ body {
 
 .app-container {
   position: relative;
-  margin: 130px 20px 20px 260px;
-  width: calc(100vw - 240px - 20px - 20px);
-  min-width: calc(1920px - 240px - 20px - 20px);
+  margin: 104px 20px 16px 256px;
+  width: calc(100vw - 240px - 20px - 16px);
+  min-width: calc(1600px - 240px - 16px - 16px);
 }
 
 body.full-screen .app-container {
-  margin-left: 20px;
-  width: calc(100vw - 20px - 20px);
-  min-width: calc(1920px - 20px - 20px);
+  margin-left: 16px;
+  width: calc(100vw - 16px - 16px);
+  min-width: calc(1600px - 16px - 16px);
 }
 
 .font_family {

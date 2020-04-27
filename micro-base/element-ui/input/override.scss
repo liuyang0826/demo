@@ -1,0 +1,13 @@
+.el-input {
+  //background: red;{
+}
+.el-input__inner {
+  &:disabled{
+    color: #555555 !important;
+  }
+}
+.el-textarea__inner {
+  &:disabled{
+    color: #555555 !important;
+  }
+}

@@ -1,0 +1,14 @@
+.el-card {
+  border-radius: 0;
+  border: none;
+}
+.el-card__header {
+  background: #F5F9FA;
+  border-bottom: none;
+  i {
+    color: #2d8cf0 !important;
+  }
+}
+.el-card__body {
+  padding: 12px 0;
+}

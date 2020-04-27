@@ -1,0 +1,20 @@
+.el-tree {
+  background: url("./stripe.svg") bottom;
+}
+
+.el-tree-node__content {
+  height: 40px;
+  //background: transparent!important;
+}
+
+.el-tree__empty-block {
+  background: #fff;
+}
+
+.is-current > .el-tree-node__content {
+  background: #a7c8f5!important;
+  color: #2678e7;
+}
+.is-expanded > .el-tree-node__children {
+  overflow: visible!important;
+}

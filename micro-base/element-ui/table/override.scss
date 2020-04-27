@@ -1,0 +1,48 @@
+.el-table {
+  background: url("./stripe.svg") left 53px;
+  //border: 1px solid #E9EDF2;
+  td, th.is-leaf {
+    border-bottom: none;
+  }
+  // 下边框线
+  &::before {
+    height: 0;
+  }
+  th {
+    padding: 0;
+    background: #F6F7FA;
+  }
+  td {
+    line-height: 53px;
+    padding: 0;
+    background: transparent!important;
+  }
+  thead {
+    color: #333;
+  }
+  tr {
+    background: transparent!important;
+    height: 53px!important;
+  }
+}
+.el-table__fixed-right {
+  background: url("./stripe.svg") left 53px;
+}
+.el-table__expanded-cell[class*=cell] {
+  padding: 0;
+}
+// 嵌套表格的背景冲突
+.el-table__empty-block {
+  min-height: 53px;
+}
+.el-table__empty-text {
+  line-height: 53px;
+}
+.el-tooltip__popper {
+  max-width: 98vw!important;
+}
+// 高亮当前选中行
+.current-row > td {
+  background: rgba(0, 158, 250, 0.219) !important;
+  color: #999;
+}

@@ -77,7 +77,7 @@ export function registerMicroApps(apps, lifeCycles) {
 export * from "./effects";
 export { navigateToUrl } from "single-spa";
 
-export function start(opts = {}) {
-  prefetchAfterFirstMounted(microApps);
+export function start() {
   startSpa();
+  prefetchAfterFirstMounted(microApps);
 }

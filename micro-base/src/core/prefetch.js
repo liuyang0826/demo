@@ -11,9 +11,10 @@ export function prefetch(entry) {
   const requestIdleCallback = window.requestIdleCallback || noop;
 
   requestIdleCallback(async () => {
-    const { getExternalStyleSheets, getPrefetchList } = await importEntry(entry);
+    const { getExternalStyleSheets, getPrefetchList, prefetchScripts } = await importEntry(entry);
     requestIdleCallback(getExternalStyleSheets);
     requestIdleCallback(getPrefetchList);
+    requestIdleCallback(prefetchScripts);
   });
 
 }

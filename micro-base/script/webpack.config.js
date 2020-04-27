@@ -22,7 +22,6 @@ fs.copySync(path.join(process.cwd(), "public"), path.join(process.cwd(), config.
 process.env.BASE_URL = "/" + config.outputDir;
 
 const resolveApp = relativePath => path.resolve(fs.realpathSync(process.cwd()), relativePath);
-const assetsPath = (_path) => path.join("register", _path);
 
 const shouldUseSourceMap = false;
 const isEnvDevelopment = process.env.NODE_ENV === "development";
@@ -38,8 +37,8 @@ module.exports = {
     path: resolveApp(config.outputDir),
     pathinfo: isEnvDevelopment,
     filename: isEnvProduction
-    ? assetsPath("js/app.[contenthash:8].js")
-    : isEnvDevelopment && assetsPath("js/app.js"),
+    ? "register/js/app.[contenthash:8].js"
+    : isEnvDevelopment && "register/js/app.js",
     publicPath: "/"
   },
   optimization: {
@@ -116,10 +115,40 @@ module.exports = {
         sideEffects: true,
       },
       {
-        loader: "file-loader",
-        exclude: [ /\.(js|mjs|jsx|ts|tsx)$/, /\.html$/, /\.json$/, /\.css$/ ],
+        test: /\.scss$/,
+        use: [
+          isEnvDevelopment && require.resolve("style-loader"),
+          isEnvProduction && {
+            loader: MiniCssExtractPlugin.loader
+          },
+          {
+            loader: require.resolve("css-loader"),
+            options: {
+              importLoaders: 1,
+              sourceMap: isEnvProduction && shouldUseSourceMap,
+            }
+          },
+          {
+            loader: require.resolve("resolve-url-loader"),
+            options: {
+              importLoaders: 1,
+              sourceMap: isEnvProduction && shouldUseSourceMap,
+            }
+          },
+          {
+            loader: require.resolve("sass-loader"),
+            options: {
+              sourceMap: true
+            }
+          }
+        ].filter(Boolean),
+        sideEffects: true,
+      },
+      {
+        loader: require.resolve("file-loader"),
+        exclude: [ /\.(js|mjs|jsx|ts|tsx)$/, /\.html$/, /\.json$/, /\.css$/, /\.scss$/ ],
         options: {
-          name: assetsPath("media/[name].[hash:8].[ext]"),
+          name: "register/media/[name].[hash:8].[ext]",
         }
       }
     ]
@@ -154,8 +183,8 @@ module.exports = {
     // css抽离
     isEnvProduction &&
     new MiniCssExtractPlugin({
-      filename: assetsPath("css/[id].[contenthash:8].css"),
-      chunkFilename: assetsPath("css/[id].[contenthash:8].chunk.css"),
+      filename: "register/css/[id].[contenthash:8].css",
+      chunkFilename: "register/css/[id].[contenthash:8].chunk.css",
     }),
     // 环境变量定义插件
     new webpack.DefinePlugin({

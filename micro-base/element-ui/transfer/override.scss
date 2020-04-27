@@ -1,0 +1,45 @@
+.el-transfer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  .el-input__inner {
+    width: calc(100% - 24px);
+  }
+}
+
+.el-transfer__buttons {
+  margin-left: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0 16px;
+  align-items: center;
+  .el-button--primary {
+    &:last-child {
+      margin-left: 0;
+    }
+  }
+}
+
+.el-transfer-panel__list {
+  display: flex;
+  flex-direction: column;
+
+  &::-webkit-scrollbar {
+    width: 5px;
+    height: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    border-radius: 5px;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.4);
+    background: #eaedf1;
+  }
+  &::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    background: rgba(0, 0, 0, 0);
+  }
+}
+.el-transfer-panel__filter {
+  margin: 12px 0;
+}

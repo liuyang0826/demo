@@ -25,16 +25,8 @@ export const genScriptReplaceSymbol = (scriptSrc) => {
   return "<!-- script ".concat(scriptSrc, " replaced by import-html-entry -->");
 };
 export let inlineScriptReplaceSymbol = "<!-- inline scripts replaced by import-html-entry -->";
-/**
- * parse the script link from the template
- * 1. collect stylesheets
- * 2. use global eval to evaluate the inline scripts
- * @param tpl
- * @param domain
- * @stripStyles whether to strip the css links
- * @returns {{template: void | string | *, scripts: *[], entry: *}}
- */
 
+// 解析入口html
 export default function processTpl(tpl, domain) {
   let scripts = [];
   const styles = [];

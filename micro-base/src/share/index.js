@@ -1,11 +1,14 @@
 import { navigateToUrl } from "single-spa";
 import { loading } from "../progress";
-import { AMapUtils } from "./AMapUtils";
-import { adapterVue } from "./adapterVue";
-// import Vue from "vue";
-// import VueRouter from "vue-router";
+import { AMapUtils } from "./utils/AMapUtils";
+import { adapterVue } from "./adapters/adapterVue";
+import { http } from "./http";
+import cookieUtils from "js-cookie";
+import Vue from "vue";
+import VueRouter from "vue-router";
+import ELEMENT from "element-ui";
 
-export function injectShare ({ appPathMap }) {
+export function injectShare ({ appPathMap, accessTokenKey }) {
   window.qTouch = {
     navigateToUrl: function (url) {
       navigateToUrl(process.env.BASE_URL + url);
@@ -26,8 +29,12 @@ export function injectShare ({ appPathMap }) {
     AMapUtils,
     Adapters: {
       vue: adapterVue
-    }
+    },
+    cookieUtils,
+    http,
+    accessTokenKey
   };
-  // window.Vue = Vue;
-  // window.VueRouter = VueRouter;
+  window.Vue = Vue;
+  window.VueRouter = VueRouter;
+  window.ELEMENT = ELEMENT;
 }

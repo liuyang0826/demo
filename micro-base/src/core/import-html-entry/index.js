@@ -64,6 +64,9 @@ export function importEntry (url) {
         }
         return window.System.import(entry);
       },
+      prefetchScripts: function prefetchScripts () {
+        return _getPrefetchList(scripts);
+      },
       getPrefetchList: function getPrefetchList () {
         return _getPrefetchList(prefetchList);
       },
