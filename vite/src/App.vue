@@ -10,8 +10,9 @@
 
 <script>
 import { ref } from "vue";
-import ExpandText from "./ExpandText.vue";
+import ExpandText from "./components/ExpandText.vue";
 
+console.log(ExpandText);
 export default {
   components: { ExpandText },
   setup () {
@@ -29,22 +30,4 @@ export default {
 
 <style scoped>
 button { color: red }
-
-.content {
-  line-height: 24px;
-  overflow: hidden;
-  position: relative;
-}
-
-.pack {
-  height: 48px;
-}
-
-.btn {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  line-height: 24px;
-  background: #fff;
-}
 </style>
