@@ -1,15 +1,15 @@
 {
-  "name": "vite",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "vite-app",
+  "version": "0.0.0",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "run": "vite"
+    "dev": "vite",
+    "build": "vite build"
   },
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "vite": "^0.2.0"
+    "vue": "^3.0.0-beta.10"
+  },
+  "devDependencies": {
+    "vite": "^0.15.0",
+    "@vue/compiler-sfc": "^3.0.0-beta.10"
   }
 }
