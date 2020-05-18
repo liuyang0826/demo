@@ -30,21 +30,23 @@
   </div>
 </div>
 <script>
-var map = new AMap.Map("container", {
+let map = new AMap.Map("container", {
   center: [106.552588, 29.643322],
   zoom: 10
 });
 let data = [];
+let staticData = [];
+let dynamicData = [];
 let retina = AMap.Browser.retina;
-let maxR = retina ? 8 : 16;
-let minR = retina ? 4 : 8;
-let maxError = 50;
+let maxR = retina ? 40 : 80;
+let minR = retina ? 10 : 20;
+let maxError = 2000;
 
 function getData (callback) {
   data = [];
   // 11406
   let errorNum = 0;
-  for (let i = 0; i < 10000; i++) {
+  for (let i = 0; i < 20000; i++) {
     let isError = ~~(Math.random() * 2) && (errorNum < maxError);
     if (isError) {
       errorNum++;
@@ -52,85 +54,173 @@ function getData (callback) {
     data.push({
       lng: 116 + Number((Math.random() * 10 - 12).toFixed(6)),
       lat: 29 + Number((Math.random() * 10 - 5).toFixed(6)),
+      icon: ~~(Math.random() * 3),
       r: retina ? 4 : 8,
-      speed: retina ? 0.1 : 0.2,
+      speed: retina ? 0.4 : 0.8,
       error: isError
-    })
+    });
   }
   callback(data);
 }
 
-var canvas = document.createElement("canvas");
+let canvas = document.createElement("canvas");
 canvas.onclick = (e) => {
-  var ctx = canvas.getContext("2d");
-  for (var i = 0; i < data.length; i += 1) {
-    var center = [data[i].lng, data[i].lat];
-    var pos = map.lngLatToContainer(center);
+  let ctx = canvas.getContext("2d");
+  for (let i = 0; i < data.length; i += 1) {
+    let item = data[i];
+    let center = [item.lng, item.lat];
+    let pos = map.lngLatToContainer(center);
     if (retina) {
       pos = pos.multiplyBy(2);
     }
     ctx.beginPath();
-    ctx.arc(pos.x, pos.y, data[i].r, 0, 2 * Math.PI);
+    ctx.rect(pos.x - item.width / 2, pos.y - item.height / 2, item.width, item.height);
     if (ctx.isPointInPath(e.clientX, e.clientY)) {
-      console.log(data[i]);
+      console.log(item);
     }
   }
 };
 
 let rAFid;
 
-function customLayer (positions) {
+function renderBase (canvas, render) {
+  let size = map.getSize();//resize
+  let width = size.width;
+  let height = size.height;
+  canvas.style.width = width + "px";
+  canvas.style.height = height + "px";
+  if (retina) {//高清适配
+    width *= 2;
+    height *= 2;
+  }
+  canvas.width = width;
+  canvas.height = height; //清除画布
+  let ctx = canvas.getContext("2d");
+  ctx.beginPath();
+
+  render(ctx);
+}
+
+function loadCustomIcon (src) {
+  return new Promise((resolve) => {
+    let image = new Image();
+    image.src = src;
+    image.onload = function () {
+      resolve(image);
+    }
+  })
+}
+
+function customLayer (positions, icons) {
+  staticData = [];
+  dynamicData = [];
+  for (let i = 0; i < positions.length; i++) {
+    let item = positions[i];
+    if (item.error) {
+      dynamicData.push(item);
+    } else {
+      staticData.push(item);
+    }
+  }
   AMap.plugin("AMap.CustomLayer", function () {
-    var customLayer = new AMap.CustomLayer(canvas, {
+    let customStaticLayer = new AMap.CustomLayer(canvas, {
       // zooms: [3, 10],
       alwaysRender: false, // 缩放过程中是否重绘，复杂绘制建议设为false
       zIndex: 120
     });
-    customLayer.render = function () {
-      cancelAnimationFrame(rAFid);
-      var size = map.getSize();//resize
-      var width = size.width;
-      var height = size.height;
-      canvas.style.width = width + "px";
-      canvas.style.height = height + "px";
-      if (retina) {//高清适配
-        width *= 2;
-        height *= 2;
-      }
-      canvas.width = width;
-      canvas.height = height;//清除画布
-      var ctx = canvas.getContext("2d");
-      ctx.fillStyle = "#08f";
-      ctx.strokeStyle = "#fff";
-      ctx.beginPath();
-      for (var i = 0; i < positions.length; i += 1) {
-        let item = positions[i];
-        var center = [item.lng, item.lat];
-        var pos = map.lngLatToContainer(center);
-        if (item.error) {
-          if (item.r > maxR || item.r < minR) {
+    customStaticLayer.render = function () {
+      render(true);
+    };
+    let offCanvas = document.createElement("canvas");
+
+    function renderOffCanvas () {
+      renderBase(offCanvas, (ctx) => {
+        for (let i = 0; i < staticData.length; i++) {
+          let item = staticData[i];
+          let center = [item.lng, item.lat];
+          let pos = map.lngLatToContainer(center);
+          if (retina) {
+            pos = pos.multiplyBy(2);
+          }
+          let icon = icons[item.icon];
+          if (!item.width) {
+            item.width = icon.width;
+            item.height = icon.height;
+          }
+          ctx.drawImage(icon, pos.x - icon.width / 2, pos.y - icon.height / 2, icon.width, icon.height);
+        }
+      });
+    }
+
+    function renderOnCanvas () {
+      renderBase(canvas, (ctx) => {
+        ctx.drawImage(offCanvas, 0, 0, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+        for (let i = 0; i < dynamicData.length; i++) {
+          let item = dynamicData[i];
+          let center = [item.lng, item.lat];
+          let pos = map.lngLatToContainer(center);
+          // if (item.r > maxR || item.r < minR) {
+          //   item.speed = -item.speed;
+          // }
+          // item.r += item.speed;
+
+          let icon = icons[item.icon];
+          if (!item.width) {
+            item.width = icon.width;
+            item.height = icon.height;
+          }
+
+          if (item.width > maxR || item.height > maxR || item.width < minR || item.height < minR) {
             item.speed = -item.speed;
           }
-          item.r += item.speed;
+          item.width += item.speed;
+          item.height += item.speed;
+          console.log(
+          // icons[item.icon],
+          );
+          if (retina) {
+            pos = pos.multiplyBy(2);
+          }
+          // console.log(item.width);
+          // ctx.moveTo(pos.x, pos.y);
+          // ctx.arc(pos.x, pos.y, item.r, 0, 2 * Math.PI);
+          ctx.drawImage(
+            icon,
+            0, 0,
+            icon.width, icon.height,
+            pos.x - item.width / 2, pos.y - item.height / 2,
+            item.width, item.height
+          );
         }
-        if (retina) {
-          pos = pos.multiplyBy(2);
-        }
-        ctx.moveTo(pos.x, pos.y);
-        ctx.arc(pos.x, pos.y, data[i].r, 0, 2 * Math.PI);
-      }
-      ctx.lineWidth = retina ? 6 : 3;
-      ctx.closePath();
-      ctx.stroke();
-      ctx.fill();
-      // rAFid = requestAnimationFrame(customLayer.render)
-    };
-    customLayer.setMap(map);
+      });
+    }
+
+    function render (forceRender) {
+      cancelAnimationFrame(rAFid);
+
+      forceRender && renderOffCanvas();
+
+      renderOnCanvas();
+
+      rAFid = requestAnimationFrame(() => {
+        render(false);
+      });
+    }
+
+    customStaticLayer.setMap(map);
   });
 }
 
 function handleRender () {
-  getData(customLayer);
+  getData((positions) => {
+    Promise.all([
+      loadCustomIcon("https://a.amap.com/jsapi_demos/static/images/mass0.png"),
+      loadCustomIcon("https://a.amap.com/jsapi_demos/static/images/mass1.png"),
+      loadCustomIcon("https://a.amap.com/jsapi_demos/static/images/mass2.png"),
+    ]).then((icons) => {
+      customLayer(positions, icons)
+    });
+  });
 }
 </script>
 </body>
