@@ -2,98 +2,77 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8">
-  <meta name="author" content="丿Coder">
+  <meta name="author" content="018269">
   <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
   <title>test</title>
   <style>
   * {
     margin: 0;padding: 0;
   }
-  .box {
-    display: table;
-    width: 300px;
-    margin: auto;
+  .loading {
+    position: relative;
+    left: 400px;
+    top: 400px;
   }
   .item {
-    display: table-cell;
-    vertical-align: middle;
-  }
-  .node {
-    box-sizing: border-box;
-    padding: 10px 20px;
-    position: relative;
-  }
-  .node:before, .node:after {
-    content: '';
     position: absolute;
-    height: 50%;
-    width: 19px;
+    left: -20px;
+    top: -10px;
+    width: 20px;
+    height: 20px;
+    transform-origin: 40px 10px;
   }
-  .node:before {
-    top: 0;
+  .item > div {
+    animation-name: scale;
+    animation-duration: 1s;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+    background: #F6721F;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    opacity: 0;
   }
-  .node:after {
-    top: 50%;
-  }
-  .left .node:before, .left .node:after {
-    right: 0;
-    border-right: 1px solid #eaeaea;
-  }
-  .left .node:first-of-type:before, .left .node:last-of-type:after {
-    border-right: none;
-  }
-  .right .node:before, .right .node:after {
-    left: 0;
-    border-left: 1px solid #eaeaea;
-  }
-  .right .node:first-of-type:before, .right .node:last-of-type:after {
-    border-left: none;
-  }
-  .inner:before, .inner:after {
-    content: '';
-    position: absolute;
-    height: 1px;
-    width: 19px;
-    top: 50%;
-    border-top: 1px solid #eaeaea;
-  }
-  .inner:before {
-    left: 0;
-  }
-  .inner:after {
-    right: 0;
-  }
-  .left .inner:before, .right .inner:after {
-    content: none;
-  }
-  .node div {
-    height: 40px;
-    border: 1px solid #eaeaea;
+  @keyframes scale {
+    from {
+      opacity: 1;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: scale(0);
+    }
   }
   </style>
 </head>
 <body>
-<div class="box">
-  <div class="item left">
-    <div class="node"><div class="inner">1</div></div>
-    <div class="node"><div class="inner">1</div></div>
-    <div class="node"><div class="inner">1</div></div>
-    <div class="node"><div class="inner">1</div></div>
-    <div class="node"><div class="inner">1</div></div>
-    <div class="node"><div class="inner">1</div></div>
+<div class="loading">
+  <div class="item" style="transform: rotate(0deg);">
+    <div style="animation-delay: 0s;"></div>
   </div>
-  <div class="item">
-    <div class="node"><div class="inner">1</div></div>
+  <div class="item" style="transform: rotate(45deg);">
+    <div style="animation-delay: 0.125s;"></div>
   </div>
-  <div class="item right">
-    <div class="node"><div class="inner">1</div></div>
-    <div class="node"><div class="inner">1</div></div>
-    <div class="node"><div class="inner">1</div></div>
+  <div class="item" style="transform: rotate(90deg);">
+    <div style="animation-delay: 0.25s;"></div>
+  </div>
+  <div class="item" style="transform: rotate(135deg);">
+    <div style="animation-delay: 0.375s;"></div>
+  </div>
+  <div class="item" style="transform: rotate(180deg);">
+    <div style="animation-delay: 0.5s;"></div>
+  </div>
+  <div class="item" style="transform: rotate(225deg);">
+    <div style="animation-delay: 0.625s;"></div>
+  </div>
+  <div class="item" style="transform: rotate(270deg);">
+    <div style="animation-delay: 0.75s;"></div>
+  </div>
+  <div class="item" style="transform: rotate(315deg);">
+    <div style="animation-delay: 0.875s;"></div>
   </div>
 </div>
 <script>
-
-
 </script>
 </body>
 </html>
