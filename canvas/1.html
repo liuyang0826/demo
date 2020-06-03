@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="018269">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>1</title>
+  <style>
+  * {
+    margin: 0;padding: 0;
+  }
+
+  body {
+    background: #000;
+  }
+
+  canvas {
+    display: block;
+  }
+  </style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+const canvas = document.getElementById("canvas");
+const width = canvas.width = window.innerWidth;
+const height = canvas.height = window.innerHeight;
+const ctx = canvas.getContext("2d");
+
+ctx.beginPath();
+// 线性渐变
+const gradient1 = ctx.createLinearGradient(0, 0, width, 0);
+gradient1.addColorStop(0, 'rgba(0, 0, 255, 0.5)');
+gradient1.addColorStop(1, 'rgba(255, 0, 0, 0.5)');
+ctx.strokeStyle = gradient1;
+ctx.lineWidth = 2;
+for (let i = 0; i < 22; i++) {
+  ctx.moveTo(-width * 0.2, height * 0.2);
+  ctx.bezierCurveTo(width * 0.25, height * -0.4 + height * 0.005 * i, width * 0.3, height * 1.4 + height * 0.0125 * i, width, height * 0.035 * i);
+}
+
+ctx.stroke();
+
+ctx.beginPath();
+// 线性渐变
+const gradient2 = ctx.createLinearGradient(width, 0, 0, 0);
+gradient2.addColorStop(0, 'rgba(0, 0, 255, 0.5)');
+gradient2.addColorStop(1, 'rgba(255, 0, 0, 0.5)');
+ctx.strokeStyle = gradient2;
+ctx.lineWidth = 2;
+
+for (let i = 0; i < 22; i++) {
+  ctx.moveTo(width * 1.2, height * 0.8);
+  ctx.bezierCurveTo(width * 0.75, height * 1.4 - height * 0.005 * i, width * 0.7, height * -0.4 - height * 0.0125 * i, 0, height * (1 - 0.035 * i));
+}
+
+ctx.stroke();
+</script>
+</body>
+</html>
