@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="018269">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>elementTreeSearch</title>
+  <script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+  <!-- 引入样式 -->
+  <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+  <!-- 引入组件库 -->
+  <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+  <style>
+  * {
+    margin: 0;padding: 0;
+  }
+  </style>
+</head>
+<body>
+<div id="root">
+  <el-input
+    placeholder="输入关键字进行过滤"
+    v-model="filterText">
+  </el-input>
+
+  <el-tree
+    class="filter-tree"
+    :data="data"
+    :props="defaultProps"
+    default-expand-all
+    :filter-node-method="filterNode"
+    ref="tree">
+    <span slot-scope="{ node, data }" v-html="node.label"></span>
+  </el-tree>
+</div>
+<script>
+new Vue({
+  el: "#root",
+  data: {
+    filterText: "",
+    data: [
+      {
+        id: 1,
+        label: "一级 1",
+        children: [
+          {
+            id: 4,
+            label: "二级 1-1",
+            children: [
+              {
+                id: 9,
+                label: "三级 1-1-1"
+              }, {
+                id: 10,
+                label: "三级 1-1-2"
+              }
+            ]
+          }
+        ]
+      }, {
+        id: 2,
+        label: "一级 2",
+        children: [
+          {
+            id: 5,
+            label: "二级 2-1"
+          }, {
+            id: 6,
+            label: "二级 2-2"
+          }
+        ]
+      }, {
+        id: 3,
+        label: "一级 3",
+        children: [
+          {
+            id: 7,
+            label: "二级 3-1"
+          }, {
+            id: 8,
+            label: "二级 3-2"
+          }
+        ]
+      }
+    ],
+    defaultProps: {
+      children: "children",
+      label: "label"
+    }
+  },
+  watch: {
+    filterText (val) {
+      this.$refs.tree.filter(val);
+    }
+  },
+  methods: {
+    filterNode (value, data) {
+      if (!value) {
+        data.label = data.originalLabel || data.label;
+      }
+      if (data.label.indexOf(value) !== -1) {
+        if (!data.originalLabel) {
+          data.originalLabel = data.label;
+        }
+        data.label = data.originalLabel.replace(value, `<em style="color: red;font-style: normal;">${value}</em>`);
+        return true;
+      }
+    }
+  }
+});
+</script>
+</body>
+</html>
