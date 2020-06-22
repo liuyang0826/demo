@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="018269">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>甘特图</title>
+  <style>
+  * { margin: 0;padding: 0; }
+
+  canvas {
+    width: 100vw;
+    height: 100vh;
+    display: block;
+  }
+  </style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+const CONFIG = {
+  dateRange: 120,
+  lineSpace: 100,
+  padding: {
+    left: 100,
+    right: 40,
+    top: 100,
+    bottom: 100
+  },
+  rectHeight: 50,
+  startTime: 0,
+  splitTime: new Date().getTime(),
+  leftSpace: 0.5,
+  ms2px: 0
+};
+
+const idToPlan = {};
+
+// 生成计划id的字典
+function makePlanMap (dataList) {
+  dataList.forEach((item, index) => {
+    item.planList.forEach((d, i) => {
+      idToPlan[d.id] = d;
+    });
+  });
+}
+
+// 设置时间-像素比例尺
+function setMs2px (canvas) {
+  CONFIG.ms2px = (canvas.width - CONFIG.padding.left - CONFIG.padding.right) / CONFIG.dateRange / 60 / 1000;
+}
+
+// 设置每一个矩形的位置信息
+function setRectBoundary (dataList) {
+  dataList.forEach((item, index) => {
+    item.planList.forEach((d, i) => {
+      const startTime = d.startTime;
+      const endTime = d.endTime;
+      d.rectBoundary = {
+        x: (startTime - CONFIG.startTime) * CONFIG.ms2px + CONFIG.padding.left,
+        y: index * CONFIG.lineSpace + CONFIG.padding.top - CONFIG.rectHeight / 2,
+        w: (endTime - startTime) * CONFIG.ms2px,
+        h: CONFIG.rectHeight
+      };
+    });
+  });
+}
+
+function setStartTime () {
+  CONFIG.startTime =
+  CONFIG.splitTime - (canvas.width - CONFIG.padding.left - CONFIG.padding.right) * CONFIG.leftSpace / CONFIG.ms2px;
+}
+
+function getPlanById (id) {
+  return idToPlan[id];
+}
+
+// 线
+function drawLine (ctx, pointList, { color = "#000", width = 2, lineJoin = "round", isDash = false } = {}) {
+  if (pointList.length < 2) {
+    return;
+  }
+  ctx.beginPath();
+  ctx.setLineDash(isDash ? [10, 6] : []);
+  let start = pointList[0];
+  ctx.moveTo(start[0], start[1]);
+  for (let i = 1; i < pointList.length; i++) {
+    let cur = pointList[i];
+    ctx.lineTo(cur[0], cur[1]);
+  }
+  ctx.strokeStyle = color;
+  ctx.lineWidth = width;
+  ctx.lineJoin = lineJoin;
+  ctx.stroke();
+}
+
+// 矩形
+function drawRect (ctx, { x, y, w, h }, { borderColor = "#999", borderWidth = 2, color = "#eaeaea", borderTop = true, borderRight = true, borderBottom = true, borderLeft = true } = {}) {
+  ctx.beginPath();
+  ctx.setLineDash([]);
+  ctx.strokeStyle = borderColor;
+  ctx.lineWidth = borderWidth;
+  if (borderTop && borderRight && borderBottom && borderLeft) {
+    ctx.rect(x, y, w, h);
+    ctx.stroke();
+  } else {
+    if (borderTop) {
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + w, y);
+    }
+    if (borderRight) {
+      ctx.moveTo(x + w, y);
+      ctx.lineTo(x + w, y + h);
+    }
+    if (borderBottom) {
+      ctx.moveTo(x + w, y + h);
+      ctx.lineTo(x, y + h);
+    }
+    if (borderLeft) {
+      ctx.moveTo(x, y + h);
+      ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + w, y);
+    ctx.lineTo(x + w, y + h);
+    ctx.lineTo(x, y + h);
+  }
+  ctx.fillStyle = color;
+  ctx.fill();
+}
+
+// 文字
+function drawText (ctx, { text, x, y }, { color = "#666" } = {}) {
+  ctx.beginPath();
+  ctx.font = "14px bold PingFang-SC-Bold";
+  ctx.fillStyle = color;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, x, y);
+}
+
+// 时间线
+function renderLines (ctx, dataList) {
+  dataList.forEach((item, i) => {
+    let curY = i * CONFIG.lineSpace + CONFIG.padding.top;
+    drawLine(ctx, [[CONFIG.padding.left, curY], [canvas.width - CONFIG.padding.right, curY]]);
+    drawText(ctx, { text: item.name, x: 50, y: curY });
+  });
+}
+
+// 渲染计划方块
+function renderPlans (ctx, dataList) {
+  dataList.forEach((item) => {
+    item.planList.forEach((item) => {
+      const startTime = item.startTime;
+      const endTime = item.endTime;
+      const rectBoundary = item.rectBoundary;
+      // 时间线分割
+      if (startTime <= CONFIG.splitTime && CONFIG.splitTime <= endTime) {
+        let leftRectBoundary = {
+          x: rectBoundary.x,
+          y: rectBoundary.y,
+          w: (CONFIG.splitTime - startTime) * CONFIG.ms2px,
+          h: CONFIG.rectHeight,
+        };
+        drawRect(ctx, leftRectBoundary, {
+          borderRight: false
+        });
+        drawRect(ctx, {
+          x: rectBoundary.x + leftRectBoundary.w,
+          y: rectBoundary.y,
+          w: rectBoundary.w - (CONFIG.splitTime - startTime) * CONFIG.ms2px,
+          h: CONFIG.rectHeight,
+        }, {
+          borderLeft: false,
+          color: "orange"
+        });
+      } else if (startTime < CONFIG.splitTime) {
+        drawRect(ctx, rectBoundary);
+      } else {
+        drawRect(ctx, rectBoundary, {
+          color: "orange"
+        });
+      }
+      drawText(ctx, {
+        text: item.name,
+        x: rectBoundary.x + rectBoundary.w / 2,
+        y: rectBoundary.y + rectBoundary.h / 2,
+      });
+    });
+  });
+}
+
+// 渲染关系线
+function renderConcatLines (ctx, dataList) {
+  dataList.forEach((item) => {
+    item.planList.forEach((item) => {
+      let concatPlan = getPlanById(item.concatId);
+      if (concatPlan) {
+        const endTime = item.endTime;
+        const concatStartTime = concatPlan.startTime;
+        if (endTime > concatStartTime) {
+          return;
+        }
+        let startRectBoundary = item.rectBoundary;
+        let endRectBoundary = concatPlan.rectBoundary;
+        drawLine(ctx, [
+          [startRectBoundary.x + startRectBoundary.w, startRectBoundary.y + CONFIG.rectHeight / 2],
+          [endRectBoundary.x, endRectBoundary.y + CONFIG.rectHeight / 2]
+        ], {
+          isDash: true,
+          color: endTime > CONFIG.splitTime || concatStartTime > CONFIG.splitTime ? "#f00" : "#999"
+        });
+      }
+    });
+  });
+}
+
+// 时间分割线
+function renderSplitLine (ctx) {
+  const curX = (CONFIG.splitTime - CONFIG.startTime) * CONFIG.ms2px + CONFIG.padding.left;
+  drawLine(ctx, [[curX, 0], [curX, canvas.height]], { color: "#999", isDash: true });
+}
+
+// 裁减矩形区域 溢出隐藏
+function clipRect (ctx, execute) {
+  ctx.save();
+  ctx.rect(CONFIG.padding.left, 0, canvas.width - CONFIG.padding.right, canvas.height);
+  ctx.clip();
+  execute();
+  ctx.restore();
+}
+
+function getPlanByPoint ({ x, y }, dataList) {
+  let index = ~~((y - CONFIG.padding.top - CONFIG.rectHeight / 2) / (CONFIG.lineSpace + 1) + 1);
+  if (index < dataList.length) {
+    let planList = dataList[index].planList;
+    let first = planList[0];
+    if (first) {
+      let rectBoundary = first.rectBoundary;
+      if (y >= rectBoundary.y && y <= rectBoundary.y + rectBoundary.h) {
+        for (let j = 0; j < planList.length; j++) {
+          let rectBoundary = planList[j].rectBoundary;
+          if (x <= rectBoundary.x + rectBoundary.w && x >= rectBoundary.x) {
+            return planList[j];
+          }
+        }
+      }
+    }
+  }
+}
+
+</script>
+
+<script>
+
+const canvas = document.getElementById("canvas");
+canvas.width = canvas.offsetWidth;
+canvas.height = canvas.offsetHeight;
+const ctx = canvas.getContext("2d");
+
+const dataList = (function () {
+  let idMap = {};
+
+  function getConcatId () {
+    let id = ~~(Math.random() * 400);
+    if (idMap[id]) {
+      return getConcatId();
+    } else {
+      idMap[id] = true;
+      return id;
+    }
+  }
+
+  let id = 1;
+  return Array.from({ length: 8 }).map((_, index) => {
+    let start = new Date().getTime() - ~~(Math.random() * 75 * 60 * 1000);
+    return {
+      name: (index + 1) + "#高炉",
+      planList: Array.from({ length: 10 }).map((_, i) => {
+        let startTemp = start;
+        let end = startTemp + ~~(6 * 60 * 1000 * (Math.random() + 0.5));
+        start = end + ~~(2 * 60 * 1000 * (Math.random() + 0.25));
+        let concatId = getConcatId();
+        return {
+          id: id++,
+          name: "铁次A" + (i + 1),
+          startTime: startTemp,
+          endTime: end,
+          concatId: concatId
+        };
+      })
+    };
+  });
+})();
+
+canvas.onclick = function (e) {
+  console.log(getPlanByPoint({ x: e.clientX, y: e.clientY }, dataList));
+};
+
+setMs2px(canvas);
+makePlanMap(dataList);
+
+function main () {
+  setRectBoundary(dataList);
+  setStartTime();
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  renderLines(ctx, dataList);
+  clipRect(ctx, () => {
+    renderPlans(ctx, dataList);
+    renderConcatLines(ctx, dataList);
+  });
+  renderSplitLine(ctx);
+  requestAnimationFrame(() => {
+    CONFIG.splitTime += 1000;
+    main();
+  });
+}
+
+main();
+// drawRect(ctx, { x: 100, y: 100, w: 200, h: 100 })
+
+</script>
+</body>
+</html>
