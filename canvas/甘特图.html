@@ -19,7 +19,7 @@
 <canvas id="canvas"></canvas>
 <script>
 const CONFIG = {
-  dateRange: 120,
+  dateRange: 180,
   lineSpace: 100,
   padding: {
     left: 100,
@@ -38,8 +38,8 @@ const idToPlan = {};
 
 // 生成计划id的字典
 function makePlanMap (dataList) {
-  dataList.forEach((item, index) => {
-    item.planList.forEach((d, i) => {
+  dataList.forEach((item) => {
+    item.planList.forEach((d) => {
       idToPlan[d.id] = d;
     });
   });
@@ -59,7 +59,7 @@ function setRectBoundary (dataList) {
       d.rectBoundary = {
         x: (startTime - CONFIG.startTime) * CONFIG.ms2px + CONFIG.padding.left,
         y: index * CONFIG.lineSpace + CONFIG.padding.top - CONFIG.rectHeight / 2,
-        w: (endTime - startTime) * CONFIG.ms2px,
+        w: ~~((endTime - startTime) * CONFIG.ms2px),
         h: CONFIG.rectHeight
       };
     });
@@ -131,13 +131,22 @@ function drawRect (ctx, { x, y, w, h }, { borderColor = "#999", borderWidth = 2,
 }
 
 // 文字
-function drawText (ctx, { text, x, y }, { color = "#666" } = {}) {
+function drawText (ctx, { text, x, y }, { color = "#333" } = {}) {
   ctx.beginPath();
   ctx.font = "14px bold PingFang-SC-Bold";
   ctx.fillStyle = color;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText(text, x, y);
+}
+
+// 裁减矩形区域 溢出隐藏
+function clipRect (ctx, execute) {
+  ctx.save();
+  ctx.rect(CONFIG.padding.left, 0, canvas.width - CONFIG.padding.right, canvas.height);
+  ctx.clip();
+  execute();
+  ctx.restore();
 }
 
 // 时间线
@@ -150,7 +159,7 @@ function renderLines (ctx, dataList) {
 }
 
 // 渲染计划方块
-function renderPlans (ctx, dataList) {
+function renderRects (ctx, dataList) {
   dataList.forEach((item) => {
     item.planList.forEach((item) => {
       const startTime = item.startTime;
@@ -223,16 +232,8 @@ function renderSplitLine (ctx) {
   drawLine(ctx, [[curX, 0], [curX, canvas.height]], { color: "#999", isDash: true });
 }
 
-// 裁减矩形区域 溢出隐藏
-function clipRect (ctx, execute) {
-  ctx.save();
-  ctx.rect(CONFIG.padding.left, 0, canvas.width - CONFIG.padding.right, canvas.height);
-  ctx.clip();
-  execute();
-  ctx.restore();
-}
-
-function getPlanByPoint ({ x, y }, dataList) {
+// 事件获取
+function getRectByPoint ({ x, y }, dataList) {
   let index = ~~((y - CONFIG.padding.top - CONFIG.rectHeight / 2) / (CONFIG.lineSpace + 1) + 1);
   if (index < dataList.length) {
     let planList = dataList[index].planList;
@@ -278,7 +279,7 @@ const dataList = (function () {
     let start = new Date().getTime() - ~~(Math.random() * 75 * 60 * 1000);
     return {
       name: (index + 1) + "#高炉",
-      planList: Array.from({ length: 10 }).map((_, i) => {
+      planList: Array.from({ length: 16 }).map((_, i) => {
         let startTemp = start;
         let end = startTemp + ~~(6 * 60 * 1000 * (Math.random() + 0.5));
         start = end + ~~(2 * 60 * 1000 * (Math.random() + 0.25));
@@ -296,30 +297,29 @@ const dataList = (function () {
 })();
 
 canvas.onclick = function (e) {
-  console.log(getPlanByPoint({ x: e.clientX, y: e.clientY }, dataList));
+  console.log(getRectByPoint({ x: e.clientX, y: e.clientY }, dataList));
 };
 
 setMs2px(canvas);
 makePlanMap(dataList);
 
 function main () {
-  setRectBoundary(dataList);
   setStartTime();
+  setRectBoundary(dataList);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   renderLines(ctx, dataList);
   clipRect(ctx, () => {
-    renderPlans(ctx, dataList);
+    renderRects(ctx, dataList);
     renderConcatLines(ctx, dataList);
   });
   renderSplitLine(ctx);
   requestAnimationFrame(() => {
-    CONFIG.splitTime += 1000;
+    CONFIG.splitTime += 0.1 / CONFIG.ms2px;
     main();
   });
 }
 
 main();
-// drawRect(ctx, { x: 100, y: 100, w: 200, h: 100 })
 
 </script>
 </body>
