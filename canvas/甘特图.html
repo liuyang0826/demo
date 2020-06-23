@@ -14,67 +14,17 @@
     display: block;
   }
   </style>
+  <script src="../html/vue.js"></script>
 </head>
 <body>
-<canvas id="canvas"></canvas>
+<div id="root">
+  <canvas id="canvas"
+          ref="canvas"
+          @click="handleClick"
+          @mousewheel="handleMousewheel"
+          @mousedown="handleMouseDown"></canvas>
+</div>
 <script>
-const CONFIG = {
-  dateRange: 180,
-  lineSpace: 100,
-  padding: {
-    left: 100,
-    right: 40,
-    top: 100,
-    bottom: 100
-  },
-  rectHeight: 50,
-  startTime: 0,
-  splitTime: new Date().getTime(),
-  leftSpace: 0.5,
-  ms2px: 0
-};
-
-const idToPlan = {};
-
-// 生成计划id的字典
-function makePlanMap (dataList) {
-  dataList.forEach((item) => {
-    item.planList.forEach((d) => {
-      idToPlan[d.id] = d;
-    });
-  });
-}
-
-// 设置时间-像素比例尺
-function setMs2px (canvas) {
-  CONFIG.ms2px = (canvas.width - CONFIG.padding.left - CONFIG.padding.right) / CONFIG.dateRange / 60 / 1000;
-}
-
-// 设置每一个矩形的位置信息
-function setRectBoundary (dataList) {
-  dataList.forEach((item, index) => {
-    item.planList.forEach((d, i) => {
-      const startTime = d.startTime;
-      const endTime = d.endTime;
-      d.rectBoundary = {
-        x: (startTime - CONFIG.startTime) * CONFIG.ms2px + CONFIG.padding.left,
-        y: index * CONFIG.lineSpace + CONFIG.padding.top - CONFIG.rectHeight / 2,
-        w: ~~((endTime - startTime) * CONFIG.ms2px),
-        h: CONFIG.rectHeight
-      };
-    });
-  });
-}
-
-function setStartTime () {
-  CONFIG.startTime =
-  CONFIG.splitTime - (canvas.width - CONFIG.padding.left - CONFIG.padding.right) * CONFIG.leftSpace / CONFIG.ms2px;
-}
-
-function getPlanById (id) {
-  return idToPlan[id];
-}
-
 // 线
 function drawLine (ctx, pointList, { color = "#000", width = 2, lineJoin = "round", isDash = false } = {}) {
   if (pointList.length < 2) {
@@ -141,37 +91,193 @@ function drawText (ctx, { text, x, y }, { color = "#333" } = {}) {
 }
 
 // 裁减矩形区域 溢出隐藏
-function clipRect (ctx, execute) {
+function clipRect (ctx, { x, y, w, h }, execute) {
   ctx.save();
-  ctx.rect(CONFIG.padding.left, 0, canvas.width - CONFIG.padding.right, canvas.height);
+  ctx.rect(x, y, w, h);
   ctx.clip();
   execute();
   ctx.restore();
 }
+</script>
+<script>
 
-// 时间线
-function renderLines (ctx, dataList) {
-  dataList.forEach((item, i) => {
-    let curY = i * CONFIG.lineSpace + CONFIG.padding.top;
-    drawLine(ctx, [[CONFIG.padding.left, curY], [canvas.width - CONFIG.padding.right, curY]]);
-    drawText(ctx, { text: item.name, x: 50, y: curY });
-  });
-}
+const configMixin = Vue.mixin({
+  data () {
+    return {
+      dateRange: 180,
+      lineSpace: 100,
+      padding: {
+        left: 100,
+        right: 40,
+        top: 100,
+        bottom: 100
+      },
+      rectHeight: 50,
+      splitTime: new Date().getTime(),
+      leftSpace: 0.5,
+      scale: 1,
+      scaleSpeed: 0.02
+    };
+  }
+});
 
-// 渲染计划方块
-function renderRects (ctx, dataList) {
-  dataList.forEach((item) => {
-    item.planList.forEach((item) => {
+const utilMixin = Vue.mixin({
+  methods: {
+    getRectBoundary (item, xIndex) {
+      const startTime = item.startTime;
+      const endTime = item.endTime;
+      return {
+        x: (startTime - this.startTime) * this.ms2px + this.padding.left,
+        y: xIndex * this.lineSpace + this.padding.top - this.rectHeight / 2,
+        w: ~~((endTime - startTime) * this.ms2px),
+        h: this.rectHeight
+      };
+    },
+    eventToCanvas (e) {
+      return {
+        x: e.clientX,
+        y: e.clientY
+      };
+    },
+    // 事件获取方块
+    getRectByEvent (e) {
+      const { x, y } = this.eventToCanvas(e);
+      const { padding, lineSpace, viewDataList } = this;
+      let index = ~~((y - padding.top + lineSpace / 2) / lineSpace);
+      if (index < viewDataList.length) {
+        let planList = viewDataList[index].planList;
+        let first = planList[0];
+        if (first) {
+          let rectBoundary = first.rectBoundary;
+          if (y >= rectBoundary.y && y <= rectBoundary.y + rectBoundary.h) {
+            for (let j = 0; j < planList.length; j++) {
+              let rectBoundary = planList[j].rectBoundary;
+              if (x <= rectBoundary.x + rectBoundary.w && x >= rectBoundary.x) {
+                return {
+                  xIndex: index,
+                  yIndex: j,
+                  rect: planList[j]
+                };
+              }
+            }
+          }
+        }
+      }
+    },
+    // 获取时间线
+    getInsertInfoByEvent (e) {
+      const { x, y } = this.eventToCanvas(e);
+      const { padding, lineSpace, viewDataList } = this;
+      let xIndex = ~~((y - padding.top + lineSpace / 2) / lineSpace);
+      if (xIndex >= viewDataList.length) {
+        xIndex = viewDataList.length - 1;
+      }
+      let planList = this.viewDataList[xIndex].planList;
+      if (planList[0].rectBoundary.x > x) {
+        return { xIndex, yIndex: -1, isOverlay: false };
+      }
+      let isOverlay = false;
+      let yIndex = 0;
+      for (; yIndex < planList.length; yIndex++) {
+        let item = planList[yIndex];
+        if (x >= item.rectBoundary.x) {
+          let a = x <= item.rectBoundary.x + item.rectBoundary.w;
+          let b = !planList[yIndex + 1] || planList[yIndex + 1].rectBoundary.x > x;
+          console.log(a, b, planList[yIndex + 1]);
+          if (a || b) {
+            if (a) {
+              isOverlay = true;
+            }
+            break;
+          }
+        }
+      }
+      return { xIndex, yIndex: yIndex, isOverlay };
+    },
+    // 顺移时间
+    advanceTime (xIndex) {
+
+    }
+  }
+});
+
+const renderMixin = Vue.mixin({
+  data () {
+    return {
+      width: 0,
+      height: 0
+    };
+  },
+  computed: {
+    idToPlan () {
+      const map = {};
+      this.dataList.forEach((item) => {
+        item.planList.forEach((d) => {
+          map[d.id] = d;
+        });
+      });
+      return map;
+    },
+    ms2px () {
+      const { width, padding, dateRange, scale } = this;
+      return (width - padding.left - padding.right) / dateRange / 60 / 1000 * scale;
+    },
+    startTime () {
+      const { width, padding, leftSpace, splitTime, ms2px } = this;
+      return splitTime - (width - padding.left - padding.right) * leftSpace / ms2px;
+    },
+    viewDataList () {
+      return this.dataList.map((item, index) => {
+        item.planList = item.planList.map((d) => {
+          d.rectBoundary = this.getRectBoundary(d, index);
+          return d;
+        });
+        return item;
+      });
+    }
+  },
+  methods: {
+    render ({ afterRender } = {}) {
+      const { ctx, padding, width, height } = this;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      this.renderLines();
+      clipRect(ctx, { x: padding.left, y: 0, w: width - padding.right, h: height }, () => {
+        this.renderRects();
+        this.renderConcatLines();
+      });
+      this.renderSplitLine();
+      afterRender && afterRender();
+    },
+    // 时间线
+    renderLines () {
+      const { ctx, lineSpace, padding, width, viewDataList } = this;
+      viewDataList.forEach((item, i) => {
+        let curY = i * lineSpace + padding.top;
+        drawLine(ctx, [[padding.left, curY], [width - padding.right, curY]]);
+        drawText(ctx, { text: item.name, x: 50, y: curY });
+      });
+    },
+    // 渲染计划方块
+    renderRects () {
+      const { viewDataList } = this;
+      viewDataList.forEach((item) => {
+        item.planList.forEach((item) => {
+          this.renderRect(item);
+        });
+      });
+    },
+    renderRect (item) {
+      const { ctx, splitTime, ms2px, rectHeight } = this;
       const startTime = item.startTime;
       const endTime = item.endTime;
       const rectBoundary = item.rectBoundary;
       // 时间线分割
-      if (startTime <= CONFIG.splitTime && CONFIG.splitTime <= endTime) {
+      if (startTime <= splitTime && splitTime <= endTime) {
         let leftRectBoundary = {
           x: rectBoundary.x,
           y: rectBoundary.y,
-          w: (CONFIG.splitTime - startTime) * CONFIG.ms2px,
-          h: CONFIG.rectHeight,
+          w: (splitTime - startTime) * ms2px,
+          h: rectHeight,
         };
         drawRect(ctx, leftRectBoundary, {
           borderRight: false
@@ -179,13 +285,13 @@ function renderRects (ctx, dataList) {
         drawRect(ctx, {
           x: rectBoundary.x + leftRectBoundary.w,
           y: rectBoundary.y,
-          w: rectBoundary.w - (CONFIG.splitTime - startTime) * CONFIG.ms2px,
-          h: CONFIG.rectHeight,
+          w: rectBoundary.w - (splitTime - startTime) * ms2px,
+          h: rectHeight,
         }, {
           borderLeft: false,
           color: "orange"
         });
-      } else if (startTime < CONFIG.splitTime) {
+      } else if (startTime < splitTime) {
         drawRect(ctx, rectBoundary);
       } else {
         drawRect(ctx, rectBoundary, {
@@ -197,130 +303,145 @@ function renderRects (ctx, dataList) {
         x: rectBoundary.x + rectBoundary.w / 2,
         y: rectBoundary.y + rectBoundary.h / 2,
       });
-    });
-  });
-}
-
-// 渲染关系线
-function renderConcatLines (ctx, dataList) {
-  dataList.forEach((item) => {
-    item.planList.forEach((item) => {
-      let concatPlan = getPlanById(item.concatId);
-      if (concatPlan) {
-        const endTime = item.endTime;
-        const concatStartTime = concatPlan.startTime;
-        if (endTime > concatStartTime) {
-          return;
-        }
-        let startRectBoundary = item.rectBoundary;
-        let endRectBoundary = concatPlan.rectBoundary;
-        drawLine(ctx, [
-          [startRectBoundary.x + startRectBoundary.w, startRectBoundary.y + CONFIG.rectHeight / 2],
-          [endRectBoundary.x, endRectBoundary.y + CONFIG.rectHeight / 2]
-        ], {
-          isDash: true,
-          color: endTime > CONFIG.splitTime || concatStartTime > CONFIG.splitTime ? "#f00" : "#999"
-        });
-      }
-    });
-  });
-}
-
-// 时间分割线
-function renderSplitLine (ctx) {
-  const curX = (CONFIG.splitTime - CONFIG.startTime) * CONFIG.ms2px + CONFIG.padding.left;
-  drawLine(ctx, [[curX, 0], [curX, canvas.height]], { color: "#999", isDash: true });
-}
-
-// 事件获取
-function getRectByPoint ({ x, y }, dataList) {
-  let index = ~~((y - CONFIG.padding.top - CONFIG.rectHeight / 2) / (CONFIG.lineSpace + 1) + 1);
-  if (index < dataList.length) {
-    let planList = dataList[index].planList;
-    let first = planList[0];
-    if (first) {
-      let rectBoundary = first.rectBoundary;
-      if (y >= rectBoundary.y && y <= rectBoundary.y + rectBoundary.h) {
-        for (let j = 0; j < planList.length; j++) {
-          let rectBoundary = planList[j].rectBoundary;
-          if (x <= rectBoundary.x + rectBoundary.w && x >= rectBoundary.x) {
-            return planList[j];
+    },
+    // 渲染关系线
+    renderConcatLines () {
+      const { ctx, splitTime, rectHeight, idToPlan, viewDataList } = this;
+      viewDataList.forEach((item) => {
+        item.planList.forEach((item) => {
+          let concatPlan = idToPlan[item.concatId];
+          if (concatPlan) {
+            const endTime = item.endTime;
+            const concatStartTime = concatPlan.startTime;
+            if (endTime > concatStartTime) {
+              return;
+            }
+            let startRectBoundary = item.rectBoundary;
+            let endRectBoundary = concatPlan.rectBoundary;
+            drawLine(ctx, [
+              [startRectBoundary.x + startRectBoundary.w, startRectBoundary.y + rectHeight / 2],
+              [endRectBoundary.x, endRectBoundary.y + rectHeight / 2]
+            ], {
+              isDash: true,
+              color: endTime > splitTime || concatStartTime > splitTime ? "#f00" : "#999"
+            });
           }
+        });
+      });
+    },
+    // 时间分割线
+    renderSplitLine () {
+      const { ctx, startTime, splitTime, padding, ms2px, height } = this;
+      const curX = (splitTime - startTime) * ms2px + padding.left;
+      drawLine(ctx, [[curX, 0], [curX, height]], { color: "#999", isDash: true });
+    }
+  }
+});
+
+const eventMixin = Vue.mixin({
+  methods: {
+    handleClick (e) {
+      const { getRectByPoint } = this;
+      // console.log(getRectByPoint({ x: e.clientX, y: e.clientY }));
+    },
+    handleMousewheel (e) {
+      this.scale += this.scaleSpeed * (e.wheelDelta > 0 ? 1 : -1);
+      this.scale <= 0 && (this.scale = 0.01);
+      this.render();
+    },
+    handleMouseDown (e) {
+      const { getRectByEvent } = this;
+      const rect = getRectByEvent(e);
+      if (rect) {
+        this.curReact = rect;
+        this.curOffsetX = e.clientX - rect.rect.rectBoundary.x;
+        this.curOffsetY = e.clientY - rect.rect.rectBoundary.y;
+        document.addEventListener("mousemove", this.handleMousemove);
+        document.addEventListener("mouseup", this.handleMouseup);
+      }
+    },
+    handleMousemove (e) {
+      this.render({
+        afterRender: () => {
+          const rectBoundary = {
+            ...this.curReact.rect.rectBoundary,
+          };
+          const position = this.eventToCanvas(e);
+          rectBoundary.x = position.x - this.curOffsetX;
+          rectBoundary.y = position.y - this.curOffsetY;
+          const newRect = {
+            ...this.curReact.rect
+          };
+          newRect.rectBoundary = rectBoundary;
+          this.renderRect(newRect);
+        }
+      });
+    },
+    handleMouseup (e) {
+      document.removeEventListener("mousemove", this.handleMousemove);
+      document.removeEventListener("mouseup", this.handleMouseup);
+      const { xIndex, yIndex, isOverlay } = this.getInsertInfoByEvent(e);
+      console.log(xIndex, yIndex, isOverlay);
+      const rect = this.curReact.rect;
+      rect.rectBoundary = this.getRectBoundary(rect, xIndex);
+      this.dataList[this.curReact.xIndex].planList.splice(this.curReact.yIndex, 1);
+      this.dataList[xIndex].planList.splice(yIndex, 0, rect);
+      console.log(this.dataList[xIndex].planList);
+      this.render();
+    }
+  }
+});
+
+new Vue({
+  el: "#root",
+  mixins: [configMixin, utilMixin, renderMixin, eventMixin],
+  data: {
+    dataList: []
+  },
+  mounted () {
+    this.dataList = Object.freeze((function () {
+      let idMap = {};
+
+      function getConcatId () {
+        let id = ~~(Math.random() * 400);
+        if (idMap[id]) {
+          return getConcatId();
+        } else {
+          idMap[id] = true;
+          return id;
         }
       }
-    }
-  }
-}
 
-</script>
-
-<script>
-
-const canvas = document.getElementById("canvas");
-canvas.width = canvas.offsetWidth;
-canvas.height = canvas.offsetHeight;
-const ctx = canvas.getContext("2d");
-
-const dataList = (function () {
-  let idMap = {};
-
-  function getConcatId () {
-    let id = ~~(Math.random() * 400);
-    if (idMap[id]) {
-      return getConcatId();
-    } else {
-      idMap[id] = true;
-      return id;
-    }
-  }
-
-  let id = 1;
-  return Array.from({ length: 8 }).map((_, index) => {
-    let start = new Date().getTime() - ~~(Math.random() * 75 * 60 * 1000);
-    return {
-      name: (index + 1) + "#高炉",
-      planList: Array.from({ length: 16 }).map((_, i) => {
-        let startTemp = start;
-        let end = startTemp + ~~(6 * 60 * 1000 * (Math.random() + 0.5));
-        start = end + ~~(2 * 60 * 1000 * (Math.random() + 0.25));
-        let concatId = getConcatId();
+      let id = 1;
+      return Array.from({ length: 8 }).map((_, index) => {
+        let start = new Date().getTime() - ~~(Math.random() * 75 * 60 * 1000);
         return {
-          id: id++,
-          name: "铁次A" + (i + 1),
-          startTime: startTemp,
-          endTime: end,
-          concatId: concatId
+          name: (index + 1) + "#高炉",
+          planList: Array.from({ length: 16 }).map((_, i) => {
+            let startTemp = start;
+            let end = startTemp + ~~(6 * 60 * 1000 * (Math.random() + 0.5));
+            start = end + ~~(2 * 60 * 1000 * (Math.random() + 0.25));
+            let concatId = getConcatId();
+            return {
+              id: id++,
+              name: "铁次A" + (i + 1),
+              startTime: startTemp,
+              endTime: end,
+              concatId: concatId
+            };
+          })
         };
-      })
-    };
-  });
-})();
+      });
+    })());
 
-canvas.onclick = function (e) {
-  console.log(getRectByPoint({ x: e.clientX, y: e.clientY }, dataList));
-};
+    const canvas = this.$refs.canvas;
+    this.width = canvas.width = canvas.offsetWidth;
+    this.height = canvas.height = canvas.offsetHeight;
 
-setMs2px(canvas);
-makePlanMap(dataList);
-
-function main () {
-  setStartTime();
-  setRectBoundary(dataList);
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  renderLines(ctx, dataList);
-  clipRect(ctx, () => {
-    renderRects(ctx, dataList);
-    renderConcatLines(ctx, dataList);
-  });
-  renderSplitLine(ctx);
-  requestAnimationFrame(() => {
-    CONFIG.splitTime += 0.1 / CONFIG.ms2px;
-    main();
-  });
-}
-
-main();
-
+    this.ctx = canvas.getContext("2d");
+    this.render();
+  }
+});
 </script>
 </body>
 </html>
