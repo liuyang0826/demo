@@ -105,7 +105,7 @@ const configMixin = Vue.mixin({
   data () {
     return {
       dateRange: 180,
-      lineSpace: 100,
+      lineSpacePX: 100,
       padding: {
         left: 100,
         right: 40,
@@ -114,9 +114,10 @@ const configMixin = Vue.mixin({
       },
       rectHeight: 50,
       splitTime: new Date().getTime(),
-      leftSpace: 0.5,
+      leftSpacePercent: 0.5,
       scale: 1,
-      scaleSpeed: 0.02
+      scaleSpeed: 0.04,
+      advanceSpaceTime: 1.5 * 60 * 1000
     };
   }
 });
@@ -128,7 +129,7 @@ const utilMixin = Vue.mixin({
       const endTime = item.endTime;
       return {
         x: (startTime - this.startTime) * this.ms2px + this.padding.left,
-        y: xIndex * this.lineSpace + this.padding.top - this.rectHeight / 2,
+        y: xIndex * this.lineSpacePX + this.padding.top - this.rectHeight / 2,
         w: ~~((endTime - startTime) * this.ms2px),
         h: this.rectHeight
       };
@@ -142,15 +143,15 @@ const utilMixin = Vue.mixin({
     // 事件获取方块
     getRectByEvent (e) {
       const { x, y } = this.eventToCanvas(e);
-      const { padding, lineSpace, viewDataList } = this;
-      let index = ~~((y - padding.top + lineSpace / 2) / lineSpace);
+      const { padding, lineSpacePX, viewDataList } = this;
+      let index = ~~((y - padding.top + lineSpacePX / 2) / lineSpacePX);
       if (index < viewDataList.length) {
         let planList = viewDataList[index].planList;
         let first = planList[0];
         if (first) {
           let rectBoundary = first.rectBoundary;
           if (y >= rectBoundary.y && y <= rectBoundary.y + rectBoundary.h) {
-            for (let j = 0; j < planList.length; j++) {
+            for (let j = planList.length - 1; j >= 0; j--) {
               let rectBoundary = planList[j].rectBoundary;
               if (x <= rectBoundary.x + rectBoundary.w && x >= rectBoundary.x) {
                 return {
@@ -164,39 +165,52 @@ const utilMixin = Vue.mixin({
         }
       }
     },
-    // 获取时间线
+    // 获取插入位置信息
     getInsertInfoByEvent (e) {
-      const { x, y } = this.eventToCanvas(e);
-      const { padding, lineSpace, viewDataList } = this;
-      let xIndex = ~~((y - padding.top + lineSpace / 2) / lineSpace);
+      let { x, y } = this.eventToCanvas(e);
+      // const x = this.curReact.rect.rectBoundary.x;
+      x -= this.curOffsetX;
+      const { padding, lineSpacePX, viewDataList } = this;
+      let xIndex = ~~((y - padding.top + lineSpacePX / 2) / lineSpacePX);
+      // if (xIndex === this.curReact.xIndex) return;
       if (xIndex >= viewDataList.length) {
         xIndex = viewDataList.length - 1;
       }
       let planList = this.viewDataList[xIndex].planList;
-      if (planList[0].rectBoundary.x > x) {
-        return { xIndex, yIndex: -1, isOverlay: false };
-      }
       let isOverlay = false;
       let yIndex = 0;
       for (; yIndex < planList.length; yIndex++) {
         let item = planList[yIndex];
-        if (x >= item.rectBoundary.x) {
-          let a = x <= item.rectBoundary.x + item.rectBoundary.w;
-          let b = !planList[yIndex + 1] || planList[yIndex + 1].rectBoundary.x > x;
-          console.log(a, b, planList[yIndex + 1]);
-          if (a || b) {
-            if (a) {
-              isOverlay = true;
-            }
-            break;
+        if (x <= item.rectBoundary.x + item.rectBoundary.w) {
+          isOverlay = true;
+          if (x < item.rectBoundary.x) {
+            yIndex--;
+            isOverlay = false;
           }
+          break;
         }
       }
-      return { xIndex, yIndex: yIndex, isOverlay };
+      return { xIndex, yIndex: yIndex + 1, isOverlay };
     },
     // 顺移时间
-    advanceTime (xIndex) {
-
+    advanceTime (xIndex, yIndex) {
+      const planList = this.dataList[xIndex].planList;
+      const space = this.advanceSpaceTime;
+      let leftRect = planList[yIndex];
+      let rightIndex = yIndex + 1;
+      while (rightIndex < planList.length) {
+        const rightRect = planList[rightIndex];
+        if (rightRect.startTime - leftRect.endTime < space) {
+          let advance = (leftRect.endTime - rightRect.startTime) + space;
+          rightRect.startTime += advance;
+          rightRect.endTime += advance;
+        } else {
+          break;
+        }
+        rightRect.rectBoundary = this.getRectBoundary(rightRect, xIndex);
+        rightIndex++;
+        leftRect = rightRect;
+      }
     }
   }
 });
@@ -223,8 +237,8 @@ const renderMixin = Vue.mixin({
       return (width - padding.left - padding.right) / dateRange / 60 / 1000 * scale;
     },
     startTime () {
-      const { width, padding, leftSpace, splitTime, ms2px } = this;
-      return splitTime - (width - padding.left - padding.right) * leftSpace / ms2px;
+      const { width, padding, leftSpacePercent, splitTime, ms2px } = this;
+      return splitTime - (width - padding.left - padding.right) * leftSpacePercent / ms2px;
     },
     viewDataList () {
       return this.dataList.map((item, index) => {
@@ -241,7 +255,7 @@ const renderMixin = Vue.mixin({
       const { ctx, padding, width, height } = this;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       this.renderLines();
-      clipRect(ctx, { x: padding.left, y: 0, w: width - padding.right, h: height }, () => {
+      clipRect(ctx, { x: padding.left, y: 0, w: width - padding.right - padding.left, h: height }, () => {
         this.renderRects();
         this.renderConcatLines();
       });
@@ -250,9 +264,9 @@ const renderMixin = Vue.mixin({
     },
     // 时间线
     renderLines () {
-      const { ctx, lineSpace, padding, width, viewDataList } = this;
+      const { ctx, lineSpacePX, padding, width, viewDataList } = this;
       viewDataList.forEach((item, i) => {
-        let curY = i * lineSpace + padding.top;
+        let curY = i * lineSpacePX + padding.top;
         drawLine(ctx, [[padding.left, curY], [width - padding.right, curY]]);
         drawText(ctx, { text: item.name, x: 50, y: curY });
       });
@@ -380,13 +394,28 @@ const eventMixin = Vue.mixin({
     handleMouseup (e) {
       document.removeEventListener("mousemove", this.handleMousemove);
       document.removeEventListener("mouseup", this.handleMouseup);
-      const { xIndex, yIndex, isOverlay } = this.getInsertInfoByEvent(e);
-      console.log(xIndex, yIndex, isOverlay);
-      const rect = this.curReact.rect;
+      const insertInfo = this.getInsertInfoByEvent(e);
+      const { xIndex, yIndex, isOverlay } = insertInfo;
+      const { curOffsetX, padding, startTime, ms2px, curReact } = this;
+
+      const rect = curReact.rect;
+      const position = this.eventToCanvas(e);
+      rect.startTime = (position.x - curOffsetX - padding.left) / ms2px + startTime;
+      rect.endTime = rect.startTime + rect.rectBoundary.w / ms2px;
       rect.rectBoundary = this.getRectBoundary(rect, xIndex);
-      this.dataList[this.curReact.xIndex].planList.splice(this.curReact.yIndex, 1);
-      this.dataList[xIndex].planList.splice(yIndex, 0, rect);
-      console.log(this.dataList[xIndex].planList);
+      this.dataList[curReact.xIndex].planList.splice(curReact.yIndex, 1);
+      let insertYIndex = yIndex;
+      let advanceYIndex = yIndex;
+      // 本行内移动
+      if (xIndex === curReact.xIndex && yIndex > curReact.yIndex) {
+        insertYIndex--;
+        advanceYIndex--;
+      }
+      if (isOverlay && advanceYIndex > 0) {
+        advanceYIndex--;
+      }
+      this.dataList[xIndex].planList.splice(insertYIndex, 0, rect);
+      this.advanceTime(xIndex, advanceYIndex);
       this.render();
     }
   }
