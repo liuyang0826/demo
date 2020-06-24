@@ -405,6 +405,8 @@ const eventMixin = Vue.mixin({
 
       const plan = id2plan[curRectInfo.id];
       const position = this.eventToCanvas(e);
+
+      const planSnapshot = { ...plan };
       plan.startTime = (position.x - curRectInfo.offsetX - padding.left) / ms2px + startTime;
       plan.endTime = plan.startTime + id2rect[curRectInfo.id].w / ms2px;
       id2rect[curRectInfo.id] = this.makeRectByPlan(plan, xIndex);
@@ -421,6 +423,54 @@ const eventMixin = Vue.mixin({
       }
       this.dataList[xIndex].planList.splice(insertYIndex, 0, plan);
       this.advanceTime(xIndex, advanceYIndex);
+      this.render({ forceUpdate: true });
+
+      this.pushHistory({
+        type: "move",
+        detail: {
+          from: {
+            xIndex: curRectInfo.xIndex,
+            yIndex: curRectInfo.yIndex,
+            planSnapshot
+          },
+          to: {
+            xIndex: xIndex,
+            yIndex: insertYIndex
+          }
+        }
+      });
+    }
+  }
+});
+
+// 变化历史
+const historyMixin = Vue.mixin({
+  mounted () {
+    this.history = [];
+    document.addEventListener("keydown", this.handleKeydown);
+  },
+  methods: {
+    pushHistory (history) {
+      this.history.push(history);
+    },
+    handleKeydown (e) {
+      if (e.ctrlKey && e.code === "KeyZ") {
+        this.rollback();
+      }
+    },
+    rollback () {
+      const curStep = this.history.pop();
+      if (!curStep) return;
+      switch (curStep.type) {
+        case "move":
+          this.rollbackMove(curStep.detail);
+          break;
+      }
+    },
+    rollbackMove ({ from, to }) {
+      this.dataList[from.xIndex].planList.splice(from.yIndex, 0, from.planSnapshot);
+      this.dataList[to.xIndex].planList.splice(to.yIndex, 1);
+      this.id2rect[from.planSnapshot.id] = this.makeRectByPlan(from.planSnapshot, from.xIndex);
       this.render({ forceUpdate: true });
     }
   }
@@ -439,7 +489,7 @@ const businessMixin = Vue.mixin({
 
 new Vue({
   el: "#root",
-  mixins: [configMixin, utilMixin, renderMixin, eventMixin],
+  mixins: [configMixin, utilMixin, renderMixin, eventMixin, businessMixin, historyMixin],
   data: {
     dataList: []
   },
