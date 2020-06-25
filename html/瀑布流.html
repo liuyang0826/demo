@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="liuyang">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>瀑布流</title>
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/vant@2.8/lib/index.css"
+  />
+
+  <script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vant@2.8/lib/vant.min.js"></script>
+  <style>
+  * { margin: 0;padding: 0; }
+
+  .container {
+    display: flex;
+  }
+
+  .list {
+    flex: 1;
+    font-size: 14px;
+  }
+
+  .img {
+    width: 100%;
+  }
+
+  img {
+    display: block;
+    width: 100%;
+  }
+  </style>
+</head>
+<body>
+<div id="app">
+  <van-list
+    v-model="loading"
+    :finished="finished"
+    finished-text="没有更多了"
+    @load="onLoad"
+  >
+    <div class="container" ref="container">
+      <div class="list">
+        <div v-for="(item, index) in leftList" :key="index">
+          <div class="img">
+            <img :src="item.img" alt="">
+          </div>
+          <div>{{item.text}}</div>
+        </div>
+        <div style="visibility: hidden">
+          <div v-for="(item, index) in textList" :key="index" ref="text">
+            {{ item }}
+          </div>
+        </div>
+      </div>
+      <div class="list">
+        <div v-for="(item, index) in rightList" :key="index">
+          <div class="img">
+            <img :src="item.img" alt="">
+          </div>
+          <div>{{item.text}}</div>
+        </div>
+      </div>
+    </div>
+  </van-list>
+</div>
+<script>
+function dpHalf (heights, left = 0) {
+  let mid = Math.round((heights.reduce((a, b) => a + b) - left) / 2);
+  let dp = [];
+
+  // 基础状态 只考虑第一个图片的情况
+  dp[0] = [];
+  for (let cap = 0; cap <= mid; cap++) {
+    dp[0][cap] = heights[0] > cap ? { max: 0, indexList: [] } : { max: heights[0], indexList: [0] };
+  }
+
+  for (let useHeightIndex = 1; useHeightIndex < heights.length; useHeightIndex++) {
+    if (!dp[useHeightIndex]) {
+      dp[useHeightIndex] = [];
+    }
+    for (let cap = 0; cap <= mid; cap++) {
+      let usePrevHeightDp = dp[useHeightIndex - 1][cap];
+      let usePrevHeightMax = usePrevHeightDp.max;
+      let currentHeight = heights[useHeightIndex];
+
+      let useThisHeightRestCap = Math.round(cap - heights[useHeightIndex]);
+      let useThisHeightPrevDp = dp[useHeightIndex - 1][useThisHeightRestCap];
+      let useThisHeightMax = useThisHeightPrevDp ? currentHeight + useThisHeightPrevDp.max : 0;
+
+      // 是否把当前图片纳入选择 如果取当前的图片大于不取当前图片的高度
+      if (useThisHeightMax > usePrevHeightMax) {
+        dp[useHeightIndex][cap] = {
+          max: useThisHeightMax,
+          indexList: useThisHeightPrevDp.indexList.concat(useHeightIndex),
+        };
+      } else {
+        dp[useHeightIndex][cap] = {
+          max: usePrevHeightMax,
+          indexList: usePrevHeightDp.indexList,
+        };
+      }
+    }
+  }
+
+  return dp[heights.length - 1][mid];
+}
+
+function loadImg (src) {
+  return new Promise(resolve => {
+    let img = new Image();
+    img.onload = function () {
+      resolve({
+        width: img.width,
+        height: img.height,
+      });
+    };
+    img.src = src;
+  });
+}
+
+new Vue({
+  el: "#app",
+  data: {
+    leftList: [],
+    rightList: [],
+    textList: [],
+    total: 0,
+    loading: false,
+    finished: false,
+  },
+  mounted () {
+    this.leftHeight = 0;
+    this.rightHeight = 0;
+    this.imgWidth = this.$refs.container.offsetWidth;
+  },
+  methods: {
+    onLoad () {
+      // 异步更新数据
+      // setTimeout 仅做示例，真实场景中一般为 ajax 请求
+      setTimeout(() => {
+        const imgList = [
+          "https://dss3.bdstatic.com/70cFv8Sh_Q1YnxGkpoWK1HF6hhy/it/u=2534506313,1688529724&fm=26&gp=0.jpg",
+          "https://dss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=4018557288,1217151095&fm=26&gp=0.jpg",
+          "https://dss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=3252521864,872614242&fm=26&gp=0.jpg",
+          "https://dss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=3252521864,872614242&fm=26&gp=0.jpg",
+          "https://dss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=1035415831,1465727770&fm=26&gp=0.jpg",
+          "https://dss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=1141259048,554497535&fm=26&gp=0.jpg",
+          "https://ss3.bdstatic.com/70cFv8Sh_Q1YnxGkpoWK1HF6hhy/it/u=226419046,487093019&fm=26&gp=0.jpg",
+        ];
+
+        const textList = [
+          "超长文字就是要一大段啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊",
+          "长文字就是要一大段啊啊啊啊啊啊啊啊啊啊",
+          "短文字就是要一小段",
+        ];
+
+        const dataList = Array.from({ length: 6 }).map(() => {
+          return {
+            text: textList[~~(textList.length * Math.random())],
+            img: imgList[~~(imgList.length * Math.random())],
+          };
+        });
+        // 以上都是模拟数据的逻辑 下面根据业务数据自行组装
+
+
+        this.textList = dataList.map(d => d.text);
+
+        this.$nextTick(async () => {
+          const imgInfoList = await Promise.all(dataList.map(d => loadImg(d.img)));
+          const heightList = imgInfoList.map((d, index) => {
+            return d.height * this.imgWidth / d.width + this.$refs.text[index].offsetHeight;
+          });
+          const shortIndexList = dpHalf(heightList, this.rightHeight - this.leftHeight).indexList;
+          const shortIndexMap = {};
+          shortIndexList.forEach((index) => {
+            shortIndexMap[index] = 1;
+          });
+
+          dataList.forEach((item, index) => {
+            if (shortIndexMap[index]) {
+              this.rightList.push(item);
+              this.rightHeight += heightList[index];
+            } else {
+              this.leftList.push(item);
+              this.leftHeight += heightList[index];
+            }
+          });
+          // 加载状态结束
+          this.loading = false;
+          this.total += 10;
+
+          // 数据全部加载完成
+          if (this.total >= 120) {
+            this.finished = true;
+          }
+          this.textList = [];
+        });
+      }, 1000);
+    },
+  },
+});
+</script>
+</body>
+</html>
