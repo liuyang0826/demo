@@ -10,7 +10,7 @@
 
   canvas { width: 100vw;height: 100vh;display: block;}
   </style>
-  <script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.10/vue.min.js"></script>
+  <script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.10/vue.js"></script>
 </head>
 <body>
 <div id="root">
@@ -441,7 +441,8 @@ const eventMixin = Vue.mixin({
       if (xIndex === curMoveRect.xIndex) {
         if (yIndex > curMoveRect.yIndex) {
           insertYIndex--;
-          if (yIndex > curMoveRect.yIndex + 1) {
+          const curIndexNext = curMoveRect.yIndex + 1;
+          if ((yIndex === curIndexNext && !isOverlay) || yIndex > curIndexNext) {
             advanceYIndex--;
           }
         } else if (yIndex < curMoveRect.yIndex) {
