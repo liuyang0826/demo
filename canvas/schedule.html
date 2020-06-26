@@ -192,23 +192,31 @@ const utilMixin = Vue.mixin({
     },
     // 顺移时间
     advanceTime (xIndex, yIndex) {
+      const changeList = [];
       const planList = this.dataList[xIndex].planList;
       const space = this.advanceSpaceTime;
       let leftPlan = planList[yIndex];
-      let rightIndex = yIndex + 1;
-      while (rightIndex < planList.length) {
-        const rightPlan = planList[rightIndex];
-        if (rightPlan.startTime - leftPlan.endTime < space) {
-          let advance = (leftPlan.endTime - rightPlan.startTime) + space;
-          rightPlan.startTime += advance;
-          rightPlan.endTime += advance;
-        } else {
+      let rightYIndex = yIndex + 1;
+      while (rightYIndex < planList.length) {
+        const rightPlan = planList[rightYIndex];
+        if (rightPlan.startTime - leftPlan.endTime >= space) {
           break;
         }
+        const planSnapshot = { ...rightPlan };
+        let advance = (leftPlan.endTime - rightPlan.startTime) + space;
+        rightPlan.startTime += advance;
+        rightPlan.endTime += advance;
+
+        changeList.push({
+          from: { xIndex: xIndex, yIndex: rightYIndex, planSnapshot },
+          to: { xIndex: xIndex, yIndex: rightYIndex + 1 }
+        });
+
         this.id2rect[rightPlan.id] = this.makeRectByPlan(rightPlan, xIndex);
-        rightIndex++;
+        rightYIndex++;
         leftPlan = rightPlan;
       }
+      return changeList;
     }
   }
 });
@@ -413,31 +421,32 @@ const eventMixin = Vue.mixin({
       this.dataList[curRectInfo.xIndex].planList.splice(curRectInfo.yIndex, 1);
       let insertYIndex = yIndex;
       let advanceYIndex = yIndex;
+      let fromYIndex = curRectInfo.yIndex;
       // 本行内移动
-      if (xIndex === curRectInfo.xIndex && yIndex > curRectInfo.yIndex) {
-        insertYIndex--;
-        advanceYIndex--;
+      if (xIndex === curRectInfo.xIndex) {
+        if (yIndex > curRectInfo.yIndex) {
+          insertYIndex--;
+        }
+        if (yIndex > curRectInfo.yIndex + 1) {
+          advanceYIndex--;
+        }
+        if (yIndex < curRectInfo.yIndex) {
+          fromYIndex++;
+        }
       }
       if (isOverlay && advanceYIndex > 0) {
         advanceYIndex--;
       }
       this.dataList[xIndex].planList.splice(insertYIndex, 0, plan);
-      this.advanceTime(xIndex, advanceYIndex);
+      const changeList = this.advanceTime(xIndex, advanceYIndex);
       this.render({ forceUpdate: true });
 
       this.pushHistory({
         type: "move",
-        detail: {
-          from: {
-            xIndex: curRectInfo.xIndex,
-            yIndex: curRectInfo.yIndex,
-            planSnapshot
-          },
-          to: {
-            xIndex: xIndex,
-            yIndex: insertYIndex
-          }
-        }
+        detail: changeList.concat({
+          from: { xIndex: curRectInfo.xIndex, yIndex: fromYIndex, planSnapshot },
+          to: { xIndex: xIndex, yIndex: yIndex }
+        })
       });
     }
   }
@@ -459,18 +468,25 @@ const historyMixin = Vue.mixin({
       }
     },
     rollback () {
+      if (!this.history.length) return;
       const curStep = this.history.pop();
-      if (!curStep) return;
       switch (curStep.type) {
         case "move":
           this.rollbackMove(curStep.detail);
           break;
       }
     },
-    rollbackMove ({ from, to }) {
-      this.dataList[from.xIndex].planList.splice(from.yIndex, 0, from.planSnapshot);
-      this.dataList[to.xIndex].planList.splice(to.yIndex, 1);
-      this.id2rect[from.planSnapshot.id] = this.makeRectByPlan(from.planSnapshot, from.xIndex);
+    rollbackMove (moveDetail) {
+      moveDetail.forEach(
+      ({
+         from: { xIndex: fromXIndex, yIndex: fromYIndex, planSnapshot },
+         to: { xIndex: toXIndex, yIndex: toYIndex }
+       }) => {
+        this.dataList[fromXIndex].planList.splice(fromYIndex, 0, planSnapshot);
+        this.dataList[toXIndex].planList.splice(toYIndex, 1);
+        this.id2rect[planSnapshot.id] = this.makeRectByPlan(planSnapshot, fromXIndex);
+        this.id2plan[planSnapshot.id] = planSnapshot;
+      });
       this.render({ forceUpdate: true });
     }
   }
@@ -480,7 +496,7 @@ const historyMixin = Vue.mixin({
 const businessMixin = Vue.mixin({
   methods: {
     beforeMove (plan) {
-      // return plan.startTime > this.splitTime);
+      // return plan.startTime > this.splitTime;
       return true;
     },
     beforeMoveEnd () {}
