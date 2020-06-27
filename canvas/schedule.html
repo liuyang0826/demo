@@ -28,10 +28,10 @@ function drawLine (ctx, pointList, { color = "#000", width = 2, lineJoin = "roun
   }
   ctx.beginPath();
   ctx.setLineDash(isDash ? [10, 6] : []);
-  let start = pointList[0];
+  const start = pointList[0];
   ctx.moveTo(start[0], start[1]);
   for (let i = 1; i < pointList.length; i++) {
-    let cur = pointList[i];
+    const cur = pointList[i];
     ctx.lineTo(cur[0], cur[1]);
   }
   ctx.strokeStyle = color;
@@ -101,7 +101,7 @@ function clipRect (ctx, { x, y, w, h }, execute) {
 const configMixin = Vue.mixin({
   data () {
     return {
-      dateRange: 180,
+      dateRangeMS: 180 * 60 * 1000,
       lineSpacePX: 100,
       padding: {
         left: 100,
@@ -132,7 +132,7 @@ const utilMixin = Vue.mixin({
         h: this.rectHeight
       };
     },
-    eventToCanvas (e) {
+    eventToCanvasPoint (e) {
       return {
         x: e.clientX,
         y: e.clientY
@@ -140,16 +140,16 @@ const utilMixin = Vue.mixin({
     },
     // 事件获取方块
     getRectInfoByPoint ({ x, y }) {
-      const { padding, lineSpacePX, dataList, id2rect } = this;
+      const { padding, lineSpacePX, dataList } = this;
       let index = ~~((y - padding.top + lineSpacePX / 2) / lineSpacePX);
       if (index < dataList.length) {
-        let planList = dataList[index].planList;
-        let first = planList[0];
+        const planList = dataList[index].planList;
+        const first = planList[0];
         if (first) {
-          let rect = id2rect[first.id];
+          const rect = this.getRectStoreById(first.id);
           if (y >= rect.y && y <= rect.y + rect.h) {
             for (let yIndex = planList.length - 1; yIndex >= 0; yIndex--) {
-              let rectBoundary = id2rect[planList[yIndex].id];
+              const rectBoundary = this.getRectStoreById(planList[yIndex].id);
               if (x <= rectBoundary.x + rectBoundary.w && x >= rectBoundary.x) {
                 return {
                   xIndex: index,
@@ -164,20 +164,20 @@ const utilMixin = Vue.mixin({
     },
     // 获取插入位置信息
     getInsertInfoByEvent (e) {
-      let { x, y } = this.eventToCanvas(e);
-      // const x = this.curMoveRect.rect.rectBoundary.x;
-      x -= this.curMoveRect.offsetX;
-      const { padding, lineSpacePX, dataList, id2rect } = this;
+      let { x, y } = this.eventToCanvasPoint(e);
+      // const x = this.curMovingRect.rect.rectBoundary.x;
+      x -= this.curMovingRect.offsetX;
+      const { padding, lineSpacePX, dataList } = this;
       let xIndex = ~~((y - padding.top + lineSpacePX / 2) / lineSpacePX);
-      // if (xIndex === this.curMoveRect.xIndex) return;
+      // if (xIndex === this.curMovingRect.xIndex) return;
       if (xIndex >= dataList.length) {
         xIndex = dataList.length - 1;
       }
-      let planList = this.dataList[xIndex].planList;
+      const planList = this.dataList[xIndex].planList;
       let isOverlay = false;
       let yIndex = 0;
       for (; yIndex < planList.length; yIndex++) {
-        let rect = id2rect[planList[yIndex].id];
+        const rect = this.getRectStoreById(planList[yIndex].id);
         if (x <= rect.x + rect.w) {
           isOverlay = true;
           if (x < rect.x) {
@@ -202,7 +202,7 @@ const utilMixin = Vue.mixin({
           break;
         }
         const planSnapshot = { ...rightPlan };
-        let advance = (leftPlan.endTime - rightPlan.startTime) + space;
+        const advance = (leftPlan.endTime - rightPlan.startTime) + space;
         rightPlan.startTime += advance;
         rightPlan.endTime += advance;
 
@@ -211,12 +211,49 @@ const utilMixin = Vue.mixin({
           to: { xIndex: xIndex, yIndex: rightYIndex + 1 }
         });
 
-        this.id2rect[rightPlan.id] = this.makeRectByPlan(rightPlan, xIndex);
+        this.updateRectStore(rightPlan.id, this.makeRectByPlan(rightPlan, xIndex));
         rightYIndex++;
         leftPlan = rightPlan;
       }
       return changeList;
     }
+  }
+});
+
+const storeMixin = Vue.mixin({
+  computed: {
+    id2plan () {
+      const map = {};
+      this.dataList.forEach((item) => {
+        item.planList.forEach((plan) => {
+          map[plan.id] = plan;
+        });
+      });
+      return map;
+    },
+    id2rect () {
+      const map = {};
+      this.dataList.forEach((item, xIndex) => {
+        item.planList.forEach((plan) => {
+          map[plan.id] = this.makeRectByPlan(plan, xIndex);
+        });
+      });
+      return map;
+    }
+  },
+  methods: {
+    getPlanStoreById (id) {
+      return this.id2plan[id];
+    },
+    updatePlanStore (id, plan) {
+      this.id2plan[id] = plan;
+    },
+    getRectStoreById (id) {
+      return this.id2rect[id];
+    },
+    updateRectStore (id, rect) {
+      this.id2rect[id] = rect;
+    },
   }
 });
 
@@ -230,26 +267,8 @@ const renderMixin = Vue.mixin({
   },
   computed: {
     ms2px () {
-      const { width, padding, dateRange, scale } = this;
-      return (width - padding.left - padding.right) / dateRange / 60 / 1000 * scale;
-    },
-    id2plan () {
-      const map = {};
-      this.dataList.forEach((item) => {
-        item.planList.forEach((d) => {
-          map[d.id] = d;
-        });
-      });
-      return map;
-    },
-    id2rect () {
-      const map = {};
-      this.dataList.forEach((item, xIndex) => {
-        item.planList.forEach((plan) => {
-          map[plan.id] = this.makeRectByPlan(plan, xIndex);
-        });
-      });
-      return map;
+      const { width, padding, dateRangeMS, scale } = this;
+      return (width - padding.left - padding.right) / dateRangeMS * scale;
     }
   },
   methods: {
@@ -283,10 +302,10 @@ const renderMixin = Vue.mixin({
     },
     // 渲染计划方块
     renderPlans () {
-      const { dataList, id2rect, offCtx } = this;
+      const { dataList, offCtx } = this;
       dataList.forEach((item) => {
         item.planList.forEach((item) => {
-          this.renderPlan(offCtx, id2rect[item.id], item);
+          this.renderPlan(offCtx, this.getRectStoreById(item.id), item);
         });
       });
     },
@@ -329,18 +348,18 @@ const renderMixin = Vue.mixin({
     },
     // 渲染关系线
     renderConcatLines () {
-      const { offCtx, splitTime, rectHeight, id2plan, id2rect, dataList } = this;
+      const { offCtx, splitTime, rectHeight, dataList } = this;
       dataList.forEach((item) => {
         item.planList.forEach((item) => {
-          let concatPlan = id2plan[item.concatId];
+          let concatPlan = this.getPlanStoreById(item.concatId);
           if (concatPlan) {
             const endTime = item.endTime;
             const concatStartTime = concatPlan.startTime;
             if (endTime > concatStartTime) {
               return;
             }
-            let startRect = id2rect[item.id];
-            let endRect = id2rect[concatPlan.id];
+            let startRect = this.getRectStoreById(item.id);
+            let endRect = this.getRectStoreById(concatPlan.id);
             drawLine(offCtx, [
               [startRect.x + startRect.w, startRect.y + rectHeight / 2],
               [endRect.x, endRect.y + rectHeight / 2]
@@ -370,27 +389,27 @@ const eventMixin = Vue.mixin({
     },
     handleMousewheel (e) {
       const { padding, ms2px, scaleSpeed } = this;
-      const { x } = this.eventToCanvas(e);
+      const { x } = this.eventToCanvasPoint(e);
       this.scale += scaleSpeed * (e.wheelDelta > 0 ? 1 : -1);
       this.scale <= 0 && (this.scale = 0.01);
       this.startTime += (x - padding.left) * (1 / ms2px - 1 / this.ms2px);
       this.render({ forceUpdate: true });
     },
     handleMouseDown (e) {
-      const point = this.eventToCanvas(e);
-      this.makeCurMoveRectByPoint(point);
+      const point = this.eventToCanvasPoint(e);
+      this.makeCurMovingRectByPoint(point);
       this.makeCurTranslateByPoint(point);
       document.addEventListener("mousemove", this.handleMousemove);
       document.addEventListener("mouseup", this.handleMouseup);
     },
     handleMousemove (e) {
-      if (!(this.curMoveRect || this.curTranslate)) return;
+      if (!(this.curMovingRect || this.curTranslate)) return;
       this.translateByEvent(e);
       this.render({
         afterRender: () => {
           this.moveRectByEvent(e);
         },
-        forceUpdate: !this.curMoveRect
+        forceUpdate: !this.curMovingRect
       });
     },
     handleMouseup (e) {
@@ -398,12 +417,11 @@ const eventMixin = Vue.mixin({
       document.removeEventListener("mouseup", this.handleMouseup);
       this.insertRectByEvent(e);
     },
-    makeCurMoveRectByPoint ({ x, y }) {
-      const { getRectInfoByPoint, id2rect, id2plan } = this;
-      const rectInfo = getRectInfoByPoint({ x, y });
-      if (rectInfo && (!this.beforeMove || this.beforeMove(id2plan[rectInfo.id]))) {
-        const curRect = id2rect[rectInfo.id];
-        this.curMoveRect = {
+    makeCurMovingRectByPoint ({ x, y }) {
+      const rectInfo = this.getRectInfoByPoint({ x, y });
+      if (rectInfo && (!this.beforeMove || this.beforeMove(this.getPlanStoreById(rectInfo.id)))) {
+        const curRect = this.getRectStoreById(rectInfo.id);
+        this.curMovingRect = {
           ...rectInfo,
           offsetX: x - curRect.x,
           offsetY: y - curRect.y
@@ -411,41 +429,41 @@ const eventMixin = Vue.mixin({
       }
     },
     moveRectByEvent (e) {
-      if (!this.curMoveRect) return;
-      const curRectId = this.curMoveRect.id;
-      const rect = { ...this.id2rect[curRectId] };
-      const { x, y } = this.eventToCanvas(e);
-      rect.x = x - this.curMoveRect.offsetX;
-      rect.y = y - this.curMoveRect.offsetY;
-      this.renderPlan(this.ctx, rect, this.id2plan[curRectId]);
+      if (!this.curMovingRect) return;
+      const curRectId = this.curMovingRect.id;
+      const rect = { ...this.getRectStoreById(curRectId) };
+      const { x, y } = this.eventToCanvasPoint(e);
+      rect.x = x - this.curMovingRect.offsetX;
+      rect.y = y - this.curMovingRect.offsetY;
+      this.renderPlan(this.ctx, rect, this.getPlanStoreById(curRectId));
     },
     insertRectByEvent (e) {
-      if (!this.curMoveRect) return;
+      if (!this.curMovingRect) return;
 
       const insertInfo = this.getInsertInfoByEvent(e);
       const { xIndex, yIndex, isOverlay } = insertInfo;
-      const { padding, startTime, ms2px, id2rect, id2plan, curMoveRect } = this;
+      const { padding, startTime, ms2px, curMovingRect } = this;
 
-      const plan = id2plan[curMoveRect.id];
-      const { x } = this.eventToCanvas(e);
+      const plan = this.getPlanStoreById(curMovingRect.id);
+      const { x } = this.eventToCanvasPoint(e);
 
       const planSnapshot = { ...plan };
-      plan.startTime = (x - curMoveRect.offsetX - padding.left) / ms2px + startTime;
-      plan.endTime = plan.startTime + id2rect[curMoveRect.id].w / ms2px;
-      id2rect[curMoveRect.id] = this.makeRectByPlan(plan, xIndex);
-      this.dataList[curMoveRect.xIndex].planList.splice(curMoveRect.yIndex, 1);
+      plan.startTime = (x - curMovingRect.offsetX - padding.left) / ms2px + startTime;
+      plan.endTime = plan.startTime + this.getRectStoreById(curMovingRect.id).w / ms2px;
+      this.updateRectStore(curMovingRect.id, this.makeRectByPlan(plan, xIndex));
+      this.dataList[curMovingRect.xIndex].planList.splice(curMovingRect.yIndex, 1);
       let insertYIndex = yIndex;
       let advanceYIndex = yIndex;
-      let fromYIndex = curMoveRect.yIndex;
+      let fromYIndex = curMovingRect.yIndex;
       // 本行内移动
-      if (xIndex === curMoveRect.xIndex) {
-        if (yIndex > curMoveRect.yIndex) {
+      if (xIndex === curMovingRect.xIndex) {
+        if (yIndex > curMovingRect.yIndex) {
           insertYIndex--;
-          const curIndexNext = curMoveRect.yIndex + 1;
+          const curIndexNext = curMovingRect.yIndex + 1;
           if ((yIndex === curIndexNext && !isOverlay) || yIndex > curIndexNext) {
             advanceYIndex--;
           }
-        } else if (yIndex < curMoveRect.yIndex) {
+        } else if (yIndex < curMovingRect.yIndex) {
           fromYIndex++;
         }
       }
@@ -459,20 +477,20 @@ const eventMixin = Vue.mixin({
       this.pushHistory({
         type: "move",
         detail: changeList.concat({
-          from: { xIndex: curMoveRect.xIndex, yIndex: fromYIndex, planSnapshot },
+          from: { xIndex: curMovingRect.xIndex, yIndex: fromYIndex, planSnapshot },
           to: { xIndex: xIndex, yIndex: yIndex }
         })
       });
-      this.curMoveRect = null;
+      this.curMovingRect = null;
     },
     makeCurTranslateByPoint ({ x, y }) {
-      if (this.curMoveRect) return;
+      if (this.curMovingRect) return;
       this.curTranslate = { x, y };
     },
     translateByEvent (e) {
-      if (!this.curTranslate || this.curMoveRect) return;
+      if (!this.curTranslate || this.curMovingRect) return;
       const { ms2px } = this;
-      const { x } = this.eventToCanvas(e);
+      const { x } = this.eventToCanvasPoint(e);
       this.startTime += (this.curTranslate.x - x) / ms2px;
       this.curTranslate.x = x;
     }
@@ -511,8 +529,8 @@ const historyMixin = Vue.mixin({
        }) => {
         this.dataList[fromXIndex].planList.splice(fromYIndex, 0, planSnapshot);
         this.dataList[toXIndex].planList.splice(toYIndex, 1);
-        this.id2rect[planSnapshot.id] = this.makeRectByPlan(planSnapshot, fromXIndex);
-        this.id2plan[planSnapshot.id] = planSnapshot;
+        this.updateRectStore(planSnapshot.id, this.makeRectByPlan(planSnapshot, fromXIndex));
+        this.updatePlanStore(planSnapshot.id, planSnapshot);
       });
       this.render({ forceUpdate: true });
     }
@@ -532,7 +550,7 @@ const businessMixin = Vue.mixin({
 
 new Vue({
   el: "#root",
-  mixins: [configMixin, utilMixin, renderMixin, eventMixin, businessMixin, historyMixin],
+  mixins: [configMixin, utilMixin, storeMixin, renderMixin, eventMixin, historyMixin, businessMixin],
   data: {
     dataList: []
   },
