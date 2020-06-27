@@ -20,6 +20,7 @@
           @mousewheel="handleMousewheel"
           @mousedown="handleMouseDown"></canvas>
 </div>
+<div style="position:fixed;left: 32px;top: 16px;font-size: 18px;font-weight:bold;color:#f00;">支持左右拖动、缩放、移动、ctrl+z回退</div>
 <script>
 // 线
 function drawLine (ctx, pointList, { color = "#000", width = 2, lineJoin = "round", isDash = false } = {}) {
@@ -559,7 +560,7 @@ new Vue({
       let idMap = {};
 
       function getConcatId () {
-        let id = ~~(Math.random() * 400);
+        let id = ~~(Math.random() * 64 * 64);
         if (idMap[id]) {
           return getConcatId();
         } else {
@@ -573,7 +574,7 @@ new Vue({
         let start = new Date().getTime() - ~~(Math.random() * 75 * 60 * 1000);
         return {
           name: (index + 1) + "#高炉",
-          planList: Array.from({ length: 16 }).map((_, i) => {
+          planList: Array.from({ length: 32 }).map((_, i) => {
             let startTemp = start;
             let end = startTemp + ~~(6 * 60 * 1000 * (Math.random() + 0.5));
             start = end + ~~(2 * 60 * 1000 * (Math.random() + 0.25));
