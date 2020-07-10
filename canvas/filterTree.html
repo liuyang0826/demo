@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="018269">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>2</title>
+</head>
+<body>
+<script>
+const data = [
+  {
+    name: "1",
+    children: [
+      {
+        name: "2",
+        children: [
+          {
+            name: "3",
+            children: []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    name: "4",
+    children: [
+      {
+        name: "3",
+        children: []
+      }
+    ]
+  }
+];
+console.log(filter(data, "3"));
+
+
+// 过滤原来的树 返回一个新树
+function filter (tree, keyword) {
+  const newTree = [];
+  // 递归函数 接受一个数组 返回这个数组是否有满足条件的节点
+  // 同时将满足条件的节点添加到传入的newList中
+  function makeNewTree (list, newList) {
+    if (!list.length) return false
+    let flag = false; // 标识位 表示当前这一层是否有满足条件的节点
+    list.forEach((item) => {
+      let newNode = { // 克隆一个新的节点
+        ...item,
+        children: []
+      }
+      // 如果当前节点 或者 他的子节点有满足条件的 那么当前节点就被添加到新的树
+      if (item.name.indexOf(keyword) !== -1 || makeNewTree(item.children, newNode.children)) {
+        flag = true;
+        newList.push(newData)
+      }
+    });
+    return flag;
+  }
+  makeNewTree(list, newTree)
+  return newTree;
+}
+</script>
+</body>
+</html>

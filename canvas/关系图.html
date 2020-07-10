@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="018269">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>关系图</title>
+  <style>
+  * {
+    margin: 0;padding: 0;
+  }
+  </style>
+  <script src="https://cdn.bootcdn.net/ajax/libs/echarts/3.8.5/echarts.min.js"></script>
+</head>
+<body>
+<div style="height: 100vh;" id="chart"></div>
+<script>
+
+const data = [
+  { id: 1, value: "value", level: 0, name: "包头钢铁（集团）有限责任公司" },
+  { id: 2, parentId: 1, value: "value", level: 1, name: "工商信息" },
+  { id: 3, parentId: 1, value: "value", level: 1, name: "企业关系" },
+  { id: 4, parentId: 1, value: "value", level: 1, name: "经营状况" },
+  { id: 5, parentId: 1, value: "value", level: 1, name: "司法风险" },
+  { id: 6, parentId: 1, value: "value", level: 1, name: "经营风险" },
+  { id: 7, parentId: 1, value: "value", level: 1, name: "财务信息" },
+  { id: 8, parentId: 1, value: "value", level: 1, name: "产品技术研发" },
+  { id: 9, parentId: 1, value: "value", level: 1, name: "新闻舆情" },
+  { id: 10, parentId: 1, value: "value", level: 1, name: "特色标签" },
+  { id: 11, parentId: 1, value: "value", level: 1, name: "监管信息" },
+  { id: 12, parentId: 11, value: "value", level: 2, name: "监管信息" },
+  { id: 13, parentId: 11, value: "value", level: 2, name: "特色标签" },
+  { id: 14, parentId: 11, value: "value", level: 2, name: "产品技术研发" },
+  { id: 15, parentId: 10, value: "value", level: 2, name: "监管信息" },
+  { id: 16, parentId: 10, value: "value", level: 2, name: "特色标签" },
+  { id: 17, parentId: 10, value: "value", level: 2, name: "产品技术研发" },
+];
+const categories = data.filter(d => d.level === 1).map((d) => {
+  return {
+    name: d.name
+  };
+});
+
+function makeMap (list, fn) {
+  const map = {};
+  list.forEach((item, index) => {
+    fn(map, item, index)
+  });
+  return map;
+}
+
+
+function makeRectRound (text, radius, fontSize) {
+  return `path://M${radius},0h${text.length * fontSize}a1,1 0 0,1 0,${radius * 2}h-${text.length * fontSize}a1,1 0 0,1 0,-${radius * 2}`;
+}
+
+const nameColorMap = {
+  "工商信息": "#916ED7",
+  "企业关系": "#B3DAE7",
+  "经营状况": "#CBBDE8",
+  "司法风险": "#F7C4A7",
+  "经营风险": "#F7C4A7",
+  "财务信息": "#CBBDE8",
+  "产品技术研发": "#B3DAE7",
+  "新闻舆情": "#F7C4A7",
+  "特色标签": "#AEDBB0",
+  "监管信息": "#F5E39F",
+}
+
+const radiusLevel = [32, 24, 16];
+const fontSizeLevel = [24, 16, 12];
+
+const idDataMap = makeMap(data, (map, item) => map[item.id] = item);
+
+const categoryMap = makeMap(categories, (map, item, index) => map[item.name] = index);
+
+function findGroupParent (item) {
+  let current = item;
+  while (current.level > 1) {
+    current = idDataMap[current.parentId];
+  }
+  return current;
+}
+
+const graph = {
+  nodes: data.map((item) => {
+    return {
+      ...item,
+      category: categoryMap[findGroupParent(item).name],
+      draggable: true,
+      symbolSize: 10,
+      value: 10
+    };
+  }),
+  links: data.filter(d => d.parentId).map((item) => {
+    return {
+      source: item.parentId + "",
+      target: item.id + "",
+      name: item.name
+    };
+  })
+};
+const chart = echarts.init(document.getElementById("chart"));
+chart.setOption({
+  animation: false,
+  color: ['#8EA5EF'],
+  title: {
+    text: "",
+    subtext: "",
+    top: "bottom",
+    left: "right"
+  },
+  toolbox: {
+    show: true,
+    orient: "vertical",
+    left: 0
+  },
+  tooltip: {},
+  legend: [
+    {
+      top: 10,
+      right: 12,
+      align: "left",
+      orient: "vertical",
+      textStyle: {
+        fontSize: 13,
+        fontFamily: "simsun"
+      },
+      data: categories,
+      selected: {}
+    }
+  ],
+  series: [
+    {
+      type: "graph",
+      layout: "force",
+      force: {
+        repulsion: 1000,
+        gravity: .05,
+        edgeLength: 160,
+        layoutAnimation: !0
+      },
+      edgeSymbol: ["none", "arrow"],
+      edgeSymbolSize: 16,
+      roam: !0,
+      draggable: !0,
+      lineStyle: {
+        normal: {
+          curveness: .3
+        }
+      },
+      data: graph.nodes.map((item) => {
+        return {
+          ...item,
+          name: item.name,
+          symbol: makeRectRound(item.name, radiusLevel[item.level], fontSizeLevel[item.level]),
+          symbolSize: [item.name.length * fontSizeLevel[item.level] + radiusLevel[item.level] * 2, radiusLevel[item.level] * 2],
+          itemStyle: {
+            normal: {
+              color: nameColorMap[findGroupParent(item).name],
+              borderWidth: 0,
+              borderType: "solid"
+            },
+            emphasis: {
+            }
+          },
+          label: {
+            normal: {
+              show: true,
+              position: "inside",
+              formatter: function (t) {
+                return item.name + "\n(10)";
+              },
+              textStyle: {
+                color: "#fff",
+                fontSize: fontSizeLevel[item.level],
+                fontFamily: "simsun"
+              }
+            }
+          },
+          tooltip: {
+            formatter: function (t) {
+              return t.value;
+            }
+          }
+        };
+      }),
+      links: graph.links.map((item) => {
+        return {
+          ...item,
+          label: {
+            normal: {
+              show: false
+              // formatter: function (t) {
+              //   return t.data.source + "-" + t.data.target;
+              // },
+              // textStyle: {
+              //   color: "#999999",
+              //   fontSize: 12,
+              //   fontFamily: "simsun"
+              // }
+            },
+            emphasis: {
+              show: false,
+              // formatter: function (t) {
+              //   return t.value;
+              // }
+            }
+          },
+          lineStyle: {
+            normal: {
+              color: nameColorMap[findGroupParent(item).name],
+              width: 2
+            }
+          }
+        };
+      }),
+      categories: categories
+    }
+  ],
+  animationDuration: 300,
+  animationEasingUpdate: "quadraticOut",
+  progressive: 0
+});
+chart.on("click", function () {
+
+})
+// chart.setOptions({
+//   animation: !1,
+//   title: {
+//     text: "",
+//     subtext: "",
+//     top: "bottom",
+//     left: "right"
+//   },
+//   toolbox: {
+//     show: !0,
+//     orient: "vertical",
+//     left: 0
+//   },
+//   tooltip: {},
+//   legend: [
+//     {
+//       top: 10,
+//       right: 12,
+//       align: "left",
+//       orient: "vertical",
+//       textStyle: {
+//         fontSize: 13,
+//         fontFamily: "simsun"
+//       },
+//       data: t.categories,
+//       selected: e || {}
+//     }
+//   ],
+//   series: [
+//     {
+//       type: "graph",
+//       layout: "force",
+//       force: {
+//         repulsion: 390,
+//         gravity: .06,
+//         edgeLength: 130,
+//         layoutAnimation: !0
+//       },
+//       edgeSymbol: ["none", "arrow"],
+//       edgeSymbolSize: [0, [5, 10]],
+//       roam: !0,
+//       draggable: !0,
+//       lineStyle: {
+//         normal: {
+//           curveness: .3
+//         }
+//       },
+//       data: t.nodes.map(function (t) {
+//         var e = this.categories[t.category]
+//         , n = "更多" === t.name.slice(0, 2);
+//         return $.extend(t, {
+//           symbol: "circle",
+//           symbolSize: [70, 50][t.level] || 15,
+//           itemStyle: {
+//             normal: {
+//               borderColor: e.colors[1],
+//               borderWidth: [1, 1][t.level] ? 4 : n ? 3 : 0,
+//               borderType: "solid"
+//             },
+//             emphasis: {
+//               borderWidth: 0
+//             }
+//           },
+//           label: {
+//             normal: {
+//               show: !0,
+//               position: [0, 1][t.level] ? "inside" : "bottom",
+//               formatter: "{b}",
+//               textStyle: {
+//                 color: ["#0088CE", "#ffffff"][t.level] || (n ? "#0088CE" : "#666666"),
+//                 fontSize: t.category ? 13 : 14,
+//                 fontFamily: "simsun"
+//               }
+//             }
+//           },
+//           tooltip: {
+//             formatter: function (t) {
+//               return t.value;
+//             }
+//           }
+//         });
+//       }, t),
+//       links: t.links.map(function (t) {
+//         return $.extend(t, {
+//           label: {
+//             normal: {
+//               show: !0,
+//               formatter: function (t) {
+//                 return t.value;
+//               },
+//               textStyle: {
+//                 color: /(?:^|[^\u4e00-\u9fa5])(?:董事长|总经理|总裁|行长|董事会主席|董事局主席|执行总裁)/.test(t.value)
+//                 ? t.category.colors[0]
+//                 : "#999999",
+//                 fontSize: 12,
+//                 fontFamily: "simsun"
+//               }
+//             },
+//             emphasis: {
+//               show: !0,
+//               formatter: function (t) {
+//                 return t.value;
+//               }
+//             }
+//           },
+//           lineStyle: {
+//             normal: {
+//               color: t.category.colors[0]
+//             },
+//             emphasis: {
+//               color: t.category.colors[1]
+//             }
+//           }
+//         });
+//       }
+//       .bind(t)),
+//       categories: t.categories.map(function (t) {
+//         return $.extend(t, {
+//           itemStyle: {
+//             normal: {
+//               color: t.colors[0]
+//             },
+//             emphasis: {
+//               color: t.colors[1]
+//             }
+//           }
+//         });
+//       })
+//     }
+//   ],
+//   animationDuration: 300,
+//   animationEasingUpdate: "quadraticOut",
+//   progressive: 0
+// });
+</script>
+</body>
+</html>

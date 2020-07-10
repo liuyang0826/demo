@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="018269">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>treeMap</title>
+  <script src="https://cdn.bootcdn.net/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+</head>
+<body>
+<div class="header">
+  <span><</span>
+  <span>2020-6</span>
+  <span>></span>
+</div>
+<table>
+  <tbody>
+  <tr>
+    <th>一</th>
+    <th>二</th>
+    <th>三</th>
+    <th>四</th>
+    <th>五</th>
+    <th>六</th>
+    <th>日</th>
+  </tr>
+  </tbody>
+</table>
+<script>
+$.ajax({
+  url: "https://sp0.baidu.com/8aQDcjqpAAV3otqbppnN2DJv/api.php?query=2020年6月&co=&resource_id=39043&t=1593418019376&ie=utf8&oe=gbk&format=json&tn=wisetpl",
+  dataType: "jsonp",
+  jsonp: "cb",
+  success: function (res) {
+    console.log(res);
+  }
+});
+</script>
+</body>
+</html>
