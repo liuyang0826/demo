@@ -52,12 +52,12 @@ function filter (tree, keyword) {
       // 如果当前节点 或者 他的子节点有满足条件的 那么当前节点就被添加到新的树
       if (item.name.indexOf(keyword) !== -1 || makeNewTree(item.children, newNode.children)) {
         flag = true;
-        newList.push(newData)
+        newList.push(newNode)
       }
     });
     return flag;
   }
-  makeNewTree(list, newTree)
+  makeNewTree(tree, newTree)
   return newTree;
 }
 </script>
