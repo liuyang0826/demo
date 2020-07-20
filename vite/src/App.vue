@@ -28,6 +28,14 @@ export default {
 };
 </script>
 
-<style scoped>
-button { color: red }
+<style module>
+@font-face {
+  font-family: zcoolqingkehuangyouti;
+  src: url("zcoolqingkehuangyouti.ttf") format('truetype');
+}
+
+.btn {
+  font-size: 20px;
+}
+
 </style>

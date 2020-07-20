@@ -1,7 +1,7 @@
 <template>
-  <div class="content" ref="contentRef" :class="{pack: showBtn}">
+  <div :class=" $style.content + ' ' + (showBtn ? $style.pack : '')" ref="contentRef">
     {{ text }}
-    <span v-show="showBtn" class="btn">
+    <span v-show="showBtn" :class="$style.btn">
       ...<span style="color: blue;cursor: pointer;" @click="showBtn = false">更多</span>
     </span>
   </div>
@@ -28,12 +28,12 @@ export default {
 }
 </script>
 
-<style scoped>
+<style module>
 .content {
   line-height: 24px;
   overflow: hidden;
   position: relative;
-  background: url("./logo.png");
+  background: url("https://a.amap.com/jsapi_demos/static/images/mass2.png");
 }
 
 .pack {
