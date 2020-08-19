@@ -1,0 +1,330 @@
+export function createEventHandler (
+{
+  root,
+  render: { render, renderPlan, renderConcatLine },
+  ctx,
+  config: { padding, scaleSpeed, lineSpacePX, advanceSpaceTime, lineDotWidth, rectHeight },
+  utils: { eventToCanvasPoint, makeRectByPlan },
+  store: { getScale, setScale, setStartTime, getStartTime, makeId2Rect, getRectById, getPlanById, setRectAtId, ms2px, getDataList, getConcatList, makeConcatList },
+  history: { pushHistory, rollback },
+  beforeMove
+}
+) {
+  const teardownListeners = installListener();
+
+  function installListener () {
+    root.addEventListener("click", handleClick);
+    root.addEventListener("mousewheel", handleMousewheel);
+    root.addEventListener("mousedown", handleMouseDown);
+    document.addEventListener("keydown", handleKeydown);
+    return function teardownListeners () {
+      root.removeEventListener("click", handleClick);
+      root.removeEventListener("mousewheel", handleMousewheel);
+      root.removeEventListener("mousedown", handleMouseDown);
+      document.removeEventListener("keydown", handleKeydown);
+    };
+  }
+
+  function handleClick (e) {
+    const { getRectByPoint } = this;
+    // console.log(getRectByPoint({ x: e.clientX, y: e.clientY }));
+  }
+
+  function handleMousewheel (e) {
+    const { x } = eventToCanvasPoint(e);
+    const _ms2px = ms2px();
+    setScale(getScale() + scaleSpeed * (e.wheelDelta > 0 ? 1 : -1));
+    getScale() <= 0 && setScale(0.01);
+    setStartTime(getStartTime() + (x - padding.left) * (1 / _ms2px - 1 / ms2px()));
+    makeId2Rect();
+    render({ forceUpdate: true });
+  }
+
+  function handleKeydown (e) {
+    if (e.ctrlKey && e.code === "KeyZ") {
+      rollback();
+    }
+  }
+
+  let curMovingLine = null;
+  let curMovingRect = null;
+  let curTranslate = null;
+
+  function handleMouseDown (e) {
+    const point = eventToCanvasPoint(e);
+    curMovingLine = makeCurMovingLineByPoint(point);
+    curMovingRect = makeCurMovingRectByPoint(point);
+    curTranslate = makeCurTranslateByPoint(point);
+    document.addEventListener("mousemove", handleMousemove);
+    document.addEventListener("mouseup", handleMouseup);
+  }
+
+  function handleMousemove (e) {
+    if (!(curMovingRect || curTranslate || curMovingLine)) return;
+    translateByEvent(e);
+    render({
+      afterRender: () => {
+        moveLineByEvent(e);
+        moveRectByEvent(e);
+      },
+      forceUpdate: !curMovingRect || !curMovingLine
+    });
+  }
+
+  function handleMouseup (e) {
+    document.removeEventListener("mousemove", handleMousemove);
+    document.removeEventListener("mouseup", handleMouseup);
+    insertRectByEvent(e);
+    changeConcatLine(e);
+    render({ forceUpdate: true })
+  }
+
+  // 移动方块
+  function makeCurMovingRectByPoint ({ x, y }) {
+    if (curMovingLine) return;
+    const rectInfo = getRectInfoByPoint({ x, y });
+    if (rectInfo && (!beforeMove || beforeMove(getPlanById(rectInfo.id)))) {
+      const curRect = getRectById(rectInfo.id);
+      return {
+        ...rectInfo,
+        offsetX: x - curRect.x,
+        offsetY: y - curRect.y
+      };
+    }
+  }
+
+  function getRectInfoByPoint ({ x, y }) {
+    const dataList = getDataList();
+    let index = ~~((y - padding.top + lineSpacePX / 2) / lineSpacePX);
+    if (index < dataList.length) {
+      const planList = dataList[index].planList;
+      const first = planList[0];
+      if (first) {
+        const rect = getRectById(first.id);
+        if (y >= rect.y && y <= rect.y + rect.h) {
+          for (let yIndex = planList.length - 1; yIndex >= 0; yIndex--) {
+            const rectBoundary = getRectById(planList[yIndex].id);
+            if (x <= rectBoundary.x + rectBoundary.w && x >= rectBoundary.x) {
+              return {
+                xIndex: index,
+                yIndex: yIndex,
+                id: planList[yIndex].id
+              };
+            }
+          }
+        }
+      }
+    }
+  }
+
+  function moveRectByEvent (e) {
+    if (!curMovingRect) return;
+    const curRectId = curMovingRect.id;
+    const rect = { ...getRectById(curRectId) };
+    const { x, y } = eventToCanvasPoint(e);
+    rect.x = x - curMovingRect.offsetX;
+    rect.y = y - curMovingRect.offsetY;
+    renderPlan(ctx, rect, getPlanById(curRectId));
+  }
+
+  function insertRectByEvent (e) {
+    if (!curMovingRect) return;
+    const dataList = getDataList();
+
+    const insertInfo = getInsertInfoByEvent(e);
+    const { xIndex, yIndex, isOverlay } = insertInfo;
+
+    const plan = getPlanById(curMovingRect.id);
+    const { x } = eventToCanvasPoint(e);
+
+    const snapshot = { ...plan };
+    const _ms2px = ms2px(getScale());
+    plan.startTime = (x - curMovingRect.offsetX - padding.left) / _ms2px + getStartTime();
+    plan.endTime = plan.startTime + getRectById(curMovingRect.id).w / _ms2px;
+    setRectAtId(curMovingRect.id, makeRectByPlan(plan, xIndex, getStartTime(), ms2px()));
+    dataList[curMovingRect.xIndex].planList.splice(curMovingRect.yIndex, 1);
+    let insertYIndex = yIndex;
+    let advanceYIndex = yIndex;
+    let fromYIndex = curMovingRect.yIndex;
+    // 本行内移动
+    if (xIndex === curMovingRect.xIndex) {
+      if (yIndex > curMovingRect.yIndex) {
+        insertYIndex--;
+        const curIndexNext = curMovingRect.yIndex + 1;
+        if ((yIndex === curIndexNext && !isOverlay) || yIndex > curIndexNext) {
+          advanceYIndex--;
+        }
+      } else if (yIndex < curMovingRect.yIndex) {
+        fromYIndex++;
+      }
+    }
+    if (isOverlay && advanceYIndex > 0) {
+      advanceYIndex--;
+    }
+    dataList[xIndex].planList.splice(insertYIndex, 0, plan);
+    const changeList = advanceTime(xIndex, advanceYIndex);
+    render({ forceUpdate: true });
+
+    pushHistory({
+      type: "move",
+      detail: changeList.concat({
+        from: { xIndex: curMovingRect.xIndex, yIndex: fromYIndex, snapshot },
+        to: { xIndex: xIndex, yIndex: yIndex }
+      })
+    });
+    curMovingRect = null;
+  }
+
+  // 顺移时间
+  function advanceTime (xIndex, yIndex) {
+    const changeList = [];
+    const planList = getDataList()[xIndex].planList;
+    const space = advanceSpaceTime;
+    let leftPlan = planList[yIndex];
+    let rightYIndex = yIndex + 1;
+    while (rightYIndex < planList.length) {
+      const rightPlan = planList[rightYIndex];
+      if (rightPlan.startTime - leftPlan.endTime >= space) {
+        break;
+      }
+      const snapshot = { ...rightPlan };
+      const advance = (leftPlan.endTime - rightPlan.startTime) + space;
+      rightPlan.startTime += advance;
+      rightPlan.endTime += advance;
+
+      changeList.push({
+        from: { xIndex: xIndex, yIndex: rightYIndex, snapshot },
+        to: { xIndex: xIndex, yIndex: rightYIndex + 1 }
+      });
+
+      setRectAtId(rightPlan.id, makeRectByPlan(rightPlan, xIndex, getStartTime(), ms2px()));
+
+      rightYIndex++;
+      leftPlan = rightPlan;
+    }
+    return changeList;
+  }
+
+  function getInsertInfoByEvent (e) {
+    const dataList = getDataList();
+    let { x, y } = eventToCanvasPoint(e);
+    x -= curMovingRect.offsetX;
+    let xIndex = ~~((y - padding.top + lineSpacePX / 2) / lineSpacePX);
+    if (xIndex >= dataList.length) {
+      xIndex = dataList.length - 1;
+    }
+    const planList = dataList[xIndex].planList;
+    let isOverlay = false;
+    let yIndex = 0;
+    const _ms2px = ms2px();
+    for (; yIndex < planList.length; yIndex++) {
+      const rect = getRectById(planList[yIndex].id);
+      if (x <= rect.x + rect.w + advanceSpaceTime * _ms2px) {
+        isOverlay = true;
+        if (x < rect.x) {
+          yIndex--;
+          isOverlay = false;
+        }
+        break;
+      }
+    }
+    return { xIndex, yIndex: yIndex + 1, isOverlay };
+  }
+
+  // 移动关系线
+  function makeCurMovingLineByPoint ({ x, y }) {
+    const lineInfo = getLineInfoByPoint({ x, y });
+    if (lineInfo) {
+      return lineInfo;
+    }
+  }
+
+  function moveLineByEvent (e) {
+    if (!curMovingLine) return;
+    if (curMovingLine.end) {
+      renderConcatLine(ctx, eventToCanvasPoint(e), curMovingLine.point, "red");
+    } else {
+      renderConcatLine(ctx, curMovingLine.point, eventToCanvasPoint(e), "red");
+    }
+  }
+
+  function getLineInfoByPoint ({ x, y }) {
+    const dotOffset = lineDotWidth / 2;
+    const concatList = getConcatList();
+    for (let i = 0; i < concatList.length; i++) {
+      const item = concatList[i];
+      const startRect = getRectById(item.id);
+      const start = {
+        x: startRect.x + startRect.w - dotOffset,
+        y: startRect.y + rectHeight / 2 - dotOffset,
+        w: lineDotWidth,
+        h: lineDotWidth
+      };
+
+      const endRect = getRectById(item.concatId);
+      const end = {
+        x: endRect.x - dotOffset, y: endRect.y + rectHeight / 2 - dotOffset, w: lineDotWidth, h: lineDotWidth
+      };
+
+      if (isInReact(start)) {
+        return {
+          id: item.id,
+          endId: item.concatId,
+          point: {
+            x: endRect.x,
+            y: endRect.y + rectHeight / 2
+          }
+        };
+      }
+
+      if (isInReact(end)) {
+        return {
+          id: item.concatId,
+          startId: item.id,
+          point: {
+            x: startRect.x + startRect.w,
+            y: startRect.y + rectHeight / 2
+          },
+        };
+      }
+    }
+
+    function isInReact (rect) {
+      if (x > rect.x && x < rect.x + rect.w && y > rect.y && y < rect.y + rect.h) {
+        return true;
+      }
+    }
+  }
+
+  function changeConcatLine (e) {
+    if (!curMovingLine) return;
+    const target = getRectInfoByPoint(eventToCanvasPoint(e));
+    if (!target) return;
+    const targetId = target.id;
+    if (curMovingLine.endId) {
+      delete getPlanById(curMovingLine.id).concatId;
+      getPlanById(targetId).concatId = curMovingLine.endId;
+    } else {
+      getPlanById(curMovingLine.startId).concatId = targetId;
+    }
+    makeConcatList();
+  }
+
+  // 平移
+  function makeCurTranslateByPoint ({ x, y }) {
+    if (curMovingLine || curMovingRect) return;
+    return { x, y };
+  }
+
+  function translateByEvent (e) {
+    if (!curTranslate) return;
+    const { x } = eventToCanvasPoint(e);
+    setStartTime(getStartTime() + (curTranslate.x - x) / ms2px());
+    makeId2Rect();
+    curTranslate.x = x;
+  }
+
+  return {
+    teardownListeners
+  };
+}

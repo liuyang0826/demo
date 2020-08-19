@@ -314,6 +314,7 @@ const renderMixin = Vue.mixin({
       const { splitTime, ms2px, rectHeight } = this;
       const startTime = item.startTime;
       const endTime = item.endTime;
+      console.log(ms2px);
       // 时间线分割
       if (startTime <= splitTime && splitTime <= endTime) {
         let leftRectBoundary = {
