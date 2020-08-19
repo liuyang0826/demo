@@ -98,6 +98,16 @@ export function createStore ({ config: { width, padding, dateRangeMS }, utils: {
     return (width - padding.left - padding.right) / dateRangeMS * _scale;
   }
 
+  let translateX = 0;
+
+  function setTranslateX (_translateX) {
+    translateX = _translateX;
+  }
+
+  function getTranslateX (_translateX) {
+    return translateX;
+  }
+
   return {
     setDataList,
     getDataList,
@@ -112,6 +122,8 @@ export function createStore ({ config: { width, padding, dateRangeMS }, utils: {
     getScale,
     setStartTime,
     getStartTime,
-    ms2px
+    ms2px,
+    setTranslateX,
+    getTranslateX
   };
 }

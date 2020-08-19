@@ -5,8 +5,67 @@
   <meta name="author" content="丿Coder">
   <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
   <title>dbconnect</title>
+  <link href="https://cdn.bootcdn.net/ajax/libs/element-ui/2.13.2/theme-chalk/index.css" rel="stylesheet">
+  <script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.10/vue.js"></script>
+  <script src="https://cdn.bootcdn.net/ajax/libs/element-ui/2.13.2/index.js"></script>
 </head>
 <body>
-$END$
+<div id="app">
+  <el-form ref="form" :model="form" label-width="120px">
+    <el-form-item label="数据库名称">
+      <el-input v-model="form.name"></el-input>
+    </el-form-item>
+    <el-form-item label="主机/ip">
+      <el-input v-model="form.ip"></el-input>
+    </el-form-item>
+    <el-form-item label="端口">
+      <el-input v-model="form.port"></el-input>
+    </el-form-item>
+    <el-form-item label="jdbcUrl">
+      <el-input v-model="url" @input="handleInputUrl"></el-input>
+    </el-form-item>
+  </el-form>
+</div>
+<script>
+Vue.use(ELEMENT);
+new Vue({
+  el: "#app",
+  data: {
+    form: {},
+    url: ""
+  },
+  watch: {
+    form: {
+      handler (form) {
+        this.url = this.makeUrl(form);
+      },
+      deep: true,
+      immediate: true
+    }
+  },
+  methods: {
+    makeUrl (form) {
+      return `jdbc:数据库类型://${form.ip || "ip"}:${form.port || "数据库端口"}/${form.name || "数据库名称"}${this.params || ""}`;
+    },
+    handleInputUrl (url) {
+      const regExp = /jdbc:([^:]*?):\/\/([^:]*?):([^/]*?)\/([^?]*)(.*)/;
+      const match = regExp.exec(url);
+      if (match) {
+        let [type, ip, port, name, params] = match.slice(1);
+        type === "数据库类型" && (type = "");
+        ip === "ip" && (ip = "");
+        port === "数据库端口" && (port = "");
+        name === "数据库名称" && (name = "");
+        this.params = params;
+        this.form = {
+          ...this.form,
+          ...{ type, ip, port, name }
+        };
+      }
+      this.url = this.makeUrl(this.form);
+    }
+  }
+});
+</script>
 </body>
 </html>

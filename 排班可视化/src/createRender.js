@@ -77,36 +77,40 @@ export function createRender (
   ctx,
   offCtx,
   offCanvas,
+  staticCtx,
   config: { splitTime, rectHeight, width, height, padding, lineSpacePX, lineDotWidth },
   utils: {},
-  store: { getDataList, getConcatList, getPlanById, getRectById, getStartTime, ms2px }
+  store: { getDataList, getConcatList, getPlanById, getRectById, getStartTime, ms2px, getTranslateX }
 }
 ) {
 
-  function render ({ afterRender, forceUpdate = false } = {}) {
-    ctx.clearRect(0, 0, width, height);
-    if (forceUpdate) {
-      offCtx.clearRect(0, 0, width, height);
-      renderLines();
-      clipRect(offCtx, { x: padding.left, y: 0, w: width - padding.right - padding.left, h: height }, () => {
+  function render ({ afterRender, forceUpdate = false, init = false } = {}) {
+    requestAnimationFrame(() => {
+      if (init) {
+        staticCtx.clearRect(0, 0, width, height);
+        renderLines();
+      }
+      ctx.clearRect(0, 0, width, height);
+      if (forceUpdate) {
+        offCtx.clearRect(0, 0, width, height);
         renderPlans();
         renderConcatLines();
         renderSplitLine();
-      });
-    }
-    renderOffCanvas();
-    afterRender && afterRender();
+      }
+      renderOffCanvas();
+      afterRender && afterRender();
+    })
   }
 
   function renderOffCanvas () {
-    ctx.drawImage(offCanvas, 0, 0, width, height);
+    ctx.drawImage(offCanvas, getTranslateX(), 0, width - padding.left - padding.right, height);
   }
 
   function renderLines () {
     getDataList().forEach((item, i) => {
       let curY = i * lineSpacePX + padding.top;
-      drawLine(offCtx, [[padding.left, curY], [width - padding.right, curY]]);
-      drawText(offCtx, { text: item.name, x: 50, y: curY });
+      drawLine(staticCtx, [[padding.left, curY], [width - padding.right, curY]]);
+      drawText(staticCtx, { text: item.name, x: 50, y: curY });
     });
   }
 
@@ -200,7 +204,7 @@ export function createRender (
 
   // 时间分割线
   function renderSplitLine () {
-    const curX = (splitTime - getStartTime()) * ms2px() + padding.left;
+    const curX = (splitTime - getStartTime()) * ms2px();
     drawLine(offCtx, [[curX, 0], [curX, height]], { color: "#999", isDash: true });
   }
 

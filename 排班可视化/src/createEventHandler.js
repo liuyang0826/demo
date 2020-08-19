@@ -4,8 +4,8 @@ export function createEventHandler (
   render: { render, renderPlan, renderConcatLine },
   ctx,
   config: { padding, scaleSpeed, lineSpacePX, advanceSpaceTime, lineDotWidth, rectHeight },
-  utils: { eventToCanvasPoint, makeRectByPlan },
-  store: { getScale, setScale, setStartTime, getStartTime, makeId2Rect, getRectById, getPlanById, setRectAtId, ms2px, getDataList, getConcatList, updateConcat },
+  utils: { makeRectByPlan },
+  store: { getScale, setScale, setStartTime, getStartTime, makeId2Rect, getRectById, getPlanById, setRectAtId, ms2px, getDataList, getConcatList, updateConcat, setTranslateX, getTranslateX },
   history: { pushHistory, rollback },
   beforeMove
 }
@@ -35,7 +35,7 @@ export function createEventHandler (
     const _ms2px = ms2px();
     setScale(getScale() + scaleSpeed * (e.wheelDelta > 0 ? 1 : -1));
     getScale() <= 0 && setScale(0.01);
-    setStartTime(getStartTime() + (x - padding.left) * (1 / _ms2px - 1 / ms2px()));
+    setStartTime(getStartTime() + x * (1 / _ms2px - 1 / ms2px()));
     makeId2Rect();
     render({ forceUpdate: true });
   }
@@ -139,7 +139,7 @@ export function createEventHandler (
 
     const snapshot = { ...plan };
     const _ms2px = ms2px(getScale());
-    plan.startTime = (x - curMovingRect.offsetX - padding.left) / _ms2px + getStartTime();
+    plan.startTime = (x - curMovingRect.offsetX) / _ms2px + getStartTime();
     plan.endTime = plan.startTime + getRectById(curMovingRect.id).w / _ms2px;
     setRectAtId(curMovingRect.id, makeRectByPlan(plan, xIndex, getStartTime(), ms2px()));
     dataList[curMovingRect.xIndex].planList.splice(curMovingRect.yIndex, 1);
@@ -340,7 +340,15 @@ export function createEventHandler (
     const { x } = eventToCanvasPoint(e);
     setStartTime(getStartTime() + (curTranslate.x - x) / ms2px());
     makeId2Rect();
+    // setTranslateX(getTranslateX() - (curTranslate.x - x));
     curTranslate.x = x;
+  }
+
+  function eventToCanvasPoint (e) {
+    return {
+      x: e.clientX - padding.left,
+      y: e.clientY
+    };
   }
 
   return {

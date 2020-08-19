@@ -42,18 +42,18 @@ const dataList = Object.freeze((function () {
 })());
 
 const root = document.getElementById("root");
+const config = createConfig({ width: root.offsetWidth, height: root.offsetHeight });
 
-const { ctx, offCanvas, offCtx, width, height } = init(root);
+const { ctx, offCanvas, offCtx, staticCtx } = init(root, config);
 
-const config = createConfig({ width, height });
 const utils = createUtils({ config });
 const store = createStore({ config, utils });
 
 store.setDataList(dataList);
 
-const render = createRender({ ctx, offCtx, offCanvas, config, utils, store });
+const render = createRender({ ctx, offCtx, offCanvas, staticCtx, config, utils, store });
 
-render.render({ forceUpdate: true });
+render.render({ forceUpdate: true, init: true });
 
 const history = createHistory({ render, store, utils });
 
