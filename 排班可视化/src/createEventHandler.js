@@ -5,7 +5,7 @@ export function createEventHandler (
   ctx,
   config: { padding, scaleSpeed, lineSpacePX, advanceSpaceTime, lineDotWidth, rectHeight },
   utils: { eventToCanvasPoint, makeRectByPlan },
-  store: { getScale, setScale, setStartTime, getStartTime, makeId2Rect, getRectById, getPlanById, setRectAtId, ms2px, getDataList, getConcatList, makeConcatList },
+  store: { getScale, setScale, setStartTime, getStartTime, makeId2Rect, getRectById, getPlanById, setRectAtId, ms2px, getDataList, getConcatList, updateConcat },
   history: { pushHistory, rollback },
   beforeMove
 }
@@ -74,9 +74,9 @@ export function createEventHandler (
   function handleMouseup (e) {
     document.removeEventListener("mousemove", handleMousemove);
     document.removeEventListener("mouseup", handleMouseup);
-    insertRectByEvent(e);
-    changeConcatLine(e);
-    render({ forceUpdate: true })
+    if (insertRectByEvent(e) || changeConcatLine(e)) {
+      render({ forceUpdate: true })
+    }
   }
 
   // 移动方块
@@ -163,7 +163,6 @@ export function createEventHandler (
     }
     dataList[xIndex].planList.splice(insertYIndex, 0, plan);
     const changeList = advanceTime(xIndex, advanceYIndex);
-    render({ forceUpdate: true });
 
     pushHistory({
       type: "move",
@@ -173,6 +172,7 @@ export function createEventHandler (
       })
     });
     curMovingRect = null;
+    return true;
   }
 
   // 顺移时间
@@ -266,6 +266,7 @@ export function createEventHandler (
         x: endRect.x - dotOffset, y: endRect.y + rectHeight / 2 - dotOffset, w: lineDotWidth, h: lineDotWidth
       };
 
+      // 移起点
       if (isInReact(start)) {
         return {
           id: item.id,
@@ -276,7 +277,7 @@ export function createEventHandler (
           }
         };
       }
-
+      // 移终点
       if (isInReact(end)) {
         return {
           id: item.concatId,
@@ -299,15 +300,33 @@ export function createEventHandler (
   function changeConcatLine (e) {
     if (!curMovingLine) return;
     const target = getRectInfoByPoint(eventToCanvasPoint(e));
-    if (!target) return;
+    if (!target) return true;
     const targetId = target.id;
+    if (getPlanById(targetId).concatId) return true;
     if (curMovingLine.endId) {
       delete getPlanById(curMovingLine.id).concatId;
-      getPlanById(targetId).concatId = curMovingLine.endId;
+      const targetPlan = getPlanById(targetId);
+      targetPlan.concatId = curMovingLine.endId;
+      updateConcat(curMovingLine.id, targetPlan);
     } else {
       getPlanById(curMovingLine.startId).concatId = targetId;
     }
-    makeConcatList();
+
+    pushHistory({
+      type: "moveLine",
+      detail: curMovingLine.endId ? {
+        type: "changeStart",
+        from: curMovingLine.id,
+        to: targetId,
+        concatId: curMovingLine.endId
+      } : {
+        type: "changeEnd",
+        from: curMovingLine.id,
+        concatId: curMovingLine.startId
+      }
+    });
+    curMovingLine = null;
+    return true;
   }
 
   // 平移

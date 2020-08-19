@@ -1,7 +1,7 @@
 export function createHistory (
 {
   render: { render },
-  store: { setRectAtId, setPlanAtId, getStartTime, ms2px, getDataList },
+  store: { setRectAtId, setPlanAtId, getStartTime, ms2px, getDataList, getPlanById, updateConcat },
   utils: { makeRectByPlan }
 }
 ) {
@@ -18,12 +18,16 @@ export function createHistory (
       case "move":
         rollbackMove(curStep.detail);
         break;
+      case "moveLine":
+        rollbackMoveLine(curStep.detail);
+        break;
     }
+    render({ forceUpdate: true });
   }
 
-  function rollbackMove (moveDetail) {
+  function rollbackMove (detail) {
     const dataList = getDataList();
-    moveDetail.forEach(
+    detail.forEach(
     ({
        from: { xIndex: fromXIndex, yIndex: fromYIndex, snapshot },
        to: { xIndex: toXIndex, yIndex: toYIndex }
@@ -33,8 +37,22 @@ export function createHistory (
       setRectAtId(snapshot.id, makeRectByPlan(snapshot, fromXIndex, getStartTime(), ms2px()));
       setPlanAtId(snapshot.id, snapshot);
     });
-    render({ forceUpdate: true });
   }
+
+  function rollbackMoveLine (detail) {
+    switch (detail.type) {
+      case "changeStart":
+        delete getPlanById(detail.to).concatId;
+        const targetPlan = getPlanById(detail.from);
+        targetPlan.concatId = detail.concatId;
+        updateConcat(detail.to, targetPlan);
+        break;
+      case "changeEnd":
+        getPlanById(detail.concatId).concatId = detail.from;
+        break;
+    }
+  }
+
   return {
     pushHistory,
     rollback

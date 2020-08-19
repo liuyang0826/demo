@@ -159,6 +159,10 @@ export function createRender (
   function renderConcatLines () {
     getConcatList().forEach((item) => {
       let targetPlan = getPlanById(item.concatId);
+      if (!targetPlan) {
+        console.error(JSON.stringify(item));
+        return;
+      }
       const endTime = item.endTime;
       const concatStartTime = targetPlan.startTime;
       if (endTime > concatStartTime) {

@@ -1,8 +1,9 @@
 import { makeMap } from "./utils";
 
-export function createStore ({config: { width, padding, dateRangeMS }, utils: { makeRectByPlan } }) {
+export function createStore ({ config: { width, padding, dateRangeMS }, utils: { makeRectByPlan } }) {
   let dataList = [];
   let concatList = [];
+
   function setDataList (_dataList) {
     dataList = _dataList;
     makeId2plan();
@@ -21,10 +22,18 @@ export function createStore ({config: { width, padding, dateRangeMS }, utils: { 
     });
   }
 
-  function getDataList() {
+  function updateConcat (delId, add) {
+    const index = concatList.findIndex(d => d.id === delId);
+    if (index > 0) {
+      concatList.splice(index, 1, add);
+    }
+  }
+
+  function getDataList () {
     return dataList;
   }
-  function getConcatList() {
+
+  function getConcatList () {
     return concatList;
   }
 
@@ -55,7 +64,7 @@ export function createStore ({config: { width, padding, dateRangeMS }, utils: { 
       item.planList.forEach((plan) => {
         map[plan.id] = plan;
       });
-    })
+    });
   }
 
   function getPlanById (id) {
@@ -92,7 +101,7 @@ export function createStore ({config: { width, padding, dateRangeMS }, utils: { 
   return {
     setDataList,
     getDataList,
-    makeConcatList,
+    updateConcat,
     getConcatList,
     getPlanById,
     setPlanAtId,

@@ -5,7 +5,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const resolveApp = (relativePath) => path.resolve(fs.realpathSync(process.cwd()), relativePath);
 
 module.exports = {
-  mode: "production",
+  mode: process.env.NODE_ENV,
   entry: resolveApp("src/index.js"),
   output: {
     path: resolveApp("dist"),

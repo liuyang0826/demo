@@ -34,7 +34,7 @@ const dataList = Object.freeze((function () {
           name: "铁次A" + (i + 1),
           startTime: startTemp,
           endTime: end,
-          concatId: concatId
+          concatId: concatId < 8 * 32 ? concatId : null
         };
       })
     };
