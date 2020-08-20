@@ -18,7 +18,7 @@ function drawLine (ctx, pointList, { color = "#000", width = 2, lineJoin = "roun
 }
 
 // 矩形
-function drawRect (ctx, { x, y, w, h }, { borderColor = "#999", borderWidth = 2, color = "#eaeaea", borderTop = true, borderRight = true, borderBottom = true, borderLeft = true } = {}) {
+function drawRect (ctx, { x, y, w, h }, { borderColor = "#999", borderWidth = 2, color = "#ccc", borderTop = true, borderRight = true, borderBottom = true, borderLeft = true } = {}) {
   ctx.beginPath();
   ctx.setLineDash([]);
   ctx.strokeStyle = borderColor;
@@ -63,6 +63,21 @@ function drawText (ctx, { text, x, y }, { color = "#333" } = {}) {
   ctx.fillText(text, x, y);
 }
 
+// 图标
+function drawIcon (ctx, icon, { x, y, w, h, size }) {
+  let width = 0;
+  let height = 0;
+  if (icon.width > icon.height) {
+    width = size;
+    height = (icon.height * size) / icon.width;
+  } else {
+    height = size;
+    width = (icon.width * size) / icon.height;
+  }
+
+  ctx.drawImage(icon, 0, 0, icon.width, icon.height, x, y, width, height);
+}
+
 // 裁减矩形区域 溢出隐藏
 function clipRect (ctx, { x, y, w, h }, execute) {
   ctx.save();
@@ -78,9 +93,10 @@ export function createRender (
   offCtx,
   offCanvas,
   staticCtx,
-  config: { splitTime, rectHeight, width, height, padding, lineSpacePX, lineDotWidth },
+  config: { splitTime, rectHeight, width, height, padding, lineSpacePX, lineDotWidth, iconSize },
   utils: {},
-  store: { getDataList, getConcatList, getPlanById, getRectById, getStartTime, ms2px, getTranslateX }
+  store: { getDataList, getConcatList, getPlanById, getRectById, getStartTime, ms2px, getTranslateX },
+  icons
 }
 ) {
 
@@ -99,7 +115,7 @@ export function createRender (
       }
       renderOffCanvas();
       afterRender && afterRender();
-    })
+    });
   }
 
   function renderOffCanvas () {
@@ -109,7 +125,7 @@ export function createRender (
   function renderLines () {
     getDataList().forEach((item, i) => {
       let curY = i * lineSpacePX + padding.top;
-      drawLine(staticCtx, [[padding.left, curY], [width - padding.right, curY]]);
+      drawLine(staticCtx, [[padding.left, curY], [width - padding.right, curY]], { width: 64, color: "#eee" });
       drawText(staticCtx, { text: item.name, x: 50, y: curY });
     });
   }
@@ -152,6 +168,9 @@ export function createRender (
         color: "orange"
       });
     }
+
+    item.icon && drawIcon(ctx, icons[item.icon], { x, y, w, h, size: iconSize });
+
     drawText(ctx, {
       text: item.name,
       x: x + w / 2,
@@ -170,7 +189,7 @@ export function createRender (
       const endTime = item.endTime;
       const concatStartTime = targetPlan.startTime;
       if (endTime > concatStartTime) {
-        return;
+        // return;
       }
       let startRect = getRectById(item.id);
       let endRect = getRectById(targetPlan.id);

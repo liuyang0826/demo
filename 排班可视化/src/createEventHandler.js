@@ -162,11 +162,12 @@ export function createEventHandler (
       advanceYIndex--;
     }
     dataList[xIndex].planList.splice(insertYIndex, 0, plan);
-    const changeList = advanceTime(xIndex, advanceYIndex);
+    const changeToRight = advanceTime(xIndex, advanceYIndex, true);
+    const changeToLeft = advanceTime(curMovingRect.xIndex, curMovingRect.yIndex, false);
 
     pushHistory({
       type: "move",
-      detail: changeList.concat({
+      detail: changeToRight.concat(changeToLeft).concat({
         from: { xIndex: curMovingRect.xIndex, yIndex: fromYIndex, snapshot },
         to: { xIndex: xIndex, yIndex: yIndex }
       })
@@ -175,32 +176,55 @@ export function createEventHandler (
     return true;
   }
 
-  // 顺移时间
-  function advanceTime (xIndex, yIndex) {
+  // 顺移时间 flag true -> 后移 false -> 前移
+  function advanceTime (xIndex, yIndex, flag) {
     const changeList = [];
     const planList = getDataList()[xIndex].planList;
     const space = advanceSpaceTime;
-    let leftPlan = planList[yIndex];
-    let rightYIndex = yIndex + 1;
-    while (rightYIndex < planList.length) {
-      const rightPlan = planList[rightYIndex];
-      if (rightPlan.startTime - leftPlan.endTime >= space) {
-        break;
+    if (flag) {
+      let leftPlan = planList[yIndex];
+      let rightYIndex = yIndex + 1;
+      while (rightYIndex < planList.length) {
+        const rightPlan = planList[rightYIndex];
+        if (rightPlan.startTime - leftPlan.endTime >= space) {
+          break;
+        }
+        const snapshot = { ...rightPlan };
+        const advance = (leftPlan.endTime - rightPlan.startTime) + space;
+        rightPlan.startTime += advance;
+        rightPlan.endTime += advance;
+
+        changeList.push({
+          from: { xIndex: xIndex, yIndex: rightYIndex, snapshot },
+          to: { xIndex: xIndex, yIndex: rightYIndex + 1 }
+        });
+
+        setRectAtId(rightPlan.id, makeRectByPlan(rightPlan, xIndex, getStartTime(), ms2px()));
+
+        rightYIndex++;
+        leftPlan = rightPlan;
       }
-      const snapshot = { ...rightPlan };
-      const advance = (leftPlan.endTime - rightPlan.startTime) + space;
-      rightPlan.startTime += advance;
-      rightPlan.endTime += advance;
+    } else {
+      if (yIndex === 0) return [];
+      let leftPlan = planList[yIndex - 1];
+      let rightYIndex = yIndex;
+      while (rightYIndex < planList.length) {
+        const rightPlan = planList[rightYIndex];
+        const snapshot = { ...rightPlan };
+        const advance = (rightPlan.startTime - leftPlan.endTime) - space;
+        rightPlan.startTime -= advance;
+        rightPlan.endTime -= advance;
 
-      changeList.push({
-        from: { xIndex: xIndex, yIndex: rightYIndex, snapshot },
-        to: { xIndex: xIndex, yIndex: rightYIndex + 1 }
-      });
+        changeList.push({
+          from: { xIndex: xIndex, yIndex: rightYIndex, snapshot },
+          to: { xIndex: xIndex, yIndex: rightYIndex + 1 }
+        });
 
-      setRectAtId(rightPlan.id, makeRectByPlan(rightPlan, xIndex, getStartTime(), ms2px()));
+        setRectAtId(rightPlan.id, makeRectByPlan(rightPlan, xIndex, getStartTime(), ms2px()));
 
-      rightYIndex++;
-      leftPlan = rightPlan;
+        rightYIndex++;
+        leftPlan = rightPlan;
+      }
     }
     return changeList;
   }

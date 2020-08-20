@@ -14,6 +14,7 @@ export function createConfig ({ width, height }) {
     splitTime: new Date().getTime(),
     scaleSpeed: 0.04,
     advanceSpaceTime: 1.5 * 60 * 1000,
-    lineDotWidth: 10
+    lineDotWidth: 10,
+    iconSize: 24
   });
 }
