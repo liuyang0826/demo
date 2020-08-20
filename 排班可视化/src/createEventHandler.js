@@ -124,6 +124,7 @@ export function createEventHandler (
     const { x, y } = eventToCanvasPoint(e);
     rect.x = x - curMovingRect.offsetX;
     rect.y = y - curMovingRect.offsetY;
+    // console.log(makeRectByPlan(getPlanById(curRectId)));
     renderPlan(ctx, rect, getPlanById(curRectId));
   }
 

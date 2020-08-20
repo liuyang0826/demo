@@ -31,13 +31,19 @@ const dataList = Object.freeze((function () {
         let end = startTemp + ~~(8 * 60 * 1000 * (Math.random() + 0.5));
         start = end + ~~(2 * 60 * 1000 * (Math.random() + 0.25));
         let concatId = getConcatId();
+        const space = (end - startTemp) / 3;
         return {
           id: id++,
           name: "铁次A" + (i + 1),
           startTime: startTemp,
           endTime: end,
           concatId: concatId < 8 * 32 ? concatId : null,
-          icon: icons[~~(Math.random() * 6)]
+          icon: icons[~~(Math.random() * 6)],
+          subPlanList: Array.from({length: 3}).map((_, i) => {
+            return {
+              duration: space
+            }
+          })
         };
       })
     };
