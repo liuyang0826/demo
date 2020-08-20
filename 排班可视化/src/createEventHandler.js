@@ -206,7 +206,9 @@ export function createEventHandler (
         leftPlan = rightPlan;
       }
     } else {
-      if (yIndex === 0) return [];
+      if (yIndex === 0) {
+        yIndex = 1
+      }
       let leftPlan = planList[yIndex - 1];
       let rightYIndex = yIndex;
       while (rightYIndex < planList.length) {

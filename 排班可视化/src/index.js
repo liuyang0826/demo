@@ -9,9 +9,10 @@ import { loadIcon } from "./utils";
 
 const dataList = Object.freeze((function () {
   let idMap = {};
+  const num = 5;
 
   function getConcatId () {
-    let id = ~~(Math.random() * 64 * 64);
+    let id = ~~(Math.random() * 2 ** (num * 2 + 3));
     if (idMap[id]) {
       return getConcatId();
     } else {
@@ -26,9 +27,9 @@ const dataList = Object.freeze((function () {
     let start = new Date().getTime() - ~~(Math.random() * 75 * 60 * 1000);
     return {
       name: (index + 1) + "#高炉",
-      planList: Array.from({ length: 32 }).map((_, i) => {
+      planList: Array.from({ length: 2 ** num }).map((_, i) => {
         let startTemp = start;
-        let end = startTemp + ~~(8 * 60 * 1000 * (Math.random() + 0.5));
+        let end = startTemp + ~~(6 * 60 * 1000 * (Math.random() + 0.5));
         start = end + ~~(2 * 60 * 1000 * (Math.random() + 0.25));
         let concatId = getConcatId();
         const space = (end - startTemp) / 3;
@@ -37,7 +38,7 @@ const dataList = Object.freeze((function () {
           name: "铁次A" + (i + 1),
           startTime: startTemp,
           endTime: end,
-          concatId: concatId < 8 * 32 ? concatId : null,
+          concatId: concatId < 8 * 2 ** num ? concatId : null,
           icon: icons[~~(Math.random() * 6)],
           subPlanList: Array.from({length: 3}).map((_, i) => {
             return {

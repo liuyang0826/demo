@@ -18,40 +18,55 @@ function drawLine (ctx, pointList, { color = "#000", width = 2, lineJoin = "roun
 }
 
 // 矩形
-function drawRect (ctx, { x, y, w, h }, { borderColor = "#999", borderWidth = 2, color = "#ccc", borderTop = true, borderRight = true, borderBottom = true, borderLeft = true, fill = true } = {}) {
+function drawRect (ctx, { x, y, w, h }, {
+  borderColor = "#999",
+  borderWidth = 1,
+  color = "#ccc",
+  borderTop = true,
+  borderRight = true,
+  borderBottom = true,
+  borderLeft = true,
+  fill = true
+} = {}) {
   ctx.beginPath();
   ctx.setLineDash([]);
   ctx.strokeStyle = borderColor;
   ctx.lineWidth = borderWidth;
-  ctx.lineJoin = "round";
-  if (borderTop && borderRight && borderBottom && borderLeft) {
-    ctx.rect(x, y, w, h);
-    ctx.stroke();
-  } else {
-    if (borderTop) {
-      ctx.moveTo(x, y);
-      ctx.lineTo(x + w, y);
-    }
-    if (borderRight) {
-      ctx.moveTo(x + w, y);
-      ctx.lineTo(x + w, y + h);
-    }
-    if (borderBottom) {
-      ctx.moveTo(x + w, y + h);
-      ctx.lineTo(x, y + h);
-    }
-    if (borderLeft) {
-      ctx.moveTo(x, y + h);
-      ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-    ctx.moveTo(x, y);
-    ctx.lineTo(x + w, y);
-    ctx.lineTo(x + w, y + h);
-    ctx.lineTo(x, y + h);
+  // ctx.lineJoin = "round";
+  x = Math.round(x);
+  y = Math.round(y);
+  w = Math.round(w);
+  // 解决线模糊问题
+  if (borderWidth % 2) {
+    x += 0.5;
+    y += 0.5;
   }
   ctx.fillStyle = color;
-  fill && ctx.fill();
+  ctx.strokeRect(x, y, w, h);
+  const offset = borderWidth / 2;
+  let xOffset = -offset;
+  if (borderLeft) {
+    xOffset = offset;
+  }
+  let wOffset = -borderWidth;
+  if (!borderLeft && !borderRight) {
+    wOffset = borderWidth;
+  } else if (!borderLeft || !borderRight) {
+    wOffset = 0;
+  }
+
+  let yOffset = -offset;
+  if (borderTop) {
+    yOffset = offset;
+  }
+  let hOffset = -borderWidth;
+  if (!borderTop && !borderBottom) {
+    hOffset = borderWidth;
+  } else if (!borderTop || !borderBottom) {
+    hOffset = 0;
+  }
+
+  ctx.fillRect(x + xOffset, y + yOffset, w + wOffset, h + hOffset);
 }
 
 // 文字
@@ -151,8 +166,7 @@ export function createRender (
         h: rectHeight,
       };
       drawRect(ctx, leftRectBoundary, {
-        borderRight: false,
-        borderLeft: false
+        borderRight: false
       });
       drawRect(ctx, {
         x: x + leftRectBoundary.w,
@@ -160,26 +174,20 @@ export function createRender (
         w: w - (splitTime - startTime) * ms2px(),
         h: rectHeight,
       }, {
-        borderRight: false,
         borderLeft: false,
         color: "orange"
       });
     } else if (startTime < splitTime) {
-      drawRect(ctx, { x, y, w, h }, {
-        borderRight: false,
-        borderLeft: false,
-      });
+      drawRect(ctx, { x, y, w, h });
     } else {
       drawRect(ctx, { x, y, w, h }, {
-        color: "orange",
-        borderRight: false,
-        borderLeft: false,
+        color: "orange"
       });
     }
 
     // 子任务
     subRectList.forEach((rect, index) => {
-      drawRect(ctx, rect, { fill: false, borderTop: false, borderBottom: false, borderWidth: 1 });
+      // drawRect(ctx, rect, { fill: false, borderLeft: index !== 0, borderRight: false });
     });
 
     // 任务图标
