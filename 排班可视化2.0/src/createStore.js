@@ -1,40 +1,6 @@
 import { makeMap } from "./utils";
 
-export function createStore ({ config: { width, padding, dateRangeMS } }) {
-  let dataList = [];
-  let concatList = [];
-
-  function setDataList (_dataList) {
-    dataList = _dataList;
-    makeId2plan();
-    makeConcatList();
-  }
-
-  function makeConcatList () {
-    concatList = [];
-    dataList.forEach((item) => {
-      item.planList.forEach((item) => {
-        if (getPlanById(item.concatId)) {
-          concatList.push(item);
-        }
-      });
-    });
-  }
-
-  function updateConcat (delId, add) {
-    const index = concatList.findIndex(d => d.id === delId);
-    if (index > 0) {
-      concatList.splice(index, 1, add);
-    }
-  }
-
-  function getDataList () {
-    return dataList;
-  }
-
-  function getConcatList () {
-    return concatList;
-  }
+export function createStore ({ dataList, config: { width, padding, dateRangeMS } }) {
 
   let _scale = 1;
 
@@ -56,15 +22,11 @@ export function createStore ({ config: { width, padding, dateRangeMS } }) {
     _startTime = startTime;
   }
 
-  let id2plan = {};
-
-  function makeId2plan () {
-    id2plan = makeMap(dataList, (map, item) => {
-      item.planList.forEach((plan) => {
-        map[plan.id] = plan;
-      });
+  let id2plan = makeMap(dataList, (map, item) => {
+    item.planList.forEach((plan) => {
+      map[plan.id] = plan;
     });
-  }
+  });
 
   function getPlanById (id) {
     return id2plan[id];
@@ -89,10 +51,6 @@ export function createStore ({ config: { width, padding, dateRangeMS } }) {
   }
 
   return {
-    setDataList,
-    getDataList,
-    updateConcat,
-    getConcatList,
     getPlanById,
     setPlanAtId,
     setScale,

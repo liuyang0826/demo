@@ -3,16 +3,17 @@ import { Group, Line, Rect, Text } from "./zrender";
 export function createRender (
 {
   zr,
+  dataList,
   config: { splitTime, rectHeight, width, height, padding, lineSpacePX, lineDotWidth, iconSize, advanceSpaceTime },
   utils: { makeShapeByPlan },
-  store: { getDataList, getConcatList, getPlanById, getStartTime, ms2px, getScale },
+  store: { getPlanById, getStartTime, ms2px, getScale },
 }
 ) {
   const staticGroup = new Group();
   zr.add(staticGroup);
 
   function renderStatic () {
-    getDataList().forEach((item, index) => {
+    dataList.forEach((item, index) => {
       let curY = ~~(index * lineSpacePX + padding.top);
       const line = new Line({
         shape: {
@@ -54,15 +55,14 @@ export function createRender (
 
   // 渲染计划
   function renderPlans () {
-    getDataList().forEach((item, xIndex) => {
+    dataList.forEach((item, xIndex) => {
       item.planList.forEach((plan, yIndex) => {
         renderPlan(plan, xIndex, yIndex);
       });
     });
   }
 
-  function renderPlan (plan, xIndex, yIndex) {
-    const dataList = getDataList();
+  function renderPlan (plan, xIndex) {
     const _ms2px = ms2px(getScale());
     const shape = makeShapeByPlan(plan, xIndex, getStartTime(), _ms2px);
     const rect = new Rect({
@@ -72,182 +72,26 @@ export function createRender (
       data: plan,
       style: {
         stroke: "red",
-        lineWidth: 4,
+        lineWidth: 2,
       }
     });
     plan.rectView = rect;
     planRectGroup.add(rect);
-    // 鼠标偏移量
-    const dragOffset = { x: 0, y: 0 };
-    rect.on("dragstart", (e) => {
-      const getBoundingRect = rect.getBoundingRect();
-      dragOffset.x = e.offsetX - getBoundingRect.x;
-      dragOffset.y = e.offsetY - getBoundingRect.y;
-    }).on("drag", (e) => {
-      moveLineLeft(rect.data.lineRightRectView, rect.data.lineRightView, {
-        x: e.offsetX - dragOffset.x + rect.getBoundingRect().width,
-        y: e.offsetY - dragOffset.y + rectHeight / 2
-      });
-      moveLineRight(rect.data.lineLeftRectView, rect.data.lineLeftView, {
-        x: e.offsetX - dragOffset.x,
-        y: e.offsetY - dragOffset.y + rectHeight / 2
-      });
-    })
-    .on("dragend", (e) => {
-      const { xIndex: newX, yIndex: newY, isOverlay } = getInsertInfoByEvent(e);
-      resetTransform(rect);
-      plan.startTime = (e.offsetX - dragOffset.x) / _ms2px + getStartTime();
-      plan.endTime = plan.startTime + shape.width / _ms2px;
-      const newShape = makeShapeByPlan(plan, newX, getStartTime(), _ms2px);
-      rect.setShape(newShape);
-      moveLineLeft(rect.data.lineRightRectView, rect.data.lineRightView, {
-        x: newShape.x + rect.getBoundingRect().width,
-        y: newShape.y + rectHeight / 2
-      });
-      moveLineRight(rect.data.lineLeftRectView, rect.data.lineLeftView, {
-        x: newShape.x,
-        y: newShape.y + rectHeight / 2
-      });
-
-      dataList[xIndex].planList.splice(yIndex, 1);
-      let insertYIndex = newY;
-      let advanceYIndex = newY;
-      let fromYIndex = yIndex;
-      // 本行内移动
-      if (newX === xIndex) {
-        if (newY > yIndex) {
-          insertYIndex--;
-          const curIndexNext = yIndex + 1;
-          if ((newY === curIndexNext && !isOverlay) || newY > curIndexNext) {
-            advanceYIndex--;
-          }
-        } else if (newY < yIndex) {
-          fromYIndex++;
-        }
-      }
-      if (isOverlay && advanceYIndex > 0) {
-        advanceYIndex--;
-      }
-      dataList[newX].planList.splice(insertYIndex, 0, plan);
-
-      const changeToRight = advanceTime(newX, advanceYIndex, true);
-      const changeToLeft = advanceTime(xIndex, yIndex, false);
-
-      xIndex = newX;
-      yIndex = newY;
-    });
-
-    function getInsertInfoByEvent (e) {
-      let x = e.offsetX;
-      let y = e.offsetY;
-      x -= dragOffset.x;
-      let xIndex = ~~((y - padding.top + lineSpacePX / 2) / lineSpacePX);
-      if (xIndex >= dataList.length) {
-        xIndex = dataList.length - 1;
-      }
-      const planList = dataList[xIndex].planList;
-      let isOverlay = false;
-      let yIndex = 0;
-      for (; yIndex < planList.length; yIndex++) {
-        const rect = planList[yIndex].rectView.getBoundingRect();
-        if (x <= rect.x + rect.width + advanceSpaceTime * _ms2px) {
-          isOverlay = true;
-          if (x < rect.x) {
-            yIndex--;
-            isOverlay = false;
-          }
-          break;
-        }
-      }
-      return { xIndex, yIndex: yIndex + 1, isOverlay };
-    }
   }
 
-  // 顺移时间 flag true -> 后移 false -> 前移
-  function advanceTime (xIndex, yIndex, flag) {
-    const changeList = [];
-    const planList = getDataList()[xIndex].planList;
-    const space = advanceSpaceTime;
-    if (flag) {
-      let leftPlan = planList[yIndex];
-      let rightYIndex = yIndex + 1;
-      while (rightYIndex < planList.length) {
-        const rightPlan = planList[rightYIndex];
-        if (rightPlan.startTime - leftPlan.endTime >= space) {
-          break;
-        }
-        const snapshot = { ...rightPlan };
-        const advance = (leftPlan.endTime - rightPlan.startTime) + space;
-        rightPlan.startTime += advance;
-        rightPlan.endTime += advance;
-
-        changeList.push({
-          from: { xIndex: xIndex, yIndex: rightYIndex, snapshot },
-          to: { xIndex: xIndex, yIndex: rightYIndex + 1 }
-        });
-
-        const newShape = makeShapeByPlan(rightPlan, xIndex, getStartTime(), ms2px());
-        rightPlan.rectView.setShape(newShape);
-
-        moveLineLeft(rightPlan.lineRightRectView, rightPlan.lineRightView, {
-          x: newShape.x + rightPlan.rectView.getBoundingRect().width,
-          y: newShape.y + rectHeight / 2
-        });
-        moveLineRight(rightPlan.lineLeftRectView, rightPlan.lineLeftView, {
-          x: newShape.x,
-          y: newShape.y + rectHeight / 2
-        });
-
-        rightYIndex++;
-        leftPlan = rightPlan;
-      }
-    } else {
-      if (yIndex === 0) {
-        yIndex = 1;
-      }
-      let leftPlan = planList[yIndex - 1];
-      let rightYIndex = yIndex;
-      while (rightYIndex < planList.length) {
-        const rightPlan = planList[rightYIndex];
-        const snapshot = { ...rightPlan };
-        const advance = (rightPlan.startTime - leftPlan.endTime) - space;
-        rightPlan.startTime -= advance;
-        rightPlan.endTime -= advance;
-
-        changeList.push({
-          from: { xIndex: xIndex, yIndex: rightYIndex, snapshot },
-          to: { xIndex: xIndex, yIndex: rightYIndex + 1 }
-        });
-
-        const newShape = makeShapeByPlan(rightPlan, xIndex, getStartTime(), ms2px());
-        rightPlan.rectView.setShape(newShape);
-        moveLineLeft(rightPlan.lineRightRectView, rightPlan.lineRightView, {
-          x: newShape.x + rightPlan.rectView.getBoundingRect().width,
-          y: newShape.y + rectHeight / 2
-        });
-        moveLineRight(rightPlan.lineLeftRectView, rightPlan.lineLeftView, {
-          x: newShape.x,
-          y: newShape.y + rectHeight / 2
-        });
-
-        rightYIndex++;
-        leftPlan = rightPlan;
-      }
-    }
-    return changeList;
-  }
 
   // 渲染关系线
   function renderConcatLines () {
-    getConcatList().forEach((plan) => {
-      renderConcatLine(plan);
+    dataList.forEach((item) => {
+      item.planList.forEach((plan) => {
+        renderConcatLine(plan);
+      });
     });
   }
 
   function renderConcatLine (plan) {
     let targetPlan = getPlanById(plan.concatId);
     if (!targetPlan) {
-      console.error(JSON.stringify(plan));
       return;
     }
     const endTime = plan.endTime;
@@ -407,34 +251,6 @@ export function createRender (
     plan.lineRightView = line;
     targetPlan.lineLeftRectView = rightRect;
     targetPlan.lineLeftView = line;
-  }
-
-  function moveLineLeft (rightRect, line, start) {
-    if (!rightRect) {
-      return;
-    }
-    line.setShape({
-      x1: start.x,
-      y1: start.y
-    });
-    rightRect.setShape({
-      x: start.x - lineDotWidth / 2,
-      y: start.y - lineDotWidth / 2
-    });
-  }
-
-  function moveLineRight (leftRect, line, end) {
-    if (!leftRect) {
-      return;
-    }
-    line.setShape({
-      x2: end.x,
-      y2: end.y
-    });
-    leftRect.setShape({
-      x: end.x - lineDotWidth / 2,
-      y: end.y - lineDotWidth / 2
-    });
   }
 
   function resetTransform (element) {

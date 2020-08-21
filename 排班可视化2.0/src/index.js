@@ -3,6 +3,7 @@ import { createUtils } from "./createUtils";
 import { createStore } from "./createStore";
 import { createConfig } from "./createConfig";
 import { createRender } from "./createRender";
+import { createEventHandler } from "./createEventHandler";
 
 const dataList = Object.freeze((function () {
   let idMap = {};
@@ -57,10 +58,9 @@ zr.flush();
 
 const config = createConfig({ width: root.offsetWidth, height: root.offsetHeight });
 const utils = createUtils({ config });
-const store = createStore({ config });
+const store = createStore({ dataList, config });
 
-store.setDataList(dataList);
-
-const { render } = createRender({ zr, config, utils, store });
+const { render } = createRender({ dataList, zr, config, utils, store });
 
 render();
+createEventHandler({ dataList, config, utils, store });
