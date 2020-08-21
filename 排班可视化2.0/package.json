@@ -1,0 +1,17 @@
+{
+  "name": "plan",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "set NODE_ENV=development&&webpack-dev-server",
+    "build": "set NODE_ENV=production&&webpack"
+  },
+  "author": "1161906592@qq.com",
+  "license": "ISC",
+  "devDependencies": {
+    "html-webpack-plugin": "^4.3.0",
+    "webpack": "^4.44.1",
+    "webpack-cli": "^3.3.12",
+    "webpack-dev-server": "^3.11.0"
+  },
+  "dependencies": {}
+}
