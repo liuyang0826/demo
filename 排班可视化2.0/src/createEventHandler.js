@@ -12,20 +12,20 @@ export function createEventHandler (
     });
   });
 
-  function addEventListener (plan, xIndex, yIndex) {
+  function addEventListener (plan, xIndex) {
     const rect = plan.rectView;
     // 鼠标偏移量
     const dragOffset = { x: 0, y: 0 };
 
     rect
     .on("dragstart", (e) => {
-      planDragstartHandler(e, rect, dragOffset)
+      planDragstartHandler(e, rect, dragOffset);
     })
     .on("drag", (e) => {
-      planDragHandler(e, rect, dragOffset)
+      planDragHandler(e, rect, dragOffset);
     })
     .on("dragend", (e) => {
-      planDragendHandler(e, rect, dragOffset)
+      planDragendHandler(e, rect, dragOffset);
     });
 
     function planDragstartHandler (e, rect, dragOffset) {
@@ -46,7 +46,7 @@ export function createEventHandler (
 
     function planDragendHandler (e, rect, dragOffset) {
       const _ms2px = ms2px(getScale());
-      const { xIndex: newX, yIndex: newY, isOverlay } = getInsertInfoByEvent(e, _ms2px);
+      const { xIndex: newX, prev } = getInsertInfoByEvent(e, _ms2px);
       resetTransform(rect);
       plan.startTime = (e.offsetX - dragOffset.x) / _ms2px + getStartTime();
       plan.endTime = plan.startTime + rect.shape.width / _ms2px;
@@ -60,33 +60,70 @@ export function createEventHandler (
         x: newShape.x,
         y: newShape.y + rectHeight / 2
       });
+      let oldPrev = plan.prev || plan.next;
 
-      dataList[xIndex].planList.splice(yIndex, 1);
-      let insertYIndex = newY;
-      let advanceYIndex = newY;
-      let fromYIndex = yIndex;
-      // 本行内移动
-      if (newX === xIndex) {
-        if (newY > yIndex) {
-          insertYIndex--;
-          const curIndexNext = yIndex + 1;
-          if ((newY === curIndexNext && !isOverlay) || newY > curIndexNext) {
-            advanceYIndex--;
+      // 双向链表操作
+      if (newX === xIndex) { // 本行内移动
+        if (prev) {
+          if (prev !== plan) {
+            if (plan.prev) {
+              console.log(1);
+              plan.prev.next = plan.next;
+              plan.next.prev = plan.prev;
+              plan.next = prev.next;
+              prev.next.prev = plan;
+              prev.next = plan;
+              plan.prev = prev;
+            } else {
+              console.log(2);
+              const last = plan.next.next;
+              plan.next.prev = null;
+              plan.next.next = plan;
+              plan.prev = plan.next;
+              plan.next = last;
+              last.prev = plan;
+            }
           }
-        } else if (newY < yIndex) {
-          fromYIndex++;
+        } else { // 跨行移动
+          if (plan.prev) {
+            console.log(3);
+            plan.prev.next = plan.next;
+            plan.next.prev = plan.prev;
+            plan.prev = null;
+            plan.next = dataList[newX].planList[0];
+            plan.next.prev = plan;
+            dataList[newX].planList[0] = plan;
+          }
+        }
+      } else {
+        if (plan.prev) {
+          console.log(4);
+          plan.prev.next = plan.next;
+          plan.next.prev = plan.prev;
+        } else {
+          console.log(5);
+          plan.next.prev = null;
+          dataList[xIndex].planList[0] = plan.next;
+        }
+        if (prev) {
+          console.log(6);
+          plan.next = prev.next;
+          prev.next.prev = plan;
+          prev.next = plan;
+          plan.prev = prev;
+        } else {
+          console.log(7);
+          plan.prev = null;
+          plan.next = dataList[newX].planList[0];
+          plan.next.prev = plan;
+          dataList[newX].planList[0] = plan;
         }
       }
-      if (isOverlay && advanceYIndex > 0) {
-        advanceYIndex--;
-      }
-      dataList[newX].planList.splice(insertYIndex, 0, plan);
 
-      const changeToRight = advanceTime(newX, advanceYIndex, true);
-      const changeToLeft = advanceTime(xIndex, yIndex, false);
+      const changeToRight = advanceTime(newX, plan.prev || plan, true);
+      const changeToLeft = advanceTime(xIndex, oldPrev, false);
 
       xIndex = newX;
-      yIndex = newY;
     }
 
     function getInsertInfoByEvent (e, _ms2px) {
@@ -97,98 +134,77 @@ export function createEventHandler (
       if (xIndex >= dataList.length) {
         xIndex = dataList.length - 1;
       }
-      const planList = dataList[xIndex].planList;
-      let isOverlay = false;
-      let yIndex = 0;
-      for (; yIndex < planList.length; yIndex++) {
-        const rect = planList[yIndex].rectView.shape;
+
+      let current = dataList[xIndex].planList[0];
+
+      while (current) {
+        const rect = current.rectView.shape;
         if (x <= rect.x + rect.width + advanceSpaceTime * _ms2px) {
-          isOverlay = true;
           if (x < rect.x) {
-            yIndex--;
-            isOverlay = false;
+            current = current.prev;
           }
           break;
         }
+        current = current.next;
       }
-      return { xIndex, yIndex: yIndex + 1, isOverlay };
+
+      return { xIndex, prev: current };
     }
   }
 
   // 顺移时间 flag true -> 后移 false -> 前移
-  function advanceTime (xIndex, yIndex, flag) {
-    const changeList = [];
-    const planList = dataList[xIndex].planList;
+  function advanceTime (xIndex, prev, flag) {
     const space = advanceSpaceTime;
     if (flag) {
-      let leftPlan = planList[yIndex];
-      let rightYIndex = yIndex + 1;
-      while (rightYIndex < planList.length) {
-        const rightPlan = planList[rightYIndex];
-        if (rightPlan.startTime - leftPlan.endTime >= space) {
+      let current = prev.next;
+      while (current) {
+        if (current.startTime - current.prev.endTime >= space) {
           break;
         }
-        const snapshot = { ...rightPlan };
-        const advance = (leftPlan.endTime - rightPlan.startTime) + space;
-        rightPlan.startTime += advance;
-        rightPlan.endTime += advance;
+        const advance = (current.prev.endTime - current.startTime) + space;
+        current.startTime += advance;
+        current.endTime += advance;
 
-        changeList.push({
-          from: { xIndex: xIndex, yIndex: rightYIndex, snapshot },
-          to: { xIndex: xIndex, yIndex: rightYIndex + 1 }
-        });
+        const newShape = makeShapeByPlan(current, xIndex, getStartTime(), ms2px());
+        current.rectView.setShape(newShape);
 
-        const newShape = makeShapeByPlan(rightPlan, xIndex, getStartTime(), ms2px());
-        rightPlan.rectView.setShape(newShape);
-
-        moveLineLeft(rightPlan.lineRightRectView, rightPlan.lineRightView, {
-          x: newShape.x + rightPlan.rectView.shape.width,
+        moveLineLeft(current.lineRightRectView, current.lineRightView, {
+          x: newShape.x + current.rectView.shape.width,
           y: newShape.y + rectHeight / 2
         });
-        moveLineRight(rightPlan.lineLeftRectView, rightPlan.lineLeftView, {
+        moveLineRight(current.lineLeftRectView, current.lineLeftView, {
           x: newShape.x,
           y: newShape.y + rectHeight / 2
         });
-
-        rightYIndex++;
-        leftPlan = rightPlan;
+        if (current === current.next) {
+          throw Error()
+        }
+        current = current.next;
       }
     } else {
-      if (yIndex === 0) {
-        yIndex = 1;
-      }
-      let leftPlan = planList[yIndex - 1];
-      let rightYIndex = yIndex;
-      while (rightYIndex < planList.length) {
-        const rightPlan = planList[rightYIndex];
-        const snapshot = { ...rightPlan };
-        const advance = (rightPlan.startTime - leftPlan.endTime) - space;
-        rightPlan.startTime -= advance;
-        rightPlan.endTime -= advance;
+      let current = prev.next;
+      while (current) {
+        const advance = (current.startTime - current.prev.endTime) - space;
+        current.startTime -= advance;
+        current.endTime -= advance;
 
-        changeList.push({
-          from: { xIndex: xIndex, yIndex: rightYIndex, snapshot },
-          to: { xIndex: xIndex, yIndex: rightYIndex + 1 }
-        });
-
-        const newShape = makeShapeByPlan(rightPlan, xIndex, getStartTime(), ms2px());
-        rightPlan.rectView.setShape(newShape);
-        moveLineLeft(rightPlan.lineRightRectView, rightPlan.lineRightView, {
-          x: newShape.x + rightPlan.rectView.shape.width,
+        const newShape = makeShapeByPlan(current, xIndex, getStartTime(), ms2px());
+        current.rectView.setShape(newShape);
+        moveLineLeft(current.lineRightRectView, current.lineRightView, {
+          x: newShape.x + current.rectView.shape.width,
           y: newShape.y + rectHeight / 2
         });
-        moveLineRight(rightPlan.lineLeftRectView, rightPlan.lineLeftView, {
+        moveLineRight(current.lineLeftRectView, current.lineLeftView, {
           x: newShape.x,
           y: newShape.y + rectHeight / 2
         });
-
-        rightYIndex++;
-        leftPlan = rightPlan;
+        if (current === current.next) {
+          throw Error()
+        }
+        current = current.next;
       }
     }
-    return changeList;
   }
-
 
   function moveLineLeft (rightRect, line, start) {
     if (!rightRect) {

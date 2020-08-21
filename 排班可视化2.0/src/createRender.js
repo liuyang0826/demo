@@ -77,8 +77,19 @@ export function createRender (
     });
     plan.rectView = rect;
     planRectGroup.add(rect);
-  }
 
+    const text = new Text({
+      position: [shape.x, shape.y],
+      style: {
+        text: plan.name,
+        textLineHeight: 2,
+        fontSize: 12,
+        textFill: "blue"
+      },
+      zlevel: 1,
+    });
+    planRectGroup.add(text);
+  }
 
   // 渲染关系线
   function renderConcatLines () {

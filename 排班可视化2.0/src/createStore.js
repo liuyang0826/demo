@@ -22,11 +22,18 @@ export function createStore ({ dataList, config: { width, padding, dateRangeMS }
     _startTime = startTime;
   }
 
-  let id2plan = makeMap(dataList, (map, item) => {
-    item.planList.forEach((plan) => {
+  const id2plan = makeMap(dataList, (map, item) => {
+    item.planList.forEach((plan, index) => {
+      if (index !== 0) {
+        plan.prev = item.planList[index - 1]
+      }
+      if (index !== item.planList.length - 1) {
+        plan.next = item.planList[index + 1]
+      }
       map[plan.id] = plan;
     });
   });
+
 
   function getPlanById (id) {
     return id2plan[id];
