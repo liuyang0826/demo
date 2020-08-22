@@ -10,7 +10,7 @@ export function createConfig ({ width, height }) {
       top: 100,
       bottom: 100
     }),
-    rectHeight: 50,
+    rectHeight: 32,
     splitTime: new Date().getTime(),
     scaleSpeed: 0.04,
     advanceSpaceTime: 1.5 * 60 * 1000,

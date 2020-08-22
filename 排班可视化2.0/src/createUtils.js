@@ -7,19 +7,8 @@ export function createUtils ({ config: { padding, rectHeight, lineSpacePX } }) {
       y: xIndex * lineSpacePX + padding.top - rectHeight / 2,
       width: ~~((_endTime - _startTime) * ms2px),
       height: rectHeight,
-      r: [4, 4, 4, 4]
+      r: [2, 2, 2, 2]
     };
-    let subStartTime = _startTime;
-    rect.subRectList = (plan.subPlanList || []).map((plan) => {
-      const rect = {
-        x: (subStartTime - startTime) * ms2px,
-        y: xIndex * lineSpacePX + padding.top - rectHeight / 2,
-        w: ~~((_endTime - subStartTime) * ms2px),
-        h: rectHeight
-      };
-      subStartTime += plan.duration;
-      return rect;
-    });
     return rect;
   }
 

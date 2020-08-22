@@ -3,7 +3,7 @@ import { resetTransform } from "./utils";
 export function createDragPlanHandler (
 {
   dataList,
-  config: { rectHeight, padding, lineSpacePX, lineDotWidth, advanceSpaceTime },
+  config: { rectHeight, padding, lineSpacePX, lineDotWidth, advanceSpaceTime, splitTime },
   utils: { makeShapeByPlan },
   store: { getStartTime, ms2px, getScale },
 }
@@ -35,11 +35,13 @@ export function createDragPlanHandler (
     const rect = plan.rectView;
     dragOffset.x = e.offsetX - rect.shape.x;
     dragOffset.y = e.offsetY - rect.shape.y;
+    console.log(plan.textView);
   }
 
   function planDragHandler (e, plan, dragOffset) {
     const rect = plan.rectView;
     rect.zlevel = 99;
+    // 连接线跟随
     movePlanAttachedLine(rect.data, { x: e.offsetX - dragOffset.x, y: e.offsetY - dragOffset.y }, 99);
   }
 
@@ -51,6 +53,9 @@ export function createDragPlanHandler (
     resetTransform(rect);
     plan.startTime = (e.offsetX - dragOffset.x) / _ms2px + getStartTime();
     plan.endTime = plan.startTime + rect.shape.width / _ms2px;
+    plan.rectView.setStyle({
+      fill: plan.startTime < splitTime ? "#ccc" : "orange"
+    });
     const newShape = makeShapeByPlan(plan, newX, getStartTime(), _ms2px);
     rect.setShape(newShape);
     movePlanAttachedLine(rect.data, newShape, 1);

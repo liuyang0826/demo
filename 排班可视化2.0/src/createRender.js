@@ -54,6 +54,26 @@ export function createRender (
   planGroup.add(planLineGroup);
   zr.add(planGroup);
 
+  // 时间分割线
+  function renderSplitLine () {
+    const curX = (splitTime - getStartTime()) * ms2px();
+    const line = new Line({
+      shape: {
+        x1: curX,
+        y1: 0,
+        x2: curX,
+        y2: height
+      },
+      style: {
+        stroke: "#999",
+        lineWidth: 2,
+        lineDash: [10, 6]
+      },
+      zlevel: 1
+    });
+    planRectGroup.add(line)
+  }
+
   // 渲染计划
   function renderPlans () {
     dataList.forEach((item, xIndex) => {
@@ -74,24 +94,16 @@ export function createRender (
       zlevel: 1,
       data: plan,
       style: {
+        text: plan.name,
         stroke: "red",
         lineWidth: 2,
+        fontSize: 12,
+        textFill: "red",
+        fill: plan.startTime < splitTime ? "#ccc" : "orange"
       }
     });
     plan.rectView = rect;
     planRectGroup.add(rect);
-
-    const text = new Text({
-      position: [shape.x, shape.y],
-      style: {
-        text: plan.name,
-        textLineHeight: 2,
-        fontSize: 12,
-        textFill: "blue"
-      },
-      zlevel: 1,
-    });
-    planRectGroup.add(text);
   }
 
   // 渲染关系线
@@ -189,6 +201,7 @@ export function createRender (
     renderStatic();
     renderPlans();
     renderConcatLines();
+    renderSplitLine();
   }
 
   return {
