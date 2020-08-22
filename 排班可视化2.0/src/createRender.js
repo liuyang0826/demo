@@ -1,10 +1,11 @@
 import { Group, Line, Rect, Text } from "./zrender";
+import { makeRectStartPoint, makeRectTargetPoint } from "./utils";
 
 export function createRender (
 {
   zr,
   dataList,
-  config: { splitTime, rectHeight, width, height, padding, lineSpacePX, lineDotWidth, iconSize, advanceSpaceTime },
+  config: { splitTime, rectHeight, width, height, padding, lineSpacePX, lineDotWidth, iconSize },
   utils: { makeShapeByPlan },
   store: { getPlanById, getStartTime, ms2px, getScale },
 }
@@ -56,9 +57,11 @@ export function createRender (
   // 渲染计划
   function renderPlans () {
     dataList.forEach((item, xIndex) => {
-      item.planList.forEach((plan, yIndex) => {
-        renderPlan(plan, xIndex, yIndex);
-      });
+      let current = item.head;
+      while (current) {
+        renderPlan(current, xIndex);
+        current = current.next;
+      }
     });
   }
 
@@ -94,9 +97,11 @@ export function createRender (
   // 渲染关系线
   function renderConcatLines () {
     dataList.forEach((item) => {
-      item.planList.forEach((plan) => {
-        renderConcatLine(plan);
-      });
+      let current = item.head;
+      while (current) {
+        renderConcatLine(current);
+        current = current.next;
+      }
     });
   }
 
@@ -113,8 +118,8 @@ export function createRender (
     const startRect = plan.rectView.getBoundingRect();
     const endRect = targetPlan.rectView.getBoundingRect();
 
-    let start = makeRectStartPoint(startRect);
-    let target = makeRectTargetPoint(endRect);
+    let start = makeRectStartPoint(startRect, rectHeight);
+    let target = makeRectTargetPoint(endRect, rectHeight);
 
     const lineStyle = {
       stroke: "red",
@@ -166,116 +171,18 @@ export function createRender (
     });
     planLineGroup.add(rightRect);
 
-    // 移动起点
-    addDragEventListener(
-    leftRect,
-    (e) => {
-      line.setShape({
-        x1: e.offsetX - planGroup.position[0] + dragOffset.x,
-        y1: e.offsetY - planGroup.position[1] + dragOffset.y,
-        x2: target.x,
-        y2: target.y,
-      });
-    },
-    (targetRect) => {
-      plan.concatId = null;
-      plan.lineRightView = null;
-      plan.lineRightRectView = null;
-      plan = targetRect.data;
-      plan.concatId = targetPlan.id;
-      const targetRectBoundingRect = targetRect.getBoundingRect();
-      start = makeRectStartPoint(targetRectBoundingRect);
-      line.setShape({
-        x1: start.x,
-        y1: start.y
-      });
-      leftRect.setShape({
-        x: start.x - dotOffset,
-        y: start.y - dotOffset
-      });
-      plan.lineRightView = line;
-      plan.lineRightRectView = leftRect;
-    }
-    );
-    // 移动终点
-    addDragEventListener(
-    rightRect,
-    (e) => {
-      line.setShape({
-        x2: e.offsetX - planGroup.position[0],
-        y2: e.offsetY - planGroup.position[1],
-      });
-    },
-    (targetRect) => {
-      plan.concatId = targetRect.data.id;
-      targetPlan.lineLeftView = null;
-      targetPlan.lineLeftRectView = null;
-      const targetRectBoundingRect = targetRect.getBoundingRect();
-      target = makeRectTargetPoint(targetRectBoundingRect);
-      line.setShape({
-        x2: target.x,
-        y2: target.y,
-      });
-      rightRect.setShape({
-        x: target.x - dotOffset,
-        y: target.y - dotOffset
-      });
-      targetRect.data.lineLeftView = line;
-      targetRect.data.lineLeftRectView = rightRect;
-      targetPlan = targetRect.data;
-    });
-
-    // 鼠标偏移量
-    const dragOffset = { x: 0, y: 0 };
-
-    function addDragEventListener (rect, dragEventHandler, dropEventHandler) {
-      rect.on("dragstart", (e) => {
-        const getBoundingRect = leftRect.getBoundingRect();
-        dragOffset.x = getBoundingRect.x - e.offsetX + dotOffset;
-        dragOffset.y = getBoundingRect.y - e.offsetY + dotOffset;
-      })
-      .on("drag", (e) => {
-        dragEventHandler(e);
-      })
-      .on("dragend", (e) => {
-        const targetRect = planRectGroup.children().find((child) => {
-          return child.getBoundingRect().contain(e.offsetX - planGroup.position[0], e.offsetY - planGroup.position[1]);
-        });
-        resetTransform(rect);
-        if (targetRect) {
-          dropEventHandler(targetRect);
-        } else {
-          // 没有目标回到初始位置
-          line.setShape({
-            x1: start.x,
-            y1: start.y,
-            x2: target.x,
-            y2: target.y,
-          });
-        }
-        dragOffset.x = 0;
-        dragOffset.y = 0;
-      });
-    }
-
+    // 双向关系
     plan.lineRightRectView = leftRect;
+    leftRect.data = plan;
+
     plan.lineRightView = line;
+    line.leftData = plan;
+
     targetPlan.lineLeftRectView = rightRect;
+    rightRect.data = targetPlan;
+
     targetPlan.lineLeftView = line;
-  }
-
-  function resetTransform (element) {
-    element.transform = [1, 0, 0, 1, 0, 0];
-    element.invTransform = [1, -0, -0, 1, -0, 1];
-    element.decomposeTransform();
-  }
-
-  function makeRectStartPoint (rect) {
-    return { x: rect.x + rect.width, y: rect.y + rectHeight / 2 };
-  }
-
-  function makeRectTargetPoint (rect) {
-    return { x: rect.x, y: rect.y + rectHeight / 2 };
+    line.rightData = targetPlan;
   }
 
   function render () {

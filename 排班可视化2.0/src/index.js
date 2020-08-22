@@ -3,7 +3,8 @@ import { createUtils } from "./createUtils";
 import { createStore } from "./createStore";
 import { createConfig } from "./createConfig";
 import { createRender } from "./createRender";
-import { createEventHandler } from "./createEventHandler";
+import { createDragPlanHandler } from "./createDragPlanHandler";
+import { createDragLineHandler } from "./createDragLineHandler";
 
 const dataList = Object.freeze((function () {
   let idMap = {};
@@ -63,4 +64,5 @@ const store = createStore({ dataList, config });
 const { render } = createRender({ dataList, zr, config, utils, store });
 
 render();
-createEventHandler({ dataList, config, utils, store });
+createDragPlanHandler({ dataList, config, utils, store });
+createDragLineHandler({ dataList, config, utils, store });
