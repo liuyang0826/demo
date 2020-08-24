@@ -30,7 +30,7 @@ export function makeShapeByPlan (plan, xIndex, offset = 0) {
   const startTime = plan.startTime;
   const endTime = plan.endTime;
   const rect = {
-    x: (startTime - config.startTime) * _ms2px - offset,
+    x: ~~((startTime - config.startTime) * _ms2px) - offset,
     y: xIndex * config.lineSpacePX + config.padding.top - config.rectHeight / 2,
     width: ~~((endTime - startTime) * _ms2px),
     height: config.rectHeight,

@@ -1,14 +1,12 @@
 import { makeShapeByPlan } from "../utils";
 import { Rect } from "../zrender";
 
-// 计划
-export function plansRender (data, group) {
+export function subPlansRender (data, group) {
   const updates = [];
   data.forEach((item) => {
     let current = item.head;
     while (current) {
-      const update = renderPlan(current);
-      updates.push(update);
+      renderSubPlans(current);
       current = current.next;
     }
   });
@@ -19,15 +17,21 @@ export function plansRender (data, group) {
     });
   };
 
-  function renderPlan (plan) {
-    const shape = makeShapeByPlan(plan, plan.xIndex);
+  function renderSubPlans (plan) {
+    plan.subPlanList.forEach((subPlan) => {
+      updates.push(renderSubPlan(subPlan, plan.xIndex));
+    });
+  }
+
+  function renderSubPlan (subPlan, xIndex) {
+    const shape = makeShapeByPlan(subPlan, xIndex);
     const rect = new Rect({
       shape: shape,
-      draggable: true,
+      silent: true,
       zlevel: 1,
-      data: plan,
+      data: subPlan,
       style: {
-        // text: plan.name,
+        text: subPlan.name,
         stroke: "red",
         lineWidth: 2,
         fontSize: 12,
@@ -36,11 +40,10 @@ export function plansRender (data, group) {
         fill: "#fff"
       }
     });
-    plan.rectView = rect;
+    subPlan.rectView = rect;
     group.add(rect);
-
-    return function update () {
-      const shape = makeShapeByPlan(plan, plan.xIndex);
+    return function update() {
+      const shape = makeShapeByPlan(subPlan, xIndex);
       rect.setShape(shape);
     }
   }

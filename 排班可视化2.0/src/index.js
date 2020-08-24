@@ -10,6 +10,7 @@ import { ms2px } from "./utils";
 import { plansRender } from "./render/plans";
 import { concatLinesRender } from "./render/concatLines";
 import { splitLineRender } from "./render/splitLine";
+import { subPlansRender } from "./render/subPlans";
 
 const dataList = Object.freeze((function () {
   let idMap = {};
@@ -28,12 +29,12 @@ const dataList = Object.freeze((function () {
   let id = 1;
   const icons = ["car", "person", "iron"];
   return Array.from({ length: 8 }).map((_, index) => {
-    let start = new Date().getTime() - ~~(Math.random() * 75 * 60 * 1000);
+    let start = new Date().getTime() - ~~(Math.random() * 60 * 60 * 1000);
     return {
       name: (index + 1) + "#高炉",
       planList: Array.from({ length: 2 ** num }).map((_, i) => {
         let startTemp = start;
-        let end = startTemp + ~~(6 * 60 * 1000 * (Math.random() + 0.5));
+        let end = startTemp + ~~(24 * 60 * 1000 * (Math.random() + 0.5));
         start = end + ~~(2 * 60 * 1000 * (Math.random() + 0.25));
         let concatId = getConcatId();
         const space = (end - startTemp) / 3;
@@ -46,7 +47,9 @@ const dataList = Object.freeze((function () {
           icon: icons[~~(Math.random() * 6)],
           subPlanList: Array.from({ length: 3 }).map((_, i) => {
             return {
-              duration: space
+              startTime: startTemp + i * space,
+              endTime: startTemp + i * space + space,
+              name: Math.random().toString(36).substring(2, 6),
             };
           })
         };
@@ -77,6 +80,8 @@ const updatePlans = plansRender(dataList, planRectGroup);
 
 const updateConcatLines = concatLinesRender(dataList, planGroup, id2plan);
 
+const updateSubPlansRender = subPlansRender(dataList, planGroup);
+
 const { modal, update: updateSplitLineRender  } = splitLineRender(planGroup);
 
 createDragPlanHandler(dataList);
@@ -90,5 +95,6 @@ root.addEventListener("mousewheel", function (e) {
   config.startTime += (e.offsetX - planGroup.position[0]) * (1 / _ms2px - 1 / ms2px());
   updatePlans();
   updateConcatLines();
+  updateSubPlansRender();
   updateSplitLineRender();
 });

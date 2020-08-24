@@ -40,6 +40,8 @@ export function createDragPlanHandler (data) {
     rect.zlevel = 99;
     // 连接线跟随
     movePlanAttachedLine(rect.data, { x: e.offsetX - dragOffset.x, y: e.offsetY - dragOffset.y }, 99);
+    // 子任务跟随
+    // move
   }
 
   function planDragendHandler (e, plan, dragOffset, xIndex) {
@@ -210,5 +212,11 @@ export function createDragPlanHandler (data) {
       x: end.x - config.lineDotWidth / 2,
       y: end.y - config.lineDotWidth / 2
     });
+  }
+
+  // 联动子任务
+  // todo
+  function f () {
+
   }
 }
