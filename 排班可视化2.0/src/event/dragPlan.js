@@ -1,14 +1,8 @@
-import { resetTransform } from "./utils";
+import { makeShapeByPlan, ms2px, resetTransform } from "../utils";
+import { config } from "../config";
 
-export function createDragPlanHandler (
-{
-  dataList,
-  config: { rectHeight, padding, lineSpacePX, lineDotWidth, advanceSpaceTime, splitTime },
-  utils: { makeShapeByPlan },
-  store: { getStartTime, ms2px, getScale },
-}
-) {
-  dataList.forEach((item, xIndex) => {
+export function createDragPlanHandler (data) {
+  data.forEach((item, xIndex) => {
     let current = item.head;
     while (current) {
       addEventListener(current, xIndex);
@@ -48,15 +42,12 @@ export function createDragPlanHandler (
   function planDragendHandler (e, plan, dragOffset, xIndex) {
     const rect = plan.rectView;
     rect.zlevel = 1;
-    const _ms2px = ms2px(getScale());
-    const { xIndex: newX, prev } = getInsertInfoByPoint({ x: e.offsetX - dragOffset.x, y: e.offsetY }, dataList, _ms2px);
+    const _ms2px = ms2px();
+    const { xIndex: newX, prev } = getInsertInfoByPoint({ x: e.offsetX - dragOffset.x, y: e.offsetY }, _ms2px);
     resetTransform(rect);
-    plan.startTime = (e.offsetX - dragOffset.x) / _ms2px + getStartTime();
+    plan.startTime = (e.offsetX - dragOffset.x) / _ms2px + config.startTime;
     plan.endTime = plan.startTime + rect.shape.width / _ms2px;
-    plan.rectView.setStyle({
-      fill: plan.startTime < splitTime ? "#ccc" : "orange"
-    });
-    const newShape = makeShapeByPlan(plan, newX, getStartTime(), _ms2px);
+    const newShape = makeShapeByPlan(plan, newX);
     rect.setShape(newShape);
     movePlanAttachedLine(rect.data, newShape, 1);
     let oldPrev = plan.prev || plan.next;
@@ -89,9 +80,9 @@ export function createDragPlanHandler (
           plan.prev.next = plan.next;
           plan.next.prev = plan.prev;
           plan.prev = null;
-          plan.next = dataList[newX].head;
+          plan.next = data[newX].head;
           plan.next.prev = plan;
-          dataList[newX].head = plan;
+          data[newX].head = plan;
         }
       }
     } else {
@@ -102,7 +93,7 @@ export function createDragPlanHandler (
       } else {
         console.log(5);
         plan.next.prev = null;
-        dataList[xIndex].head = plan.next;
+        data[xIndex].head = plan.next;
       }
       if (prev) {
         console.log(6);
@@ -113,9 +104,9 @@ export function createDragPlanHandler (
       } else {
         console.log(7);
         plan.prev = null;
-        plan.next = dataList[newX].head;
+        plan.next = data[newX].head;
         plan.next.prev = plan;
-        dataList[newX].head = plan;
+        data[newX].head = plan;
       }
     }
 
@@ -125,17 +116,17 @@ export function createDragPlanHandler (
     return newX;
   }
 
-  function getInsertInfoByPoint ({ x, y }, dataList, _ms2px) {
-    let xIndex = ~~((y - padding.top + lineSpacePX / 2) / lineSpacePX);
-    if (xIndex >= dataList.length) {
-      xIndex = dataList.length - 1;
+  function getInsertInfoByPoint ({ x, y }, _ms2px) {
+    let xIndex = ~~((y - config.padding.top + config.lineSpacePX / 2) / config.lineSpacePX);
+    if (xIndex >= data.length) {
+      xIndex = data.length - 1;
     }
 
-    let current = dataList[xIndex].head;
+    let current = data[xIndex].head;
 
     while (current) {
       const rect = current.rectView.shape;
-      if (x <= rect.x + rect.width + advanceSpaceTime * _ms2px) {
+      if (x <= rect.x + rect.width + config.advanceSpaceTime * _ms2px) {
         if (x < rect.x) {
           current = current.prev;
         }
@@ -152,19 +143,19 @@ export function createDragPlanHandler (
     let current = prev.next;
     while (current) {
       if (flag) {
-        if (current.startTime - current.prev.endTime >= advanceSpaceTime) {
+        if (current.startTime - current.prev.endTime >= config.advanceSpaceTime) {
           break;
         }
-        const advance = (current.prev.endTime - current.startTime) + advanceSpaceTime;
+        const advance = (current.prev.endTime - current.startTime) + config.advanceSpaceTime;
         current.startTime += advance;
         current.endTime += advance;
       } else {
-        const advance = (current.startTime - current.prev.endTime) - advanceSpaceTime;
+        const advance = (current.startTime - current.prev.endTime) - config.advanceSpaceTime;
         current.startTime -= advance;
         current.endTime -= advance;
       }
 
-      const newShape = makeShapeByPlan(current, xIndex, getStartTime(), ms2px());
+      const newShape = makeShapeByPlan(current, xIndex);
       current.rectView.setShape(newShape);
       movePlanAttachedLine(current, newShape, 1);
       if (current === current.next) {
@@ -181,7 +172,7 @@ export function createDragPlanHandler (
       plan.lineRightView.zlevel = zlevel;
       moveLineLeft(plan.lineRightRectView, plan.lineRightView, {
         x: x + plan.rectView.shape.width,
-        y: y + rectHeight / 2
+        y: y + config.rectHeight / 2
       });
     }
     if (plan.lineLeftRectView) {
@@ -189,7 +180,7 @@ export function createDragPlanHandler (
       plan.lineLeftView.zlevel = zlevel;
       moveLineRight(plan.lineLeftRectView, plan.lineLeftView, {
         x: x,
-        y: y + rectHeight / 2
+        y: y + config.rectHeight / 2
       });
     }
   }
@@ -200,8 +191,8 @@ export function createDragPlanHandler (
       y1: start.y
     });
     rightRect.setShape({
-      x: start.x - lineDotWidth / 2,
-      y: start.y - lineDotWidth / 2
+      x: start.x - config.lineDotWidth / 2,
+      y: start.y - config.lineDotWidth / 2
     });
   }
 
@@ -211,8 +202,8 @@ export function createDragPlanHandler (
       y2: end.y
     });
     leftRect.setShape({
-      x: end.x - lineDotWidth / 2,
-      y: end.y - lineDotWidth / 2
+      x: end.x - config.lineDotWidth / 2,
+      y: end.y - config.lineDotWidth / 2
     });
   }
 }

@@ -1,48 +1,8 @@
-import { Group, Line, Rect, Text } from "./zrender";
-import { makeRectStartPoint, makeRectTargetPoint } from "./utils";
+import { Group, Line, Rect, Text } from "../zrender";
+import { config } from "../config";
+import { makeRectStartPoint, makeRectTargetPoint, makeShapeByPlan, ms2px } from "../utils";
 
-export function createRender (
-{
-  zr,
-  dataList,
-  config: { splitTime, rectHeight, width, height, padding, lineSpacePX, lineDotWidth, iconSize },
-  utils: { makeShapeByPlan },
-  store: { getPlanById, getStartTime, ms2px, getScale },
-}
-) {
-  const staticGroup = new Group();
-  zr.add(staticGroup);
-
-  function renderStatic () {
-    dataList.forEach((item, index) => {
-      let curY = ~~(index * lineSpacePX + padding.top);
-      const line = new Line({
-        shape: {
-          x1: padding.left,
-          y1: curY,
-          x2: width - padding.right,
-          y2: curY
-        },
-        style: {
-          stroke: "#000",
-          lineWidth: 2
-        },
-        zlevel: 0
-      });
-      staticGroup.add(line);
-
-      const text = new Text({
-        position: [50, curY],
-        style: {
-          text: item.name,
-          textLineHeight: 2,
-          fontSize: 12
-        },
-        zlevel: 0
-      });
-      staticGroup.add(text);
-    });
-  }
+export function contentRender (zr, data, id2plan) {
 
   const planGroup = new Group({
     draggable: "horizontal"
@@ -54,29 +14,13 @@ export function createRender (
   planGroup.add(planLineGroup);
   zr.add(planGroup);
 
-  // 时间分割线
-  function renderSplitLine () {
-    const curX = (splitTime - getStartTime()) * ms2px();
-    const line = new Line({
-      shape: {
-        x1: curX,
-        y1: 0,
-        x2: curX,
-        y2: height
-      },
-      style: {
-        stroke: "#999",
-        lineWidth: 2,
-        lineDash: [10, 6]
-      },
-      zlevel: 1
-    });
-    planRectGroup.add(line)
-  }
+  renderPlans();
+  renderConcatLines();
+  renderSplitLine();
 
   // 渲染计划
   function renderPlans () {
-    dataList.forEach((item, xIndex) => {
+    data.forEach((item, xIndex) => {
       let current = item.head;
       while (current) {
         renderPlan(current, xIndex);
@@ -86,8 +30,7 @@ export function createRender (
   }
 
   function renderPlan (plan, xIndex) {
-    const _ms2px = ms2px(getScale());
-    const shape = makeShapeByPlan(plan, xIndex, getStartTime(), _ms2px);
+    const shape = makeShapeByPlan(plan, xIndex);
     const rect = new Rect({
       shape: shape,
       draggable: true,
@@ -99,7 +42,8 @@ export function createRender (
         lineWidth: 2,
         fontSize: 12,
         textFill: "red",
-        fill: plan.startTime < splitTime ? "#ccc" : "orange"
+        // fill: plan.startTime < config.splitTime ? "#ccc" : "orange",
+        fill: "#fff"
       }
     });
     plan.rectView = rect;
@@ -108,7 +52,7 @@ export function createRender (
 
   // 渲染关系线
   function renderConcatLines () {
-    dataList.forEach((item) => {
+    data.forEach((item) => {
       let current = item.head;
       while (current) {
         renderConcatLine(current);
@@ -118,7 +62,7 @@ export function createRender (
   }
 
   function renderConcatLine (plan) {
-    let targetPlan = getPlanById(plan.concatId);
+    let targetPlan = id2plan[plan.concatId];
     if (!targetPlan) {
       return;
     }
@@ -130,8 +74,8 @@ export function createRender (
     const startRect = plan.rectView.getBoundingRect();
     const endRect = targetPlan.rectView.getBoundingRect();
 
-    let start = makeRectStartPoint(startRect, rectHeight);
-    let target = makeRectTargetPoint(endRect, rectHeight);
+    let start = makeRectStartPoint(startRect, config.rectHeight);
+    let target = makeRectTargetPoint(endRect, config.rectHeight);
 
     const lineStyle = {
       stroke: "red",
@@ -153,13 +97,13 @@ export function createRender (
     planLineGroup.add(line);
 
     // 端点
-    const dotOffset = lineDotWidth / 2;
+    const dotOffset = config.lineDotWidth / 2;
     const leftRect = new Rect({
       shape: {
         x: start.x - dotOffset,
         y: start.y - dotOffset,
-        width: lineDotWidth,
-        height: lineDotWidth
+        width: config.lineDotWidth,
+        height: config.lineDotWidth
       },
       style: {
         fill: "red"
@@ -172,8 +116,8 @@ export function createRender (
       shape: {
         x: target.x - dotOffset,
         y: target.y - dotOffset,
-        width: lineDotWidth,
-        height: lineDotWidth
+        width: config.lineDotWidth,
+        height: config.lineDotWidth
       },
       style: {
         fill: "red"
@@ -197,14 +141,37 @@ export function createRender (
     line.rightData = targetPlan;
   }
 
-  function render () {
-    renderStatic();
-    renderPlans();
-    renderConcatLines();
-    renderSplitLine();
+  // 时间分割线
+  function renderSplitLine () {
+    const curX = ~~((config.splitTime - config.startTime) * ms2px()) + 0.5;
+    const rect = new Rect({
+      shape: {
+        x: curX,
+        y: 0,
+        width: config.width - curX,
+        height: config.height
+      },
+      style: {
+        fill: "rgba(255, 0, 0, 0.1)"
+      },
+      silent: true
+    });
+    const line = new Line({
+      shape: {
+        x1: curX,
+        y1: 0,
+        x2: curX,
+        y2: config.height
+      },
+      style: {
+        stroke: "#999",
+        lineWidth: 1,
+        lineDash: [10, 6]
+      },
+      zlevel: 1,
+      silent: true
+    });
+    planRectGroup.add(line);
+    planRectGroup.add(rect);
   }
-
-  return {
-    render
-  };
 }

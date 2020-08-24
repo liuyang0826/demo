@@ -1,3 +1,5 @@
+import { config } from "./config";
+
 export function makeMap (list, fn) {
   const map = {};
   list.forEach((item, index) => {
@@ -17,4 +19,22 @@ export function makeRectStartPoint (rect, rectHeight) {
 
 export function makeRectTargetPoint (rect, rectHeight) {
   return { x: rect.x, y: rect.y + rectHeight / 2 };
+}
+
+export function ms2px () {
+  return config.width / config.dateRangeMS * config.scale;
+}
+
+export function makeShapeByPlan (plan, xIndex) {
+  const _ms2px = ms2px();
+  const startTime = plan.startTime;
+  const endTime = plan.endTime;
+  const rect = {
+    x: (startTime - config.startTime) * _ms2px,
+    y: xIndex * config.lineSpacePX + config.padding.top - config.rectHeight / 2,
+    width: ~~((endTime - startTime) * _ms2px),
+    height: config.rectHeight,
+    r: [2, 2, 2, 2]
+  };
+  return rect;
 }

@@ -1,17 +1,11 @@
-import { makeRectStartPoint, makeRectTargetPoint, resetTransform } from "./utils";
+import { makeRectStartPoint, makeRectTargetPoint, resetTransform } from "../utils";
+import { config } from "../config";
 
-export function createDragLineHandler (
-{
-  dataList,
-  config: { rectHeight, padding, lineSpacePX, lineDotWidth, advanceSpaceTime },
-  utils: { makeShapeByPlan },
-  store: { getStartTime, ms2px, getScale, getPlanById },
-}
-) {
-  dataList.forEach((item) => {
+export function createDragLineHandler (data, id2plan) {
+  data.forEach((item) => {
     let current = item.head;
     while (current) {
-      let targetPlan = getPlanById(current.concatId);
+      let targetPlan = id2plan[current.concatId];
       targetPlan && addEventListener(current, targetPlan);
       current = current.next;
     }
@@ -27,7 +21,7 @@ export function createDragLineHandler (
     const planGroup = line.parent.parent;
     const planRectGroup = plan.rectView.parent;
     // 端点
-    const dotOffset = lineDotWidth / 2;
+    const dotOffset = config.lineDotWidth / 2;
     // 移动起点
     addDragEventListener(
     leftRect,
@@ -41,7 +35,7 @@ export function createDragLineHandler (
       plan.concatId = null;
       plan.lineRightView = null;
       plan.lineRightRectView = null;
-      start = makeRectStartPoint(targetRect.shape, rectHeight);
+      start = makeRectStartPoint(targetRect.shape, config.rectHeight);
       line.setShape({
         x1: start.x,
         y1: start.y
@@ -69,7 +63,7 @@ export function createDragLineHandler (
       plan.concatId = targetRect.data.id;
       targetPlan.lineLeftView = null;
       targetPlan.lineLeftRectView = null;
-      target = makeRectTargetPoint(targetRect.shape, rectHeight);
+      target = makeRectTargetPoint(targetRect.shape, config.rectHeight);
       line.setShape({
         x2: target.x,
         y2: target.y,
@@ -105,8 +99,8 @@ export function createDragLineHandler (
           dropEventHandler(targetRect);
         } else {
           // 没有目标回到初始位置
-          start = makeRectStartPoint(line.leftData.rectView.shape, rectHeight);
-          target = makeRectTargetPoint(line.rightData.rectView.shape, rectHeight);
+          start = makeRectStartPoint(line.leftData.rectView.shape, config.rectHeight);
+          target = makeRectTargetPoint(line.rightData.rectView.shape, config.rectHeight);
           line.setShape({
             x1: start.x,
             y1: start.y,

@@ -1,10 +1,10 @@
 import { init } from "./zrender";
-import { createUtils } from "./createUtils";
-import { createStore } from "./createStore";
-import { createConfig } from "./createConfig";
-import { createRender } from "./createRender";
-import { createDragPlanHandler } from "./createDragPlanHandler";
-import { createDragLineHandler } from "./createDragLineHandler";
+import { initData } from "./init/data";
+import { initBackgroundContainer, initContentContainer } from "./init/container";
+import { backgroundRender } from "./render/background";
+import { contentRender } from "./render/content";
+import { createDragPlanHandler } from "./event/dragPlan";
+import { createDragLineHandler } from "./event/dragLine";
 
 const dataList = Object.freeze((function () {
   let idMap = {};
@@ -50,19 +50,18 @@ const dataList = Object.freeze((function () {
   });
 })());
 
+const id2plan = initData(dataList);
+
 const root = document.getElementById("root");
 
-const zr = init(root, {
-  // renderer: "svg"
-});
-zr.flush();
+const backgroundContainer = initBackgroundContainer(root);
+const contentContainer = initContentContainer(root);
 
-const config = createConfig({ width: root.offsetWidth, height: root.offsetHeight });
-const utils = createUtils({ config });
-const store = createStore({ dataList, config });
+const backgroundZR = init(backgroundContainer);
+backgroundRender(backgroundZR, dataList);
 
-const { render } = createRender({ dataList, zr, config, utils, store });
+const contentZR = init(contentContainer);
+contentRender(contentZR, dataList, id2plan);
 
-render();
-createDragPlanHandler({ dataList, config, utils, store });
-createDragLineHandler({ dataList, config, utils, store });
+createDragPlanHandler(dataList);
+createDragLineHandler(dataList, id2plan);
