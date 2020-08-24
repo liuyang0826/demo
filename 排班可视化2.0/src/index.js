@@ -9,15 +9,15 @@ import { config } from "./config";
 import { ms2px } from "./utils";
 import { plansRender } from "./render/plans";
 import { concatLinesRender } from "./render/concatLines";
-import { splitLineRender } from "./render/splitLine";
+import { timeLineRender } from "./render/timeLine";
 import { subPlansRender } from "./render/subPlans";
 
 const dataList = Object.freeze((function () {
   let idMap = {};
-  const num = 5;
+  const num = 3;
 
   function getConcatId () {
-    let id = ~~(Math.random() * 2 ** (num * 2 + 3));
+    let id = ~~(Math.random() * 2 ** num * 6 * 8);
     if (idMap[id]) {
       return getConcatId();
     } else {
@@ -82,7 +82,7 @@ const updateSubPlansRender = subPlansRender(dataList, planGroup);
 
 const updateConcatLines = concatLinesRender(dataList, planGroup, id2plan);
 
-const { modal, update: updateSplitLineRender  } = splitLineRender(planGroup);
+const { modal, update: updateTimeLineRender  } = timeLineRender(planGroup);
 
 createDragPlanHandler(dataList);
 createDragLineHandler(dataList, id2plan);
@@ -96,5 +96,5 @@ root.addEventListener("mousewheel", function (e) {
   updatePlans();
   updateConcatLines();
   updateSubPlansRender();
-  updateSplitLineRender();
+  updateTimeLineRender();
 });

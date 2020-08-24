@@ -3,7 +3,7 @@ import { config } from "../config";
 import { ms2px } from "../utils";
 import { Line, Rect } from "../zrender";
 
-export function splitLineRender (group) {
+export function timeLineRender (group) {
   const curX = ~~((config.splitTime - config.startTime) * ms2px()) + 0.5;
   const line = new Line({
     shape: {
@@ -30,7 +30,7 @@ export function splitLineRender (group) {
     },
     zlevel: 0,
     style: {
-      fill: "rgba(255, 0, 0, 0.1)"
+      fill: "rgba(255, 0, 0, 0.05)"
     },
     silent: true
   });

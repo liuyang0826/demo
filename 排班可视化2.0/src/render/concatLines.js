@@ -1,9 +1,10 @@
 import { makeRectStartPoint, makeRectTargetPoint } from "../utils";
 import { config } from "../config";
-import { Line, Rect } from "../zrender";
+import { Line, Rect, Polyline } from "../zrender";
 
 export function concatLinesRender (data, group, id2plan) {
   const updates = [];
+  const centerMap = {};
 
   data.forEach((item) => {
     let current = item.head;
@@ -13,12 +14,6 @@ export function concatLinesRender (data, group, id2plan) {
       current = current.next;
     }
   });
-
-  return function update () {
-    updates.forEach((update) => {
-      update && update();
-    });
-  };
 
   function renderConcatLine (plan) {
     let targetPlan = id2plan[plan.concatId];
@@ -54,6 +49,25 @@ export function concatLinesRender (data, group, id2plan) {
       silent: true
     });
     group.add(line);
+
+    // todo 折线
+    let center = (start.y + target.y) / 2;
+    console.log(centerMap[center], center);
+    if (centerMap[center]) {
+      center += 20;
+    }
+    centerMap[center] = center;
+    const polyline = new Polyline({
+      shape: {
+        points: [[start.x, start.y], [start.x, center], [target.x, center], [target.x, target.y]],
+      },
+      style: {
+        stroke: "green",
+        lineWidth: 2,
+        // lineDash: [10, 6],
+      }
+    });
+    // group.add(polyline);
 
     // 端点
     const dotOffset = config.lineDotWidth / 2;
@@ -121,4 +135,10 @@ export function concatLinesRender (data, group, id2plan) {
       });
     };
   }
+
+  return function update () {
+    updates.forEach((update) => {
+      update && update();
+    });
+  };
 }
