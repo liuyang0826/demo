@@ -1,9 +1,10 @@
 import { makeMap } from "../utils";
 
 export function initData (data) {
-  const id2plan = makeMap(data, (map, item) => {
+  const id2plan = makeMap(data, (map, item, xIndex) => {
     item.head = item.planList[0];
     item.planList.forEach((plan, index) => {
+      plan.xIndex = xIndex;
       if (index !== 0) {
         plan.prev = item.planList[index - 1];
       }

@@ -16,12 +16,15 @@ export function createDragPlanHandler (data) {
     plan.rectView
     .on("dragstart", (e) => {
       planDragstartHandler(e, plan, dragOffset);
+      e.cancelBubble = true
     })
     .on("drag", (e) => {
       planDragHandler(e, plan, dragOffset);
+      e.cancelBubble = true
     })
     .on("dragend", (e) => {
-      xIndex = planDragendHandler(e, plan, dragOffset, xIndex);
+      planDragendHandler(e, plan, dragOffset, xIndex);
+      e.cancelBubble = true
     });
   }
 
@@ -43,17 +46,17 @@ export function createDragPlanHandler (data) {
     const rect = plan.rectView;
     rect.zlevel = 1;
     const _ms2px = ms2px();
-    const { xIndex: newX, prev } = getInsertInfoByPoint({ x: e.offsetX - dragOffset.x, y: e.offsetY }, _ms2px);
-    resetTransform(rect);
+    const { xIndex: newXIndex, prev } = getInsertInfoByPoint({ x: e.offsetX - dragOffset.x, y: e.offsetY }, _ms2px);
+    resetTransform(rect, plan.rectView.parent.parent.position[0]);
     plan.startTime = (e.offsetX - dragOffset.x) / _ms2px + config.startTime;
     plan.endTime = plan.startTime + rect.shape.width / _ms2px;
-    const newShape = makeShapeByPlan(plan, newX);
+    const newShape = makeShapeByPlan(plan, newXIndex);
     rect.setShape(newShape);
     movePlanAttachedLine(rect.data, newShape, 1);
     let oldPrev = plan.prev || plan.next;
 
     // 双向链表操作
-    if (newX === xIndex) { // 本行内移动
+    if (newXIndex === xIndex) { // 本行内移动
       if (prev) {
         if (prev !== plan) {
           if (plan.prev) {
@@ -80,9 +83,9 @@ export function createDragPlanHandler (data) {
           plan.prev.next = plan.next;
           plan.next.prev = plan.prev;
           plan.prev = null;
-          plan.next = data[newX].head;
+          plan.next = data[newXIndex].head;
           plan.next.prev = plan;
-          data[newX].head = plan;
+          data[newXIndex].head = plan;
         }
       }
     } else {
@@ -104,16 +107,16 @@ export function createDragPlanHandler (data) {
       } else {
         console.log(7);
         plan.prev = null;
-        plan.next = data[newX].head;
+        plan.next = data[newXIndex].head;
         plan.next.prev = plan;
-        data[newX].head = plan;
+        data[newXIndex].head = plan;
       }
     }
 
-    advanceTime(newX, plan.prev || plan, true);
+    advanceTime(newXIndex, plan.prev || plan, true);
     advanceTime(xIndex, oldPrev, false);
 
-    return newX;
+    plan.xIndex = newXIndex;
   }
 
   function getInsertInfoByPoint ({ x, y }, _ms2px) {

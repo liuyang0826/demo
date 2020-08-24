@@ -1,10 +1,15 @@
-import { init } from "./zrender";
+import { Group, init } from "./zrender";
 import { initData } from "./init/data";
 import { initBackgroundContainer, initContentContainer } from "./init/container";
 import { backgroundRender } from "./render/background";
-import { contentRender } from "./render/content";
 import { createDragPlanHandler } from "./event/dragPlan";
 import { createDragLineHandler } from "./event/dragLine";
+import { createDragTimeHandler } from "./event/dragTime";
+import { config } from "./config";
+import { ms2px } from "./utils";
+import { plansRender } from "./render/plans";
+import { concatLinesRender } from "./render/concatLines";
+import { splitLineRender } from "./render/splitLine";
 
 const dataList = Object.freeze((function () {
   let idMap = {};
@@ -61,7 +66,29 @@ const backgroundZR = init(backgroundContainer);
 backgroundRender(backgroundZR, dataList);
 
 const contentZR = init(contentContainer);
-contentRender(contentZR, dataList, id2plan);
+const planGroup = new Group({
+  draggable: "horizontal"
+});
+contentZR.add(planGroup);
+
+const planRectGroup = new Group(); // 计划块分组
+planGroup.add(planRectGroup);
+const updatePlans = plansRender(dataList, planRectGroup);
+
+const updateConcatLines = concatLinesRender(dataList, planGroup, id2plan);
+
+const { modal, update: updateSplitLineRender  } = splitLineRender(planGroup);
 
 createDragPlanHandler(dataList);
 createDragLineHandler(dataList, id2plan);
+createDragTimeHandler(planGroup, modal);
+
+root.addEventListener("mousewheel", function (e) {
+  const _ms2px = ms2px();
+  config.scale += config.scaleSpeed * (e.wheelDelta > 0 ? 1 : -1);
+  config.scale <= 0 && (config.scale = 0.01);
+  config.startTime += (e.offsetX - planGroup.position[0]) * (1 / _ms2px - 1 / ms2px());
+  updatePlans();
+  updateConcatLines();
+  updateSplitLineRender();
+});

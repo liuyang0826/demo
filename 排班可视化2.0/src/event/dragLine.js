@@ -18,7 +18,7 @@ export function createDragLineHandler (data, id2plan) {
     const shape = line.shape;
     let start = { x: shape.x1, y: shape.y1 };
     let target = { x: shape.x2, y: shape.y2 };
-    const planGroup = line.parent.parent;
+    const planGroup = line.parent;
     const planRectGroup = plan.rectView.parent;
     // 端点
     const dotOffset = config.lineDotWidth / 2;
@@ -27,7 +27,7 @@ export function createDragLineHandler (data, id2plan) {
     leftRect,
     (e) => {
       line.setShape({
-        x1: e.offsetX - planGroup.position[0] + dragOffset.x,
+        x1: e.offsetX - planGroup.position[0] + dragOffset.x + planGroup.position[0],
         y1: e.offsetY - planGroup.position[1] + dragOffset.y,
       });
     },
@@ -55,7 +55,7 @@ export function createDragLineHandler (data, id2plan) {
     rightRect,
     (e) => {
       line.setShape({
-        x2: e.offsetX - planGroup.position[0] + dragOffset.x,
+        x2: e.offsetX - planGroup.position[0] + dragOffset.x + planGroup.position[0],
         y2: e.offsetY - planGroup.position[1] + dragOffset.y,
       });
     },
@@ -85,16 +85,21 @@ export function createDragLineHandler (data, id2plan) {
         const getBoundingRect = rect.getBoundingRect();
         dragOffset.x = getBoundingRect.x - e.offsetX + dotOffset;
         dragOffset.y = getBoundingRect.y - e.offsetY + dotOffset;
+        e.cancelBubble = true;
       })
       .on("drag", (e) => {
         dragEventHandler(e);
+        e.cancelBubble = true;
       })
       .on("dragend", (e) => {
+        e.cancelBubble = true;
         const position = planRectGroup.parent.position;
         const targetRect = planRectGroup.children().find((child) => {
-          return child.getBoundingRect().contain(e.offsetX - position[0], e.offsetY - position[1]);
+          if (child.getBoundingRect().contain(e.offsetX - position[0], e.offsetY - position[1])) {
+            return true;
+          }
         });
-        resetTransform(rect);
+        resetTransform(rect, rect.parent.position[0]);
         if (targetRect) {
           dropEventHandler(targetRect);
         } else {
