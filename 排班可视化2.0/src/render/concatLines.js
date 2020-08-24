@@ -5,6 +5,8 @@ import { Line, Rect, Polyline } from "../zrender";
 export function concatLinesRender (data, group, id2plan) {
   const updates = [];
   const centerMap = {};
+  const spaceHalf = (config.height - config.padding.top - config.padding.bottom - config.rectHeight * 7) / 7 / 2;
+  const rectHeightHalf = config.rectHeight / 2;
 
   data.forEach((item) => {
     let current = item.head;
@@ -14,6 +16,13 @@ export function concatLinesRender (data, group, id2plan) {
       current = current.next;
     }
   });
+  function getCenter (y1, y2) {
+    if (y1 <= y2) {
+      return y1 + rectHeightHalf + spaceHalf
+    } else {
+      return y1 - rectHeightHalf - spaceHalf
+    }
+  }
 
   function renderConcatLine (plan) {
     let targetPlan = id2plan[plan.concatId];
@@ -48,13 +57,12 @@ export function concatLinesRender (data, group, id2plan) {
       zlevel: 0,
       silent: true
     });
-    group.add(line);
+    // group.add(line);
 
     // todo 折线
-    let center = (start.y + target.y) / 2;
-    console.log(centerMap[center], center);
+    let center = getCenter(start.y, target.y);
     if (centerMap[center]) {
-      center += 20;
+      center += 16;
     }
     centerMap[center] = center;
     const polyline = new Polyline({
@@ -67,7 +75,7 @@ export function concatLinesRender (data, group, id2plan) {
         // lineDash: [10, 6],
       }
     });
-    // group.add(polyline);
+    group.add(polyline);
 
     // 端点
     const dotOffset = config.lineDotWidth / 2;
