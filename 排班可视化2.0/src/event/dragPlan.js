@@ -23,7 +23,7 @@ export function createDragPlanHandler (data) {
       e.cancelBubble = true
     })
     .on("dragend", (e) => {
-      planDragendHandler(e, plan, dragOffset, xIndex);
+      xIndex = planDragendHandler(e, plan, dragOffset, xIndex);
       e.cancelBubble = true
     });
   }
@@ -117,6 +117,8 @@ export function createDragPlanHandler (data) {
     advanceTime(xIndex, oldPrev, false);
 
     plan.xIndex = newXIndex;
+
+    return newXIndex;
   }
 
   function getInsertInfoByPoint ({ x, y }, _ms2px) {
