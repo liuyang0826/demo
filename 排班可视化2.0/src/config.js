@@ -1,7 +1,8 @@
+const hour = 60 * 60 * 1000;
 export const config = {
   width: 0,
   height: 0,
-  dateRangeMS: 2 * 60 * 60 * 1000,
+  dateRangeMS: 3 * hour,
   lineSpacePX: 100,
   padding: Object.freeze({
     left: 100,
@@ -10,7 +11,7 @@ export const config = {
     bottom: 100
   }),
   rectHeight: 32,
-  startTime: new Date().getTime() - 1000 * 60 * 60 * 0.5,
+  startTime: new Date().getTime() - 0.8 * hour,
   splitTime: new Date().getTime(),
   scale: 1,
   scaleSpeed: 0.04,

@@ -17,7 +17,7 @@ export function splitLineRender (group) {
       lineWidth: 1,
       lineDash: [10, 6]
     },
-    zlevel: 1,
+    zlevel: 0,
     cursor: "e-resize"
     // silent: true
   });
@@ -28,6 +28,7 @@ export function splitLineRender (group) {
       width: config.width - curX,
       height: config.height
     },
+    zlevel: 0,
     style: {
       fill: "rgba(255, 0, 0, 0.1)"
     },

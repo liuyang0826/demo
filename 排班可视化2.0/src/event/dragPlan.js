@@ -16,15 +16,15 @@ export function createDragPlanHandler (data) {
     plan.rectView
     .on("dragstart", (e) => {
       planDragstartHandler(e, plan, dragOffset);
-      e.cancelBubble = true
+      e.cancelBubble = true;
     })
     .on("drag", (e) => {
       planDragHandler(e, plan, dragOffset);
-      e.cancelBubble = true
+      e.cancelBubble = true;
     })
     .on("dragend", (e) => {
       xIndex = planDragendHandler(e, plan, dragOffset, xIndex);
-      e.cancelBubble = true
+      e.cancelBubble = true;
     });
   }
 
@@ -32,32 +32,39 @@ export function createDragPlanHandler (data) {
     const rect = plan.rectView;
     dragOffset.x = e.offsetX - rect.shape.x;
     dragOffset.y = e.offsetY - rect.shape.y;
-    console.log(plan.textView);
   }
 
   function planDragHandler (e, plan, dragOffset) {
-    const rect = plan.rectView;
-    rect.zlevel = 99;
+    plan.rectView.zlevel = 1;
+    const point = { x: e.offsetX - dragOffset.x, y: e.offsetY - dragOffset.y };
     // 连接线跟随
-    movePlanAttachedLine(rect.data, { x: e.offsetX - dragOffset.x, y: e.offsetY - dragOffset.y }, 99);
+    movePlanAttachedLine(plan, point, 1);
     // 子任务跟随
-    // move
+    moveSubPlans(plan, point, 1);
   }
 
   function planDragendHandler (e, plan, dragOffset, xIndex) {
     const rect = plan.rectView;
-    rect.zlevel = 1;
+    plan.rectView.zlevel = 0;
     const _ms2px = ms2px();
     const { xIndex: newXIndex, prev } = getInsertInfoByPoint({ x: e.offsetX - dragOffset.x, y: e.offsetY }, _ms2px);
     resetTransform(rect, plan.rectView.parent.parent.position[0]);
+    const oldStartTime = plan.startTime;
     plan.startTime = (e.offsetX - dragOffset.x) / _ms2px + config.startTime;
     plan.endTime = plan.startTime + rect.shape.width / _ms2px;
     const newShape = makeShapeByPlan(plan, newXIndex);
     rect.setShape(newShape);
-    movePlanAttachedLine(rect.data, newShape, 1);
-    let oldPrev = plan.prev || plan.next;
-
+    // 连接线跟随
+    movePlanAttachedLine(plan, newShape, 0);
+    // 子任务跟随
+    const offsetTime = plan.startTime - oldStartTime;
+    plan.subPlanList.forEach((subPlan) => {
+      subPlan.startTime += offsetTime;
+      subPlan.endTime += offsetTime;
+    });
+    moveSubPlans(plan, newShape, 0);
     // 双向链表操作
+    let oldPrev = plan.prev || plan.next;
     if (newXIndex === xIndex) { // 本行内移动
       if (prev) {
         if (prev !== plan) {
@@ -149,23 +156,30 @@ export function createDragPlanHandler (data) {
   function advanceTime (xIndex, prev, flag) {
     let current = prev.next;
     while (current) {
+      let offsetTime;
       if (flag) {
         if (current.startTime - current.prev.endTime >= config.advanceSpaceTime) {
           break;
         }
-        const advance = (current.prev.endTime - current.startTime) + config.advanceSpaceTime;
-        current.startTime += advance;
-        current.endTime += advance;
+        offsetTime = config.advanceSpaceTime + (current.prev.endTime - current.startTime);
       } else {
-        const advance = (current.startTime - current.prev.endTime) - config.advanceSpaceTime;
-        current.startTime -= advance;
-        current.endTime -= advance;
+        offsetTime = config.advanceSpaceTime - (current.startTime - current.prev.endTime);
       }
+      current.startTime += offsetTime;
+      current.endTime += offsetTime;
 
       const newShape = makeShapeByPlan(current, xIndex);
       current.rectView.setShape(newShape);
-      movePlanAttachedLine(current, newShape, 1);
+      movePlanAttachedLine(current, newShape, 0);
+
+      // 子任务跟随
+      current.subPlanList.forEach((subPlan) => {
+        subPlan.startTime += offsetTime;
+        subPlan.endTime += offsetTime;
+      });
+      moveSubPlans(current, newShape, 0);
       if (current === current.next) {
+        alert(JSON.stringify(current));
         throw Error();
       }
       current = current.next;
@@ -215,8 +229,13 @@ export function createDragPlanHandler (data) {
   }
 
   // 联动子任务
-  // todo
-  function f () {
-
+  function moveSubPlans (plan, { x, y }, zlevel) {
+    plan.subPlanList.forEach((subPlan) => {
+      subPlan.rectView.zlevel = zlevel;
+      subPlan.rectView.setShape({
+        x: x + (subPlan.startTime - plan.startTime) * ms2px(),
+        y: y
+      });
+    });
   }
 }

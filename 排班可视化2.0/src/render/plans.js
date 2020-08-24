@@ -24,7 +24,7 @@ export function plansRender (data, group) {
     const rect = new Rect({
       shape: shape,
       draggable: true,
-      zlevel: 1,
+      zlevel: 0,
       data: plan,
       style: {
         // text: plan.name,

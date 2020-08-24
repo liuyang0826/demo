@@ -19,16 +19,16 @@ export function subPlansRender (data, group) {
 
   function renderSubPlans (plan) {
     plan.subPlanList.forEach((subPlan) => {
-      updates.push(renderSubPlan(subPlan, plan.xIndex));
+      updates.push(renderSubPlan(subPlan, plan));
     });
   }
 
-  function renderSubPlan (subPlan, xIndex) {
-    const shape = makeShapeByPlan(subPlan, xIndex);
+  function renderSubPlan (subPlan, plan) {
+    const shape = makeShapeByPlan(subPlan, plan.xIndex);
     const rect = new Rect({
       shape: shape,
       silent: true,
-      zlevel: 1,
+      zlevel: 0,
       data: subPlan,
       style: {
         text: subPlan.name,
@@ -43,7 +43,7 @@ export function subPlansRender (data, group) {
     subPlan.rectView = rect;
     group.add(rect);
     return function update() {
-      const shape = makeShapeByPlan(subPlan, xIndex);
+      const shape = makeShapeByPlan(subPlan, plan.xIndex);
       rect.setShape(shape);
     }
   }

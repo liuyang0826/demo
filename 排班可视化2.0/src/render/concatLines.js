@@ -50,7 +50,7 @@ export function concatLinesRender (data, group, id2plan) {
         y2: target.y,
       },
       style: lineStyle,
-      zlevel: 2,
+      zlevel: 0,
       silent: true
     });
     group.add(line);
@@ -67,7 +67,7 @@ export function concatLinesRender (data, group, id2plan) {
       style: {
         fill: "red"
       },
-      zlevel: 2,
+      zlevel: 0,
       draggable: true
     });
     group.add(leftRect);
@@ -81,7 +81,7 @@ export function concatLinesRender (data, group, id2plan) {
       style: {
         fill: "red"
       },
-      zlevel: 2,
+      zlevel: 0,
       draggable: true
     });
     group.add(rightRect);

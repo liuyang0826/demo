@@ -34,7 +34,7 @@ const dataList = Object.freeze((function () {
       name: (index + 1) + "#高炉",
       planList: Array.from({ length: 2 ** num }).map((_, i) => {
         let startTemp = start;
-        let end = startTemp + ~~(24 * 60 * 1000 * (Math.random() + 0.5));
+        let end = startTemp + ~~(18 * 60 * 1000 * (Math.random() + 0.5));
         start = end + ~~(2 * 60 * 1000 * (Math.random() + 0.25));
         let concatId = getConcatId();
         const space = (end - startTemp) / 3;
@@ -78,9 +78,9 @@ const planRectGroup = new Group(); // 计划块分组
 planGroup.add(planRectGroup);
 const updatePlans = plansRender(dataList, planRectGroup);
 
-const updateConcatLines = concatLinesRender(dataList, planGroup, id2plan);
-
 const updateSubPlansRender = subPlansRender(dataList, planGroup);
+
+const updateConcatLines = concatLinesRender(dataList, planGroup, id2plan);
 
 const { modal, update: updateSplitLineRender  } = splitLineRender(planGroup);
 
