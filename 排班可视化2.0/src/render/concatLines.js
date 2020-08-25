@@ -81,7 +81,7 @@ function makeCenter (concatPlans, id2plan) {
 }
 
 export function concatLinesRender (data, group, id2plan) {
-  const updates = [];
+  const repaints = [];
 
   const concatPlans = [];
   data.forEach((item) => {
@@ -102,8 +102,8 @@ export function concatLinesRender (data, group, id2plan) {
   const { get: getCenter, update: updateCenter } = makeCenter(concatPlans, id2plan);
 
   concatPlans.forEach((item) => {
-    const update = renderConcatLine(item);
-    updates.push(update);
+    const repaint = renderConcatLine(item);
+    repaints.push(repaint);
   });
 
   function renderConcatLine (plan) {
@@ -182,7 +182,7 @@ export function concatLinesRender (data, group, id2plan) {
     targetPlan.lineLeftView = polyline;
     polyline.rightData = targetPlan;
 
-    return function update () {
+    return function repaint () {
       const startRect = polyline.leftData.rectView.shape;
       const endRect = polyline.rightData.rectView.shape;
 
@@ -203,9 +203,9 @@ export function concatLinesRender (data, group, id2plan) {
     };
   }
 
-  function update () {
-    updates.forEach((update) => {
-      update();
+  function repaint () {
+    repaints.forEach((repaint) => {
+      repaint();
     });
   }
 
@@ -229,7 +229,7 @@ export function concatLinesRender (data, group, id2plan) {
 
   return {
     concatPlans,
-    update,
+    repaint,
     updateConcatLines,
     updateConcatLine,
     updateCenterStore: updateCenter

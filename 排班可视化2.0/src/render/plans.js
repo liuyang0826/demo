@@ -78,7 +78,7 @@ export function plansRender (data, group) {
       }
     });
 
-    return function update () {
+    return function repaint () {
       const shape = makeShapeByPlan(plan, plan.xIndex);
       rect.setShape(shape);
     };

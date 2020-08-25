@@ -2,7 +2,7 @@ import { makeShapeByPlan } from "../utils";
 import { Rect } from "../zrender";
 
 export function subPlansRender (data, group) {
-  const updates = [];
+  const repaints = [];
   data.forEach((item) => {
     let current = item.head;
     while (current) {
@@ -11,15 +11,15 @@ export function subPlansRender (data, group) {
     }
   });
 
-  return function update () {
-    updates.forEach((update) => {
-      update();
+  return function repaint () {
+    repaints.forEach((repaint) => {
+      repaint();
     });
   };
 
   function renderSubPlans (plan) {
     plan.subPlanList.forEach((subPlan) => {
-      updates.push(renderSubPlan(subPlan, plan));
+      repaints.push(renderSubPlan(subPlan, plan));
     });
   }
 
@@ -42,7 +42,7 @@ export function subPlansRender (data, group) {
     });
     subPlan.rectView = rect;
     group.add(rect);
-    return function update() {
+    return function repaint() {
       const shape = makeShapeByPlan(subPlan, plan.xIndex);
       rect.setShape(shape);
     }

@@ -76,25 +76,35 @@ contentZR.add(planGroup);
 
 const planRectGroup = new Group(); // 计划块分组
 planGroup.add(planRectGroup);
-const updatePlans = plansRender(dataList, planRectGroup);
+const repaintPlans = plansRender(dataList, planRectGroup);
 
 const repaintSubPlansRender = subPlansRender(dataList, planGroup);
 
-const { update: repaintConcatLines, concatPlans, updateCenterStore, updateConcatLines, updateConcatLine } = concatLinesRender(dataList, planGroup, id2plan);
+const { repaint: repaintConcatLines, concatPlans, updateCenterStore, updateConcatLines, updateConcatLine } = concatLinesRender(dataList, planGroup, id2plan);
 
-const { modal, update: repaintTimeLineRender } = timeLineRender(planGroup);
+const { modal, repaint: repaintTimeLineRender } = timeLineRender(planGroup);
 
 createDragPlanHandler(dataList, id2plan, updateCenterStore, updateConcatLines, updateConcatLine);
 createDragLineHandler(concatPlans, id2plan, updateCenterStore, updateConcatLines, updateConcatLine);
 createDragTimeHandler(planGroup, modal);
+
+function repaint () {
+  repaintPlans();
+  repaintConcatLines();
+  repaintSubPlansRender();
+  repaintTimeLineRender();
+}
 
 root.addEventListener("mousewheel", function (e) {
   const _ms2px = ms2px();
   config.scale += config.scaleSpeed * (e.wheelDelta > 0 ? 1 : -1);
   config.scale <= 0 && (config.scale = 0.01);
   config.startTime += (e.offsetX - planGroup.position[0]) * (1 / _ms2px - 1 / ms2px());
-  updatePlans();
-  repaintConcatLines();
-  repaintSubPlansRender();
-  repaintTimeLineRender();
+  repaint();
 });
+
+// setInterval(() => {
+//   config.startTime = new Date().getTime() - 0.5 * 60 * 60 * 1000;
+//   config.splitTime = new Date().getTime();
+//   repaint();
+// }, 5000);
