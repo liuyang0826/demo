@@ -17,7 +17,7 @@ const dataList = Object.freeze((function () {
   const num = 3;
 
   function getConcatId () {
-    let id = ~~(Math.random() * 2 ** num * 1 * 8);
+    let id = ~~(Math.random() * 2 ** num * 4 * 8);
     if (idMap[id]) {
       return getConcatId();
     } else {
@@ -78,14 +78,14 @@ const planRectGroup = new Group(); // 计划块分组
 planGroup.add(planRectGroup);
 const updatePlans = plansRender(dataList, planRectGroup);
 
-const updateSubPlansRender = subPlansRender(dataList, planGroup);
+const repaintSubPlansRender = subPlansRender(dataList, planGroup);
 
-const updateConcatLines = concatLinesRender(dataList, planGroup, id2plan);
+const { update: repaintConcatLines, concatPlans, updateCenterStore, updateConcatLines, updateConcatLine } = concatLinesRender(dataList, planGroup, id2plan);
 
-const { modal, update: updateTimeLineRender  } = timeLineRender(planGroup);
+const { modal, update: repaintTimeLineRender } = timeLineRender(planGroup);
 
-createDragPlanHandler(dataList);
-createDragLineHandler(dataList, id2plan);
+createDragPlanHandler(dataList, id2plan, updateCenterStore, updateConcatLines, updateConcatLine);
+createDragLineHandler(concatPlans, id2plan, updateCenterStore, updateConcatLines, updateConcatLine);
 createDragTimeHandler(planGroup, modal);
 
 root.addEventListener("mousewheel", function (e) {
@@ -94,7 +94,7 @@ root.addEventListener("mousewheel", function (e) {
   config.scale <= 0 && (config.scale = 0.01);
   config.startTime += (e.offsetX - planGroup.position[0]) * (1 / _ms2px - 1 / ms2px());
   updatePlans();
-  updateConcatLines();
-  updateSubPlansRender();
-  updateTimeLineRender();
+  repaintConcatLines();
+  repaintSubPlansRender();
+  repaintTimeLineRender();
 });
