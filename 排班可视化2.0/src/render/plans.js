@@ -25,23 +25,62 @@ export function plansRender (data, group) {
       shape: shape,
       draggable: true,
       zlevel: 0,
-      data: plan,
-      style: {
-        // text: plan.name,
-        stroke: "red",
-        lineWidth: 2,
-        fontSize: 12,
-        textFill: "red",
-        // fill: plan.startTime < config.splitTime ? "#ccc" : "orange",
-        fill: "#fff"
-      }
+      data: plan
     });
     plan.rectView = rect;
     group.add(rect);
 
+    rect.on("mouseover", () => {
+      plan.subPlanList.forEach((subPlan) => {
+        subPlan.rectView.setStyle({
+          fill: "#0f0",
+          textFill: "#fff",
+        });
+      });
+      if (plan.lineRightView) {
+        plan.lineRightView.rightData.subPlanList.forEach((subPlan) => {
+          subPlan.rectView.setStyle({
+            fill: "#0f0",
+            textFill: "#fff",
+          });
+        });
+      }
+      if (plan.lineLeftView) {
+        plan.lineLeftView.leftData.subPlanList.forEach((subPlan) => {
+          subPlan.rectView.setStyle({
+            fill: "#0f0",
+            textFill: "#fff",
+          });
+        });
+      }
+    }).on("mouseout", () => {
+      plan.subPlanList.forEach((subPlan) => {
+        subPlan.rectView.setStyle({
+          fill: "#fff",
+          textFill: "#f00",
+        });
+      });
+      if (plan.lineRightView) {
+        plan.lineRightView.rightData.subPlanList.forEach((subPlan) => {
+          subPlan.rectView.setStyle({
+            fill: "#fff",
+            textFill: "#f00",
+          });
+        });
+      }
+      if (plan.lineLeftView) {
+        plan.lineLeftView.leftData.subPlanList.forEach((subPlan) => {
+          subPlan.rectView.setStyle({
+            fill: "#fff",
+            textFill: "#f00",
+          });
+        });
+      }
+    });
+
     return function update () {
       const shape = makeShapeByPlan(plan, plan.xIndex);
       rect.setShape(shape);
-    }
+    };
   }
 }

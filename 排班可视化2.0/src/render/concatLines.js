@@ -1,6 +1,6 @@
 import { makeRectStartPoint, makeRectTargetPoint } from "../utils";
 import { config } from "../config";
-import { Line, Rect, Polyline } from "../zrender";
+import { Rect, Polyline } from "../zrender";
 
 function makeCenter (concatPlans, id2plan) {
   let map = {};

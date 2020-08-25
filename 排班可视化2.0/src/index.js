@@ -17,7 +17,7 @@ const dataList = Object.freeze((function () {
   const num = 3;
 
   function getConcatId () {
-    let id = ~~(Math.random() * 2 ** num * 4 * 8);
+    let id = ~~(Math.random() * 2 ** num * 5 * 8);
     if (idMap[id]) {
       return getConcatId();
     } else {
