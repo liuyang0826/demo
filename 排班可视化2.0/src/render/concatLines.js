@@ -5,24 +5,71 @@ import { Line, Rect, Polyline } from "../zrender";
 export function concatLinesRender (data, group, id2plan) {
   const updates = [];
   const centerMap = {};
-  const spaceHalf = (config.height - config.padding.top - config.padding.bottom - config.rectHeight * 7) / 7 / 2;
   const rectHeightHalf = config.rectHeight / 2;
 
+  const concatLines = [];
   data.forEach((item) => {
     let current = item.head;
     while (current) {
-      const update = renderConcatLine(current);
-      updates.push(update);
+      const target = id2plan[current.concatId];
+      if (
+      target
+      && target !== current
+      && current.endTime > target.startTime
+      ) {
+        concatLines.push(current);
+      }
       current = current.next;
     }
   });
-  function getCenter (y1, y2) {
-    if (y1 <= y2) {
-      return y1 + rectHeightHalf + spaceHalf
+  const xIndexMap = {};
+  concatLines.forEach((item) => {
+    let xIndex;
+    if (item.xIndex <= id2plan[item.concatId].xIndex) {
+      xIndex = item.xIndex;
     } else {
-      return y1 - rectHeightHalf - spaceHalf
+      xIndex = item.xIndex - 1;
+    }
+    if (xIndexMap[xIndex]) {
+      xIndexMap[xIndex]++;
+    } else {
+      xIndexMap[xIndex] = 1;
+    }
+  });
+  for (let key in xIndexMap) {
+    if (xIndexMap.hasOwnProperty(key)) {
+      xIndexMap[key] = (config.lineSpacePX - config.rectHeight) / (xIndexMap[key] + 1);
     }
   }
+
+  function getCenter (plan, y) {
+    let center;
+    let currentSpace;
+    if (plan.xIndex <= id2plan[plan.concatId].xIndex) {
+      currentSpace = xIndexMap[plan.xIndex];
+      center = y + rectHeightHalf + currentSpace;
+    } else {
+      currentSpace = xIndexMap[plan.xIndex - 1];
+      center = y + rectHeightHalf - config.lineSpacePX + currentSpace;
+    }
+
+    function next () {
+      if (centerMap[center]) {
+        center += currentSpace;
+        next();
+      }
+    }
+
+    next();
+
+    centerMap[center] = center;
+    return center;
+  }
+
+  concatLines.forEach((item) => {
+    const update = renderConcatLine(item);
+    updates.push(update);
+  });
 
   function renderConcatLine (plan) {
     let targetPlan = id2plan[plan.concatId];
@@ -60,11 +107,7 @@ export function concatLinesRender (data, group, id2plan) {
     // group.add(line);
 
     // todo 折线
-    let center = getCenter(start.y, target.y);
-    if (centerMap[center]) {
-      center += 16;
-    }
-    centerMap[center] = center;
+    let center = getCenter(plan, start.y);
     const polyline = new Polyline({
       shape: {
         points: [[start.x, start.y], [start.x, center], [target.x, center], [target.x, target.y]],
@@ -73,7 +116,9 @@ export function concatLinesRender (data, group, id2plan) {
         stroke: "green",
         lineWidth: 2,
         // lineDash: [10, 6],
-      }
+      },
+      zlevel: 0,
+      silent: true
     });
     group.add(polyline);
 

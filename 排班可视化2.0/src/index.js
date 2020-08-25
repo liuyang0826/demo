@@ -17,7 +17,7 @@ const dataList = Object.freeze((function () {
   const num = 3;
 
   function getConcatId () {
-    let id = ~~(Math.random() * 2 ** num * 12 * 8);
+    let id = ~~(Math.random() * 2 ** num * 1 * 8);
     if (idMap[id]) {
       return getConcatId();
     } else {
@@ -29,7 +29,7 @@ const dataList = Object.freeze((function () {
   let id = 1;
   const icons = ["car", "person", "iron"];
   return Array.from({ length: 8 }).map((_, index) => {
-    let start = new Date().getTime() - ~~(Math.random() * 60 * 60 * 1000);
+    let start = new Date().getTime() - ~~(Math.random() * 60 * 60 * 1000 * 0.5);
     return {
       name: (index + 1) + "#高炉",
       planList: Array.from({ length: 2 ** num }).map((_, i) => {

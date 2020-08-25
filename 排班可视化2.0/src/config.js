@@ -11,7 +11,7 @@ export const config = {
     bottom: 100
   }),
   rectHeight: 32,
-  startTime: new Date().getTime() - 0.8 * hour,
+  startTime: new Date().getTime() - 0.5 * hour,
   splitTime: new Date().getTime(),
   scale: 1,
   scaleSpeed: 0.04,
