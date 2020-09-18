@@ -1,7 +1,7 @@
 import { makeShapeByPlan, ms2px, resetTransform } from "../utils";
 import { config } from "../config";
 
-export function createDragPlanHandler (data) {
+export function createDragPlanHandler (data, id2plan, updateCenterStore, updateConcatLines) {
   data.forEach((item, xIndex) => {
     let current = item.head;
     while (current) {
@@ -127,6 +127,10 @@ export function createDragPlanHandler (data) {
 
     plan.xIndex = newXIndex;
 
+    // 折线重新layout
+    updateCenterStore();
+    updateConcatLines();
+
     return newXIndex;
   }
 
@@ -208,8 +212,12 @@ export function createDragPlanHandler (data) {
 
   function moveLineLeft (rightRect, line, start) {
     line.setShape({
-      x1: start.x,
-      y1: start.y
+      points: [
+        [
+          start.x,
+          start.y
+        ], line.shape.points[3] || line.shape.points[1]
+      ]
     });
     rightRect.setShape({
       x: start.x - config.lineDotWidth / 2,
@@ -219,8 +227,13 @@ export function createDragPlanHandler (data) {
 
   function moveLineRight (leftRect, line, end) {
     line.setShape({
-      x2: end.x,
-      y2: end.y
+      points: [
+        line.shape.points[0],
+        [
+          end.x,
+          end.y
+        ]
+      ]
     });
     leftRect.setShape({
       x: end.x - config.lineDotWidth / 2,

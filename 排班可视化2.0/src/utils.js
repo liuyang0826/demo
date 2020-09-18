@@ -7,18 +7,20 @@ export function makeMap (list, fn) {
   });
   return map;
 }
+
 // 重置元素的位移偏移量
 export function resetTransform (element, offset = 0) {
   element.transform = [1, 0, 0, 1, offset, 0];
   element.invTransform = [1, -0, -0, 1, -offset, -0];
   element.decomposeTransform();
 }
-export function makeRectStartPoint (rect, rectHeight, offset = 0) {
-  return { x: rect.x + rect.width + offset, y: rect.y + rectHeight / 2 };
+
+export function makeRectStartPoint (rect, offset = 0) {
+  return { x: rect.x + rect.width + offset, y: rect.y + config.rectHeight / 2 };
 }
 
-export function makeRectTargetPoint (rect, rectHeight) {
-  return { x: rect.x, y: rect.y + rectHeight / 2 };
+export function makeRectTargetPoint (rect) {
+  return { x: rect.x, y: rect.y + config.rectHeight / 2 };
 }
 
 export function ms2px () {

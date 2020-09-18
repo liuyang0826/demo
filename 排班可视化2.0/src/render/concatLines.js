@@ -1,28 +1,110 @@
 import { makeRectStartPoint, makeRectTargetPoint } from "../utils";
 import { config } from "../config";
-import { Line, Rect, Polyline } from "../zrender";
+import { Rect, Polyline } from "../zrender";
+
+function makeCenter (concatPlans, id2plan) {
+  let map = {};
+  const rectHeightHalf = config.rectHeight / 2;
+  transform();
+
+  function transform () {
+    map = {};
+    concatPlans.forEach((item) => {
+      let xIndex;
+      if (item.xIndex <= id2plan[item.concatId].xIndex) {
+        xIndex = item.xIndex;
+      } else {
+        xIndex = item.xIndex - 1;
+      }
+      if (map[xIndex]) {
+        map[xIndex]++;
+      } else {
+        map[xIndex] = 1;
+      }
+    });
+    for (let key in map) {
+      if (map.hasOwnProperty(key)) {
+        map[key] = (config.lineSpacePX - config.rectHeight) / (map[key] + 1);
+      }
+    }
+  }
+
+  let centerMap = {};
+  let idCenterMap = {};
+
+  function get (plan, y) {
+    if (idCenterMap[plan.id]) {
+      return idCenterMap[plan.id];
+    }
+    let center;
+    let currentSpace;
+    if (plan.xIndex <= id2plan[plan.concatId].xIndex) {
+      currentSpace = map[plan.xIndex];
+      center = y + rectHeightHalf + currentSpace;
+    } else {
+      currentSpace = map[plan.xIndex - 1];
+      center = y + rectHeightHalf - config.lineSpacePX + currentSpace;
+    }
+
+    // 下一个位置
+    !function next () {
+      if (centerMap[center]) {
+        center += currentSpace;
+        next();
+      }
+    }();
+
+    centerMap[center] = center;
+    idCenterMap[plan.id] = center;
+    return center;
+  }
+
+  function update ({ remove, add } = {}) {
+    centerMap = {};
+    idCenterMap = {};
+    if (remove) {
+      const index = concatPlans.findIndex(d => d.id === remove.id);
+      if (index >= 0) {
+        concatPlans.splice(index, 1);
+      }
+    }
+    if (add) {
+      concatPlans.push(add);
+    }
+    transform();
+  }
+
+  return {
+    get,
+    update
+  };
+}
 
 export function concatLinesRender (data, group, id2plan) {
-  const updates = [];
-  const centerMap = {};
-  const spaceHalf = (config.height - config.padding.top - config.padding.bottom - config.rectHeight * 7) / 7 / 2;
-  const rectHeightHalf = config.rectHeight / 2;
+  const repaints = [];
 
+  const concatPlans = [];
   data.forEach((item) => {
     let current = item.head;
     while (current) {
-      const update = renderConcatLine(current);
-      updates.push(update);
+      const target = id2plan[current.concatId];
+      if (
+      target
+      && target !== current
+      && current.endTime > target.startTime
+      ) {
+        concatPlans.push(current);
+      }
       current = current.next;
     }
   });
-  function getCenter (y1, y2) {
-    if (y1 <= y2) {
-      return y1 + rectHeightHalf + spaceHalf
-    } else {
-      return y1 - rectHeightHalf - spaceHalf
-    }
-  }
+
+  const { get: getCenter, update: updateCenter } = makeCenter(concatPlans, id2plan);
+
+  concatPlans.forEach((item) => {
+    const repaint = renderConcatLine(item);
+    repaints.push(repaint);
+  });
 
   function renderConcatLine (plan) {
     let targetPlan = id2plan[plan.concatId];
@@ -37,43 +119,22 @@ export function concatLinesRender (data, group, id2plan) {
     const startRect = plan.rectView.shape;
     const endRect = targetPlan.rectView.shape;
 
-    let start = makeRectStartPoint(startRect, config.rectHeight);
-    let target = makeRectTargetPoint(endRect, config.rectHeight);
+    let start = makeRectStartPoint(startRect);
+    let target = makeRectTargetPoint(endRect);
 
-    const lineStyle = {
-      stroke: "red",
-      lineWidth: 2,
-      lineDash: [10, 6]
-    };
-    // 线
-    const line = new Line({
-      shape: {
-        x1: start.x,
-        y1: start.y,
-        x2: target.x,
-        y2: target.y,
-      },
-      style: lineStyle,
-      zlevel: 0,
-      silent: true
-    });
-    // group.add(line);
-
-    // todo 折线
-    let center = getCenter(start.y, target.y);
-    if (centerMap[center]) {
-      center += 16;
-    }
-    centerMap[center] = center;
+    // 折线
+    let center = getCenter(plan, start.y);
     const polyline = new Polyline({
       shape: {
-        points: [[start.x, start.y], [start.x, center], [target.x, center], [target.x, target.y]],
+        points: [[start.x, start.y], [start.x, center], [target.x, center], [target.x, target.y]]
       },
       style: {
         stroke: "green",
         lineWidth: 2,
         // lineDash: [10, 6],
-      }
+      },
+      zlevel: 0,
+      silent: true
     });
     group.add(polyline);
 
@@ -112,26 +173,24 @@ export function concatLinesRender (data, group, id2plan) {
     plan.lineRightRectView = leftRect;
     leftRect.data = plan;
 
-    plan.lineRightView = line;
-    line.leftData = plan;
+    plan.lineRightView = polyline;
+    polyline.leftData = plan;
 
     targetPlan.lineLeftRectView = rightRect;
     rightRect.data = targetPlan;
 
-    targetPlan.lineLeftView = line;
-    line.rightData = targetPlan;
+    targetPlan.lineLeftView = polyline;
+    polyline.rightData = targetPlan;
 
-    return function update () {
-      const startRect = plan.rectView.shape;
-      const endRect = targetPlan.rectView.shape;
+    return function repaint () {
+      const startRect = polyline.leftData.rectView.shape;
+      const endRect = polyline.rightData.rectView.shape;
 
-      let start = makeRectStartPoint(startRect, config.rectHeight);
-      let target = makeRectTargetPoint(endRect, config.rectHeight);
-      line.setShape({
-        x1: start.x,
-        y1: start.y,
-        x2: target.x,
-        y2: target.y,
+      let start = makeRectStartPoint(startRect);
+      let target = makeRectTargetPoint(endRect);
+      center = getCenter(polyline.leftData, start.y);
+      polyline.setShape({
+        points: [[start.x, start.y], [start.x, center], [target.x, center], [target.x, target.y]]
       });
       leftRect.setShape({
         x: start.x - dotOffset,
@@ -144,9 +203,35 @@ export function concatLinesRender (data, group, id2plan) {
     };
   }
 
-  return function update () {
-    updates.forEach((update) => {
-      update && update();
+  function repaint () {
+    repaints.forEach((repaint) => {
+      repaint();
     });
+  }
+
+  function updateConcatLines () {
+    concatPlans.forEach((plan) => {
+      updateConcatLine(plan);
+    });
+  }
+
+  function updateConcatLine (plan) {
+    const targetPlan = id2plan[plan.concatId];
+    const startRect = plan.rectView.shape;
+    const endRect = targetPlan.rectView.shape;
+    const start = makeRectStartPoint(startRect);
+    const target = makeRectTargetPoint(endRect);
+    const center = getCenter(plan, start.y);
+    plan.lineRightView.setShape({
+      points: [[start.x, start.y], [start.x, center], [target.x, center], [target.x, target.y]]
+    });
+  }
+
+  return {
+    concatPlans,
+    repaint,
+    updateConcatLines,
+    updateConcatLine,
+    updateCenterStore: updateCenter
   };
 }

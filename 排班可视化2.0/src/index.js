@@ -17,7 +17,7 @@ const dataList = Object.freeze((function () {
   const num = 3;
 
   function getConcatId () {
-    let id = ~~(Math.random() * 2 ** num * 12 * 8);
+    let id = ~~(Math.random() * 2 ** num * 5 * 8);
     if (idMap[id]) {
       return getConcatId();
     } else {
@@ -29,7 +29,7 @@ const dataList = Object.freeze((function () {
   let id = 1;
   const icons = ["car", "person", "iron"];
   return Array.from({ length: 8 }).map((_, index) => {
-    let start = new Date().getTime() - ~~(Math.random() * 60 * 60 * 1000);
+    let start = new Date().getTime() - ~~(Math.random() * 60 * 60 * 1000 * 0.5);
     return {
       name: (index + 1) + "#高炉",
       planList: Array.from({ length: 2 ** num }).map((_, i) => {
@@ -76,25 +76,35 @@ contentZR.add(planGroup);
 
 const planRectGroup = new Group(); // 计划块分组
 planGroup.add(planRectGroup);
-const updatePlans = plansRender(dataList, planRectGroup);
+const repaintPlans = plansRender(dataList, planRectGroup);
 
-const updateSubPlansRender = subPlansRender(dataList, planGroup);
+const repaintSubPlansRender = subPlansRender(dataList, planGroup);
 
-const updateConcatLines = concatLinesRender(dataList, planGroup, id2plan);
+const { repaint: repaintConcatLines, concatPlans, updateCenterStore, updateConcatLines, updateConcatLine } = concatLinesRender(dataList, planGroup, id2plan);
 
-const { modal, update: updateTimeLineRender  } = timeLineRender(planGroup);
+const { modal, repaint: repaintTimeLineRender } = timeLineRender(planGroup);
 
-createDragPlanHandler(dataList);
-createDragLineHandler(dataList, id2plan);
+createDragPlanHandler(dataList, id2plan, updateCenterStore, updateConcatLines, updateConcatLine);
+createDragLineHandler(concatPlans, id2plan, updateCenterStore, updateConcatLines, updateConcatLine);
 createDragTimeHandler(planGroup, modal);
+
+function repaint () {
+  repaintPlans();
+  repaintConcatLines();
+  repaintSubPlansRender();
+  repaintTimeLineRender();
+}
 
 root.addEventListener("mousewheel", function (e) {
   const _ms2px = ms2px();
   config.scale += config.scaleSpeed * (e.wheelDelta > 0 ? 1 : -1);
   config.scale <= 0 && (config.scale = 0.01);
   config.startTime += (e.offsetX - planGroup.position[0]) * (1 / _ms2px - 1 / ms2px());
-  updatePlans();
-  updateConcatLines();
-  updateSubPlansRender();
-  updateTimeLineRender();
+  repaint();
 });
+
+// setInterval(() => {
+//   config.startTime = new Date().getTime() - 0.5 * 60 * 60 * 1000;
+//   config.splitTime = new Date().getTime();
+//   repaint();
+// }, 5000);

@@ -37,9 +37,9 @@ export function timeLineRender (group) {
   group.add(line);
   group.add(rect);
 
-  return { modal: rect, update };
+  return { modal: rect, repaint };
 
-  function update () {
+  function repaint () {
     const curX = ~~((config.splitTime - config.startTime) * ms2px()) + 0.5;
     line.setShape({
       x1: curX,

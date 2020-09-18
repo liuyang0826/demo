@@ -19,10 +19,11 @@ module.exports = {
     })
   ],
   devServer: {
-    open: true,
+    open: "http://127.0.0.1:5000",
     hot: true,
     historyApiFallback: true,
     publicPath: "/",
+    host: "0.0.0.0",
     port: 5000,
     contentBase: resolveApp("public"),
   }
