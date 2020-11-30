@@ -23,7 +23,7 @@ module.exports = {
     hot: true,
     historyApiFallback: true,
     publicPath: "/",
-    port: 5000,
+    port: 4000,
     contentBase: resolveApp("public"),
   }
 };
