@@ -1,21 +1,24 @@
-export function startMove (root) {
-  root.isMoveRunning = true;
+import { rootState } from "../Root";
+
+export function startRectMove (root) {
+  if (root.state === rootState.move) return;
+  root.state = rootState.move;
   root.elements.forEach((element) => {
-    move(element);
+    element.type === "rect" && element.startMove()
   });
 }
 
 export function endRectMove (root) {
-  if (!root.isMoveRunning) return;
-  root.isMoveRunning = false;
+  if (root.state !== rootState.move) return;
+  root.state = rootState.off;
   root.elements.forEach((element) => {
-    element.offMove();
+    element.type === "rect" && element.endMove();
   });
 }
 
-function move (element) {
-  let prevEvent;
+export function addMove (element) {
   const root = element._$root;
+  let prevEvent;
   element.on("mousedown", mouseDown);
 
   function mouseDown (e) {
@@ -38,7 +41,7 @@ function move (element) {
     }
   }
 
-  element.offMove = () => {
-    element.on("mousedown", mouseDown);
+  return () => {
+    element.off("mousedown", mouseDown);
   };
 }

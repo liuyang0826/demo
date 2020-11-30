@@ -1,7 +1,6 @@
 /**
  * @description 所有元素的抽象类
  **/
-import { uid } from "./helpers";
 
 export class Element {
   constructor (opts) {
@@ -12,8 +11,6 @@ export class Element {
         this[name] = opts[name];
       }
     }
-    console.log(opts.id);
-    this.id = opts.id || uid();
     this.render();
   }
 
@@ -27,5 +24,10 @@ export class Element {
   follow (offset) {}
 
   // Interface
-  setShape () {}
+  setShape (shape) {
+    this.shape = {
+      ...this.shape,
+      ...shape,
+    };
+  }
 }

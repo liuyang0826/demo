@@ -5,17 +5,22 @@ import { lastItem } from "../helpers";
 export class Line extends Element {
   constructor (opts) {
     super(opts);
-    this.type = "line";
   }
 
   render () {
     this.el = new Polyline({
-      shape: this.shape
+      shape: this.shape,
+      style: this.style
     });
   }
 
   addToRoot (root) {
     root.zr.add(this.el);
+  }
+
+  setShape (shape) {
+    super.setShape(shape);
+    this.el.setShape(shape)
   }
 
   on (type, fn) {
@@ -27,7 +32,7 @@ export class Line extends Element {
   }
 
   follow (offset) {
-    const points = this.el.shape.points;
+    const points = this.shape.points;
 
     lineVertexFollow(this, offset)
 
@@ -46,11 +51,11 @@ export class Line extends Element {
 // 线顶点跟随拖动
 function lineVertexFollow(line, offset) {
   if (line.isFollowStart) {
-    const first = line.el.shape.points[0];
+    const first = line.shape.points[0];
     first[0] += offset.x;
     first[1] += offset.y;
   } else {
-    const last = lastItem(line.el.shape.points);
+    const last = lastItem(line.shape.points);
     last[0] += offset.x;
     last[1] += offset.y;
   }
@@ -58,7 +63,7 @@ function lineVertexFollow(line, offset) {
 
 // 与端点相连的点跟随
 function lineVertexNextFollow(line) {
-  const points = line.el.shape.points;
+  const points = line.shape.points;
   if (line.isFollowStart) {
     const point = points[1];
     const first = points[0];
@@ -80,7 +85,7 @@ function lineVertexNextFollow(line) {
 
 // 线自动转折
 function lineAutoBreak(line) {
-  const points = line.el.shape.points;
+  const points = line.shape.points;
 
   if (line.isStartVertical || line.isEndVertical) {
     if (points[0][0] !== points[1][0]) {

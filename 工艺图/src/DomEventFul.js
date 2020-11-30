@@ -7,8 +7,8 @@ DomEventFul.prototype = {
   constructor: DomEventFul,
   on (type, fn) {
     const rootEl = this._$root.el
-    const wrapperFn = (e) => {
-      fn({ offsetX: e.clientX - rootEl.offsetLeft, offsetY: e.clientY - rootEl.offsetTop });
+    const wrapperFn = (event) => {
+      fn({ offsetX: event.clientX - rootEl.offsetLeft, offsetY: event.clientY - rootEl.offsetTop, event });
     };
     this._$eventFns.push(fn);
     this._$eventWrapperFns.push(wrapperFn);

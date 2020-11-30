@@ -1,12 +1,14 @@
 import { Element } from "../Element";
 import { mixin } from "../helpers";
 import { DomEventFul } from "../DomEventFul";
+import { addMove } from "../handler/move";
+import { rootState } from "../Root";
+import { addDrawLine } from "../handler/drawLine";
 
 export class Rect extends Element {
   constructor (opts) {
     super(opts);
     DomEventFul.call(this);
-    this.type = "rect";
     this._$eventFns = [];
     this._$eventWrapperFns = [];
   }
@@ -32,16 +34,22 @@ export class Rect extends Element {
   addToRoot (root) {
     root.el.appendChild(this.el);
     this._$root = root;
+    switch (root.state) {
+      case rootState.move:
+        this.startMove();
+        break;
+      case rootState.drawLine:
+        this.startDrawLine();
+        break;
+    }
   }
 
   setShape (shape) {
-    this.shape = {
-      ...this.shape,
-      ...shape,
-    };
+    super.setShape(shape);
     this.el.style.transform = `translate3d(${shape.x}px, ${shape.y}px, 0)`;
   }
 
+  // 跟随鼠标
   follow (offset) {
     this.shape.x += offset.x;
     this.shape.y += offset.y;
@@ -54,6 +62,20 @@ export class Rect extends Element {
       line.follow(offset);
     });
   }
+
+  // 开始移动
+  startMove () {
+    this.endMove = addMove(this);
+  }
+
+  endMove() {}
+
+  // 开始画线
+  startDrawLine() {
+    this.endDrawLine = addDrawLine(this)
+  }
+
+  endDrawLine() {}
 }
 
 mixin(Rect, DomEventFul);
