@@ -1,7 +1,6 @@
 import { Root } from "./Root";
 import { Rect } from "./element/Rect";
 import { Line } from "./element/Line";
-import { makeRectModel } from "./models";
 
 const data = [
   // {
@@ -82,7 +81,12 @@ root.on("dragover", (e) => {
 });
 
 root.on("drop", (e) => {
-  let rect = new Rect(makeRectModel(e.offsetX, e.offsetY));
+  let rect = new Rect({
+    shape: {
+      x: e.offsetX,
+      y: e.offsetY
+    }
+  });
   root.add(rect);
 });
 

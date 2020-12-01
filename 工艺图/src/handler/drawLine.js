@@ -1,5 +1,4 @@
 import { rootState } from "../Root";
-import { makeLineModel } from "../models";
 import { Line } from "../element/Line";
 
 export function startDrawLine (root) {
@@ -68,6 +67,8 @@ export function addDrawLine (rect) {
 function clickToStart (e, rect) {
   const shape = rect.shape;
   const root = rect._$root;
+  root.curDrawLineStartRect = rect;
+
   const x = ~~e.offsetX + 0.5;
   const y = ~~e.offsetY + 0.5;
   const near = [
@@ -96,7 +97,11 @@ function clickToStart (e, rect) {
   const nearInfo = near.find(d => d.value === min);
   const point = nearInfo.point;
 
-  let line = new Line(makeLineModel(point));
+  let line = new Line({
+    shape: {
+      points: [point]
+    }
+  });
   root.add(line);
 
   root.curDrawLine = line;
@@ -112,6 +117,10 @@ function clickToStart (e, rect) {
 // 结束画线
 function clickToEnd (rect) {
   const root = rect._$root;
+  if (root.curDrawLineStartRect === rect) {
+    // root.remove(root.curDrawLine);
+    // root.curDrawLine
+  }
   const curDrawLine = root.curDrawLine;
   const shape = rect.shape;
   const points = curDrawLine.shape.points;

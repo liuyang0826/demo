@@ -1,7 +1,7 @@
 import { Element } from "../Element";
 import { mixin } from "../helpers";
 import { DomEventFul } from "../DomEventFul";
-import { addMove } from "../handler/move";
+import { addMove } from "../handler/moveRect";
 import { rootState } from "../Root";
 import { addDrawLine } from "../handler/drawLine";
 
@@ -9,24 +9,38 @@ export class Rect extends Element {
   constructor (opts) {
     super(opts);
     DomEventFul.call(this);
+    this.lines = [];
     this._$eventFns = [];
     this._$eventWrapperFns = [];
+  }
+
+  get type () {
+    return "rect";
+  }
+
+  default () {
+    this.shape = {
+      x: 0,
+      y: 0,
+      width: 200,
+      height: 100
+    };
+    this.style = {
+      position: "absolute;",
+      "box-sizing": "border-box;",
+      border: "1px solid #000;",
+    };
   }
 
   render () {
     const div = document.createElement("div");
     const shape = this.shape;
-    const style = {
-      ...{
-        position: "absolute;",
-        "box-sizing": "border-box;",
-        "border": "1px solid #000;"
-      },
-      ...this.style
-    };
+    const style = this.style;
     div.style.cssText =
-    `left: 0; top: 0;transform: translate3d(${shape.x}px, ${shape.y}px, 0);width: ${shape.width}px;height: ${shape.height}px;` + Object.keys(style)
-    .map(key => key + ":" + style[key])
+    `left: 0;top:0;transform: translate3d(${shape.x}px, ${shape.y}px, 0);width: ${shape.width}px;height: ${shape.height}px;` + Object.keys(style)
+    .map(key => {
+      return key + ":" + style[key];
+    })
     .join("");
     this.el = div;
   }
@@ -42,6 +56,11 @@ export class Rect extends Element {
         this.startDrawLine();
         break;
     }
+  }
+
+  removeFromRoot (root) {
+    root.el.removeChild(this.el);
+    this.removeListener();
   }
 
   setShape (shape) {
@@ -63,19 +82,24 @@ export class Rect extends Element {
     });
   }
 
+  removeListener () {
+    this.endMove();
+    this.endDrawLine();
+  }
+
   // 开始移动
   startMove () {
     this.endMove = addMove(this);
   }
 
-  endMove() {}
+  endMove () {}
 
   // 开始画线
-  startDrawLine() {
-    this.endDrawLine = addDrawLine(this)
+  startDrawLine () {
+    this.endDrawLine = addDrawLine(this);
   }
 
-  endDrawLine() {}
+  endDrawLine () {}
 }
 
 mixin(Rect, DomEventFul);

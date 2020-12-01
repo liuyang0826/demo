@@ -1,7 +1,7 @@
 import { init } from "zrender";
 import { mixin } from "./helpers";
 import { DomEventFul } from "./DomEventFul";
-import { endRectMove, startRectMove } from "./handler/move";
+import { endRectMove, startRectMove } from "./handler/moveRect";
 import { endDrawLine, startDrawLine } from "./handler/drawLine";
 
 export const rootState = {
@@ -20,15 +20,25 @@ export class Root {
     this.elements = [];
     this.elementMap = {};
     this.state = rootState.drawLine;
+    // 画连接线
     this.curDrawLine = null;
+    this.curDrawLineStartRect = null;
     this.isNewPoint = false;
   }
 
-  add (el) {
-    el.addToRoot(this);
-    this.elements.push(el);
-    console.log(el.id);
-    this.elementMap[el.id] = el;
+  add (element) {
+    element.addToRoot(this);
+    this.elements.push(element);
+    this.elementMap[element.id] = element;
+  }
+
+  remove (element) {
+    element.removeFromRoot(this);
+    const idx = this.elements.findIndex(d => d === element);
+    if (idx !== -1) {
+      this.elements.splice(idx, 1);
+      delete this.elementMap[element.id];
+    }
   }
 
   startRectMove () {
