@@ -1,6 +1,6 @@
 import { Rect } from "../Rect";
 import { platforms } from "../../Root";
-import { mixin } from "../../helpers";
+import { eachObj, mixin } from "../../helpers";
 import { EventFulDOM } from "../../event/EventFulDOM";
 import { RectVertexDOM } from "./RectVertexDOM";
 
@@ -27,12 +27,13 @@ export class RectDOM extends Rect {
     const div = document.createElement("div");
     const shape = this.shape;
     const style = this.style;
-    div.style.cssText =
-    `transform: translate3d(${shape.x}px, ${shape.y}px, 0);width: ${shape.width}px;height: ${shape.height}px;` + Object.keys(style)
-    .map(key => {
-      return key + ":" + style[key] + ";";
+    eachObj(style, (value, key) => {
+      div.style[key] = value;
     })
-    .join("");
+    div.style.transform = `translate3d(${shape.x}px, ${shape.y}px, 0)`;
+    div.style.width = `${shape.width}px`;
+    div.style.height = `${shape.height}px`;
+    div.style.background = `url(${this.image}) center/100% 100%`;
     this.el = div;
   }
 
@@ -53,7 +54,7 @@ export class RectDOM extends Rect {
 
   setImage (image) {
     super.setImage(image);
-    this.el.style.background = `url(${image}) center/100% 100%`;
+    this.el.style.background = `url(${this.image}) center/100% 100%`;
   }
 }
 

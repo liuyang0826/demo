@@ -1,70 +1,17 @@
-import { Root } from "./Root";
-import { Rect } from "./elements/Rect";
+import { platforms, Root } from "./Root";
 import { Line } from "./elements/Line";
 import { RectDOM } from "./elements/dom/RectDOM";
 import { RectZR } from "./elements/zr/RectZR";
 import { types } from "./Element";
 
-const data = [
-  // {
-  //   id: 1,
-  //   type: "rect",
-  //   shape: {
-  //     x: 100,
-  //     y: 100,
-  //     width: 200,
-  //     height: 100
-  //   },
-  //   lines: [
-  //     {
-  //       id: 3,
-  //       isStart: true,
-  //       isVertical: true,
-  //       isBottom: true
-  //     }
-  //   ]
-  // },
-  // {
-  //   id: 2,
-  //   type: "rect",
-  //   shape: {
-  //     x: 500,
-  //     y: 400,
-  //     width: 200,
-  //     height: 100
-  //   },
-  //   lines: [
-  //     {
-  //       id: 3,
-  //       isStart: false,
-  //       isVertical: false,
-  //       isBottom: false
-  //     }
-  //   ]
-  // },
-  // {
-  //   id: 3,
-  //   type: "line",
-  //   shape: {
-  //     points: [
-  //       [250.5, 200.5],
-  //       [250.5, 600.5],
-  //       [400.5, 600.5],
-  //       [400.5, 450.5],
-  //       [500.5, 450.5],
-  //     ]
-  //   },
-  //   isStartVertical: true,
-  //   isEndVertical: false
-  // },
-];
-
+const data = JSON.parse(localStorage.getItem("data")) || [];
+console.log(data);
 const root = new Root({
   el: document.querySelector("#root"),
   oncontextmenu (item) {
+    item.setData({name: "test"})
     switch (item.type) {
       case types.rect:
-        console.log(item);
         item.setImage("/1.png");
         break;
     }
@@ -74,10 +21,10 @@ const root = new Root({
 data.forEach((item) => {
   let el;
   switch (item.type) {
-    case "rect":
-      el = new Rect(data);
+    case types.rect:
+      el = item.platform === platforms.dom ? new RectDOM(item) : new RectZR(item);
       break;
-    case "line":
+    case types.line:
       el = new Line(item);
       break;
   }
@@ -135,14 +82,17 @@ const json = [
   {
     name: "张三"
   }
-]
+];
 document.getElementById("download").onclick = function () {
-  const blob = new File([JSON.stringify(json)], "test.json", {
-    type: "text/plain",
-    lastModified: new Date()
-  });
-  const a = document.createElement("a");
-  a.href = (window.URL || window.webkitURL).createObjectURL(blob);
-  a.download = decodeURIComponent("test1.json");
-  a.dispatchEvent(new MouseEvent("click"));
+  // console.log(root.elements);
+  const data = root.getResult();
+  localStorage.setItem("data", JSON.stringify(data))
+
+  // const a = document.createElement("a");
+  // a.href = (window.URL || window.webkitURL).createObjectURL(new File([JSON.stringify(data)], "data.json", {
+  //   type: "text/plain",
+  //   lastModified: new Date()
+  // }));
+  // a.download = decodeURIComponent("data.json");
+  // a.dispatchEvent(new MouseEvent("click"));
 };

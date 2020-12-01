@@ -61,4 +61,8 @@ export class Element {
       ...shape,
     };
   }
+
+  setData (data) {
+    this.data = data;
+  }
 }

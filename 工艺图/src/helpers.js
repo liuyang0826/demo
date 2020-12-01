@@ -43,3 +43,25 @@ export function makeRectVertexes(rect) {
     [shape.x, shape.y + halfH]
   ];
 }
+
+export function hasOwnProperty(obj, prop) {
+  return Object.prototype.hasOwnProperty.call(obj, prop);
+}
+
+export function eachObj(obj, fn) {
+  for (let key in obj) {
+    if (hasOwnProperty(obj, key)) {
+      fn(obj[key], key, obj);
+    }
+  }
+}
+
+export function copyProperties(from, props) {
+  const to = {};
+  props.forEach(prop => {
+    if (hasOwnProperty(from, prop)) {
+      to[prop] = from[prop];
+    }
+  });
+  return to;
+}

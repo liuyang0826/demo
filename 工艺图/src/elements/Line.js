@@ -7,11 +7,8 @@ import { mixin } from "../helpers";
 export class Line extends Element {
   constructor (opts) {
     super(opts);
+    this.type = types.line;
     EventFulZR.call(this);
-  }
-
-  get type () {
-    return types.line;
   }
 
   init () {
@@ -41,7 +38,7 @@ export class Line extends Element {
   }
 
   removeFromRoot (root) {
-    super.removeFromRoot(root)
+    super.removeFromRoot(root);
     root.zr.remove(this.el);
   }
 
@@ -65,7 +62,6 @@ export class Line extends Element {
       points: points
     });
   }
-
 
 }
 

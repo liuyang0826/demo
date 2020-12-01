@@ -1,9 +1,10 @@
 import { init } from "zrender";
-import { mixin } from "./helpers";
+import { copyProperties, mixin } from "./helpers";
 import { EventFulDOM } from "./event/EventFulDOM";
 import { endRectMove, startRectMove } from "./handler/rectMove";
 import { endDrawLine, startDrawLine } from "./handler/drawLine";
 import { endRectResize, startRectResize } from "./handler/rectResize";
+import { types } from "./Element";
 
 export const rootState = {
   off: 1,
@@ -25,7 +26,7 @@ export class Root {
         this[name] = opts[name];
       }
     }
-    const el = opts.el
+    const el = opts.el;
     el.style.position = "absolute";
     this.el = el;
     this.zr = init(el);
@@ -106,6 +107,31 @@ export class Root {
 
   endRectResize () {
     endRectResize(this);
+  }
+
+  getResult () {
+    return this.elements.map((element) => {
+      let result;
+      switch (element.type) {
+        case types.rect:
+          result = copyProperties(element, ["id", "type", "shape", "lines", "platform", "image", "data"]);
+          result.shape = copyProperties(result.shape, ["x", "y", "width", "height"]);
+          return result;
+        case types.line:
+          result = copyProperties(element, [
+            "id",
+            "type",
+            "shape",
+            "lines",
+            "platform",
+            "isStartVertical",
+            "isEndVertical",
+            "data"
+          ]);
+          result.shape = copyProperties(result.shape, ["points"]);
+          return result;
+      }
+    }).filter(Boolean);
   }
 }
 

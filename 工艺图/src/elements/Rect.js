@@ -8,14 +8,9 @@ import { addRectResize, elementFollowResize, lineFollowElement, vertexFollowElem
 export class Rect extends Element {
   constructor (opts) {
     super(opts);
-    this.platform = "";
-    this.lines = [];
-    this.vertexes = [];
-    this.image = "";
-  }
-
-  get type () {
-    return types.rect;
+    this.type = types.rect;
+    this.lines = this.lines || [];
+    this.vertexes = this.vertexes || [];
   }
 
   init () {
