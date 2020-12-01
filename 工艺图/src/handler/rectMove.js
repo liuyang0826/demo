@@ -1,28 +1,29 @@
 import { rootState } from "../Root";
 import { lastItem } from "../helpers";
+import { types } from "../Element";
 
 export function startRectMove (root) {
-  if (root.state === rootState.move) return;
-  root.state = rootState.move;
+  if (root.state === rootState.rectMove) return;
+  root.state = rootState.rectMove;
   root.elements.forEach((element) => {
-    element.type === "rect" && element.startMove()
+    element.type === types.rect && element.startMove();
   });
 }
 
 export function endRectMove (root) {
-  if (root.state !== rootState.move) return;
+  if (root.state !== rootState.rectMove) return;
   root.state = rootState.off;
   root.elements.forEach((element) => {
-    element.type === "rect" && element.endMove();
+    element.type === types.rect && element.endMove();
   });
 }
 
-export function addMove (element) {
-  const root = element._$root;
-  let prevEvent;
-  element.on("mousedown", mouseDown);
+export function addRectMove (rect) {
+  const root = rect.root;
+  rect.on("mousedown", mousedown);
 
-  function mouseDown (e) {
+  let prevEvent;
+  function mousedown (e) {
     if (e.event.button !== 0) return;
     prevEvent = e;
     root.on("mousemove", mousemove);
@@ -33,7 +34,7 @@ export function addMove (element) {
         x: e.offsetX - prevEvent.offsetX,
         y: e.offsetY - prevEvent.offsetY,
       };
-      element.follow(offset);
+      rect.follow(offset);
       prevEvent = e;
     }
 
@@ -44,7 +45,7 @@ export function addMove (element) {
   }
 
   return () => {
-    element.off("mousedown", mouseDown);
+    rect.off("mousedown", mousedown);
   };
 }
 

@@ -1,17 +1,20 @@
-import { Element } from "../Element";
+import { Element, types } from "../Element";
 import { Polyline } from "zrender";
-import { lineAutoBreak, lineVertexFollow, lineVertexNextFollow } from "../handler/moveRect";
+import { lineAutoBreak, lineVertexFollow, lineVertexNextFollow } from "../handler/rectMove";
+import { EventFulZR } from "../event/EventFulZR";
+import { mixin } from "../helpers";
 
 export class Line extends Element {
   constructor (opts) {
     super(opts);
+    EventFulZR.call(this);
   }
 
   get type () {
-    return "line";
+    return types.line;
   }
 
-  default () {
+  init () {
     this.shape = {
       points: [[0, 0]]
     };
@@ -25,6 +28,7 @@ export class Line extends Element {
   }
 
   render () {
+    super.render();
     this.el = new Polyline({
       shape: this.shape,
       style: this.style
@@ -32,24 +36,18 @@ export class Line extends Element {
   }
 
   addToRoot (root) {
+    super.addToRoot(root);
     root.zr.add(this.el);
   }
 
   removeFromRoot (root) {
+    super.removeFromRoot(root)
     root.zr.remove(this.el);
   }
 
   setShape (shape) {
     super.setShape(shape);
-    this.el.setShape(shape);
-  }
-
-  on (type, fn) {
-    this.el.on("type", fn);
-  }
-
-  off (type, fn) {
-    this.el.off("type", fn);
+    this.el.setShape(this.shape);
   }
 
   follow (offset) {
@@ -63,8 +61,12 @@ export class Line extends Element {
       lineAutoBreak(this);
     }
 
-    this.el.setShape({
+    this.setShape({
       points: points
     });
   }
+
+
 }
+
+mixin(Line, EventFulZR);

@@ -12,7 +12,7 @@
 
   .item {
     display: inline-block;
-    width: 80px;
+    padding: 0 16px;
     height: 32px;
     border: 1px solid #f00;
     border-radius: 4px;
@@ -24,9 +24,12 @@
 </head>
 <body>
 <div class="header">
-  <div class="item" draggable="true">矩形</div>
+  <div class="item" draggable="true" id="div">div矩形</div>
+  <div class="item" draggable="true" id="zr">canvas矩形</div>
   <div class="item" id="drawLine">画线</div>
   <div class="item" id="move">移动</div>
+  <div class="item" id="resize">缩放</div>
+  <div class="item" id="download">下载</div>
 </div>
 <div id="root"></div>
 </body>

@@ -17,7 +17,7 @@ export function mixin (target, source, overlay) {
 }
 
 export function guid () {
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+  return "xxxxxxxx-xxxx-yxxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
     var r = Math.random() * 16 | 0,
     v = c === "x" ? r : (r & 0x3 | 0x8);
     return v.toString(16);
@@ -26,4 +26,20 @@ export function guid () {
 
 export function lastItem (list, index = 1) {
   return list[list.length - index];
+}
+
+export function makeRectVertexes(rect) {
+  const shape = rect.shape;
+  const halfW = shape.width / 2;
+  const halfH = shape.height / 2;
+  return [
+    [shape.x, shape.y],
+    [shape.x + halfW, shape.y],
+    [shape.x + shape.width, shape.y],
+    [shape.x + shape.width, shape.y + halfH],
+    [shape.x + shape.width, shape.y + shape.height],
+    [shape.x + halfW, shape.y + shape.height],
+    [shape.x, shape.y + shape.height],
+    [shape.x, shape.y + halfH]
+  ];
 }

@@ -1,11 +1,12 @@
 import { rootState } from "../Root";
-import { Line } from "../element/Line";
+import { Line } from "../elements/Line";
+import { types } from "../Element";
 
 export function startDrawLine (root) {
   if (root.state === rootState.drawLine) return;
   root.state = rootState.drawLine;
   root.elements.forEach((element) => {
-    element.type === "rect" && element.startDrawLine();
+    element.type === types.rect && element.startDrawLine();
   });
 }
 
@@ -13,12 +14,12 @@ export function endDrawLine (root) {
   if (root.state !== rootState.drawLine) return;
   root.state = rootState.off;
   root.elements.forEach((element) => {
-    element.type === "rect" && element.endDrawLine();
+    element.type === types.rect && element.endDrawLine();
   });
 }
 
 export function addDrawLine (rect) {
-  const root = rect._$root;
+  const root = rect.root;
   rect.on("click", click);
 
   function click (e) {
@@ -66,7 +67,7 @@ export function addDrawLine (rect) {
 // 开始画线
 function clickToStart (e, rect) {
   const shape = rect.shape;
-  const root = rect._$root;
+  const root = rect.root;
   root.curDrawLineStartRect = rect;
 
   const x = ~~e.offsetX + 0.5;
@@ -100,8 +101,9 @@ function clickToStart (e, rect) {
   let line = new Line({
     shape: {
       points: [point]
-    }
+    },
   });
+  line.el.silent = true;
   root.add(line);
 
   root.curDrawLine = line;
@@ -116,7 +118,7 @@ function clickToStart (e, rect) {
 
 // 结束画线
 function clickToEnd (rect) {
-  const root = rect._$root;
+  const root = rect.root;
   if (root.curDrawLineStartRect === rect) {
     // root.remove(root.curDrawLine);
     // root.curDrawLine
@@ -159,7 +161,7 @@ function clickToEnd (rect) {
   curDrawLine.direction = arrowDirection;
   curDrawLine.isStartVertical = points[0][1] !== points[1][1];
   curDrawLine.isEndVertical = curDrawLine.isVertical;
+  curDrawLine.el.silent = false
 
-  // curDrawLine.arrow = renderArrow(point, curDrawLine.style.stroke, arrowDirection);
   root.curDrawLine = null;
 }

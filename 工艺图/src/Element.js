@@ -1,4 +1,11 @@
 import { guid } from "./helpers";
+import { Contextmenu } from "./Contextmenu";
+
+export const types = {
+  rect: 1,
+  line: 2,
+  rectVertex: 3
+};
 
 /**
  * @description 所有元素的抽象类
@@ -6,8 +13,8 @@ import { guid } from "./helpers";
 
 export class Element {
   constructor (opts) {
-    this.id = guid()
-    this.default();
+    this.id = guid();
+    this.init();
     for (var name in opts) {
       if (opts.hasOwnProperty(name) && name !== "shape" && name !== "style") {
         this[name] = opts[name];
@@ -16,15 +23,15 @@ export class Element {
     this.shape = {
       ...this.shape,
       ...opts.shape
-    }
+    };
     this.style = {
       ...this.style,
       ...opts.style
-    }
+    };
     this.render();
   }
 
-  default () {
+  init () {
     this.shape = {};
     this.style = {};
   }
@@ -33,10 +40,16 @@ export class Element {
   render () {}
 
   // Interface
-  addToRoot (root) {}
+  addToRoot (root) {
+    this.root = root;
+    Contextmenu.call(this);
+  }
 
   // Interface
-  removeFromRoot (root) {}
+  removeFromRoot (root) {
+    this.root = null;
+    this.offContextmenu();
+  }
 
   // Interface
   follow (offset) {}

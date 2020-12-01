@@ -1,6 +1,9 @@
 import { Root } from "./Root";
-import { Rect } from "./element/Rect";
-import { Line } from "./element/Line";
+import { Rect } from "./elements/Rect";
+import { Line } from "./elements/Line";
+import { RectDOM } from "./elements/dom/RectDOM";
+import { RectZR } from "./elements/zr/RectZR";
+import { types } from "./Element";
 
 const data = [
   // {
@@ -56,37 +59,65 @@ const data = [
   // },
 ];
 
-const root = new Root(document.querySelector("#root"));
+const root = new Root({
+  el: document.querySelector("#root"),
+  oncontextmenu (item) {
+    switch (item.type) {
+      case types.rect:
+        console.log(item);
+        item.setImage("/1.png");
+        break;
+    }
+  }
+});
 
 data.forEach((item) => {
   let el;
   switch (item.type) {
     case "rect":
-      renderRect(item);
+      el = new Rect(data);
       break;
     case "line":
       el = new Line(item);
-      root.add(el);
       break;
   }
+  root.add(el);
 });
 
-function renderRect (data) {
-  let rect = new Rect(data);
-  root.add(rect);
-}
+let type;
+document.getElementById("div").ondragstart = function () {
+  type = "div";
+};
+
+document.getElementById("zr").ondragstart = function () {
+  type = "zr";
+};
 
 root.on("dragover", (e) => {
   e.event.preventDefault();
 });
 
 root.on("drop", (e) => {
-  let rect = new Rect({
-    shape: {
-      x: e.offsetX,
-      y: e.offsetY
-    }
-  });
+  let rect;
+  switch (type) {
+    case "div":
+      rect = new RectDOM({
+        shape: {
+          x: e.offsetX,
+          y: e.offsetY
+        }
+      });
+      break;
+    case "zr":
+      rect = new RectZR({
+        shape: {
+          x: e.offsetX,
+          y: e.offsetY
+        }
+      });
+      break;
+  }
+  console.log(rect);
   root.add(rect);
 });
 
@@ -95,4 +126,23 @@ document.getElementById("drawLine").onclick = function () {
 };
 document.getElementById("move").onclick = function () {
   root.startRectMove();
+};
+document.getElementById("resize").onclick = function () {
+  root.startRectResize();
+};
+
+const json = [
+  {
+    name: "张三"
+  }
+]
+document.getElementById("download").onclick = function () {
+  const blob = new File([JSON.stringify(json)], "test.json", {
+    type: "text/plain",
+    lastModified: new Date()
+  });
+  const a = document.createElement("a");
+  a.href = (window.URL || window.webkitURL).createObjectURL(blob);
+  a.download = decodeURIComponent("test1.json");
+  a.dispatchEvent(new MouseEvent("click"));
 };
