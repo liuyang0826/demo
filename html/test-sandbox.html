@@ -3,21 +3,80 @@
 <head>
   <meta charset="UTF-8">
   <title>test-sandbox</title>
+  <style>
+      * {
+          margin: 0;
+          padding: 0;
+      }
+
+      iframe {
+          display: block;
+      }
+  </style>
 </head>
 <body>
 <script>
-window.addEventListener('message', function (e) {
-  // 相当于window.top.currentWindow.
-  var mainWindow= e.source;
-  var result = '';
-  try {
-    result = eval(e.data);
-  } catch (e) {
-    result = 'eval() threw an exception.';
+  function makeIndexMap (list, props) {
+    if (!Array.isArray(props)) {
+      props = [{id: props}]
+    }
+    const rootCache = {
+      cache: {},
+      index: 0,
+      children: list
+    }
+    return {
+      get (values) {
+        if (!Array.isArray(values)) {
+          values = [values]
+        }
+        let curCache = rootCache
+        let i = 0
+        for (; i < values.length; i++) {
+          const curValue = values[i]
+          let cache = curCache.cache[curValue]
+          if (cache) {
+            curCache = cache
+            continue
+          }
+          cache = find(curCache, props[i], curValue)
+          if (cache) {
+            curCache = cache
+          } else {
+            break
+          }
+        }
+        if (i === values.length) {
+          return curCache.item
+        }
+      }
+    }
+
+    function find (cache, prop, value) {
+      while (cache.index < cache.children.length) {
+        const item = cache.children[cache.index]
+        cache.cache[item[prop.id]] = {
+          cache: {},
+          index: 0,
+          children: item[prop.children],
+          item: item
+        }
+        cache.index++
+        if (item[prop.id] === value) {
+          return cache.cache[item[prop.id]]
+        }
+      }
+    }
   }
-  // e.origin 就是原来window的url
-  mainWindow.postMessage(result, e.origin);
-});
+
+  let map = makeMap([
+    {id: 1, children: [{id: 100}, {id: 200}, {id: 600},]},
+    {id: 2, children: [{id: 300}, {id: 400}, {id: 600},]},
+    {id: 3, children: [{id: 500}, {id: 600}, {id: 700},]},
+    {id: 4, children: [{id: 500}, {id: 600}, {id: 700},]}],
+  "id"
+  )
+  console.log(map.get(1))
 </script>
 </body>
 </html>
