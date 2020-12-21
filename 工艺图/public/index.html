@@ -9,9 +9,28 @@
   * { margin: 0;padding: 0; }
 
   #root { width: 100vw;height: 100vh;}
+
+  .item {
+    display: inline-block;
+    padding: 0 16px;
+    height: 32px;
+    border: 1px solid #f00;
+    border-radius: 4px;
+    color: #f00;
+    text-align: center;
+    line-height: 32px;
+  }
   </style>
 </head>
 <body>
+<div class="header">
+  <div class="item" draggable="true" id="div">div矩形</div>
+  <div class="item" draggable="true" id="zr">canvas矩形</div>
+  <div class="item" id="drawLine">画线</div>
+  <div class="item" id="move">移动</div>
+  <div class="item" id="resize">缩放</div>
+  <div class="item" id="download">保存</div>
+</div>
 <div id="root"></div>
 </body>
 </html>

@@ -19,12 +19,12 @@ module.exports = {
     })
   ],
   devServer: {
-    open: "http://127.0.0.1:5000",
+    open: "http://127.0.0.1:4000",
     hot: true,
     historyApiFallback: true,
     publicPath: "/",
     host: "0.0.0.0",
-    port: 5000,
+    port: 4000,
     contentBase: resolveApp("public"),
     watchContentBase: true
   }
