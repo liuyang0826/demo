@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="liuyang">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>button</title>
+  <style>
+      .root {
+          width: 600px;
+          margin: auto;
+          position: relative;
+          height: 40px;
+      }
+
+      .root div {
+          position: absolute;
+          top: 0;
+      }
+  </style>
+</head>
+<body>
+<div class="root"></div>
+
+<script>
+  const data = makeData()
+
+  function makeData () {
+    let start = ~~(Math.random() * 10)
+    const offset = 80
+    return Array.from({length: 10}).map((item) => {
+      start += ~~(offset * Math.random()) + 20
+      return {
+        start: start,
+        end: ~~(start + offset * Math.random()) + 20,
+        color: `rgb(${~~(255 * Math.random())}, ${~~(255 * Math.random())}, ${~~(255 * Math.random())})`
+      }
+    })
+  }
+
+  console.log(data)
+
+  const result = []
+
+  data.forEach((item) => {
+    result.push({
+      isStart: true,
+      value: item.start,
+      data: item
+    })
+    result.push({
+      isStart: false,
+      value: item.end,
+      data: item
+    })
+  })
+  result.sort((a, b) => a.value - b.value)
+  const curDataList = []
+
+  const root = document.getElementsByClassName('root')[0]
+  for (let i = 0; i < result.length - 1; i++) {
+    const start = result[i]
+    const end = result[i + 1]
+    if (start.isStart) {
+      curDataList.push(start.data)
+    } else {
+      const cur = start.data
+      const index = curDataList.findIndex(d => d === cur)
+      if (index > -1) {
+        curDataList.splice(index, 1)
+      }
+    }
+    console.log(JSON.stringify(curDataList))
+    createElement(start.value, end.value)
+  }
+
+  function createElement (start, end) {
+    const height = 40 / (curDataList.length)
+    for (let i = 0; i < curDataList.length; i++) {
+      const div = document.createElement('div')
+      div.style.left = start + 'px'
+      div.style.width = end - start + 'px'
+      div.style.height = height + 'px'
+      div.style.top = height * i + 'px'
+      div.style.backgroundColor = curDataList[i]?.color || ''
+      root.appendChild(div)
+    }
+  }
+</script>
+</body>
+</html>
