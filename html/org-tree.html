@@ -10,18 +10,24 @@
     margin: 0;padding: 0;
   }
   .box {
-    display: table;
+    display: flex;
+    align-items: center;
     width: 300px;
     margin: auto;
-  }
-  .item {
-    display: table-cell;
-    vertical-align: middle;
   }
   .node {
     box-sizing: border-box;
     padding: 10px 20px;
     position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .inner {
+    padding: 20px;
+    border: 1px solid #eaeaea;
+  }
+  .children {
+    padding: 0 20px;
   }
   .node:before, .node:after {
     content: '';
@@ -34,20 +40,6 @@
   }
   .node:after {
     top: 50%;
-  }
-  .left .node:before, .left .node:after {
-    right: 0;
-    border-right: 1px solid #eaeaea;
-  }
-  .left .node:first-of-type:before, .left .node:last-of-type:after {
-    border-right: none;
-  }
-  .right .node:before, .right .node:after {
-    left: 0;
-    border-left: 1px solid #eaeaea;
-  }
-  .right .node:first-of-type:before, .right .node:last-of-type:after {
-    border-left: none;
   }
   .inner:before, .inner:after {
     content: '';
@@ -63,19 +55,32 @@
   .inner:after {
     right: 0;
   }
+  .right .node:before, .right .node:after {
+    left: 0;
+    border-left: 1px solid #eaeaea;
+  }
+  .right .node:first-of-type:before, .right .node:last-of-type:after {
+    border-left: none;
+  }
+
   .left .inner:before, .right .inner:after {
     content: none;
   }
-  .node div {
-    height: 40px;
-    border: 1px solid #eaeaea;
+  .left .node:before, .left .node:after {
+    right: 0;
+    border-right: 1px solid #eaeaea;
+  }
+  .left .node:first-of-type:before, .left .node:last-of-type:after {
+    border-right: none;
   }
   </style>
 </head>
 <body>
 <div class="box">
-  <div class="item left">
-    <div class="node"><div class="inner">1</div></div>
+  <!--<div class="item left">
+    <div class="node">
+      <div class="inner">1</div>
+    </div>
     <div class="node"><div class="inner">1</div></div>
     <div class="node"><div class="inner">1</div></div>
     <div class="node"><div class="inner">1</div></div>
@@ -84,9 +89,21 @@
   </div>
   <div class="item">
     <div class="node"><div class="inner">1</div></div>
-  </div>
-  <div class="item right">
-    <div class="node"><div class="inner">1</div></div>
+  </div>-->
+  <div class="children right">
+    <div class="node">
+      <div class="inner">
+        1
+      </div>
+      <div class="children">
+        <div class="node">
+          <div class="inner">1</div>
+        </div>
+        <div class="node">
+          <div class="inner">1</div>
+        </div>
+      </div>
+    </div>
     <div class="node"><div class="inner">1</div></div>
     <div class="node"><div class="inner">1</div></div>
   </div>
