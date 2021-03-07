@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="1161906592@qq.com">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>pdf</title>
+  <script src="export.js"></script>
+  <style>
+  canvas {
+    /*display: block;*/
+  }
+  </style>
+</head>
+<body>
+<div id="renderPdf">21</div>
+<div class="container">
+  <canvas style="height: 500px;"></canvas>
+</div>
+<script>
+const canvas = document.querySelector("canvas")
+canvas.width = 800
+canvas.height = 1200
+const ctx = canvas.getContext("2d")
+ctx.fillRect(0, 0, canvas.width, canvas.height)
+window.onload = function () {
+  const el = document.querySelector('.container')
+  document.querySelector('#renderPdf').addEventListener('click', () => {
+    window.html2PDF(el, {
+      mode: 'adaptive',
+      pagesplit: true,
+      offset: {
+        x: 20,
+        y: 20
+      },
+      outputType: 'save',
+      isToggleStyle: true,
+      useCORS: true,
+      useDefaultFoot: true,
+      // onProgress: (percent, pageNum, bloburl) => {
+      //   console.log(`${percent}%, 第${pageNum}页, ${bloburl}`)
+      // },
+      // onComplete: (bloburl) => {
+      //   console.log(bloburl)
+      // }
+    })
+  })
+}
+</script>
+</body>
+</html>
