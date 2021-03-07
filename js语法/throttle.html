@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="丿Coder">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>throttle</title>
+</head>
+<body>
+<button>点击</button>
+
+<script>
+  const test = throttle(function (index) {
+    console.log("test", index)
+  }, 2000)
+  let index = 0;
+  document.querySelector("button").onmousedown = function () {
+    test(index++)
+  }
+  function throttle (callback, ms) {
+    let lastCallback = null;
+    let prevTime = null;
+
+    function run (args) {
+      callback.call(this, ...args)
+      prevTime = Date.now();
+      setTimeout(() => {
+        if (lastCallback) {
+          lastCallback()
+          lastCallback = null
+        }
+      }, ms)
+    }
+
+    return function (...args) {
+      const curTime = Date.now()
+      if (prevTime && curTime - prevTime < ms) {
+        lastCallback = () => {
+          run(args)
+        };
+      } else {
+        run(args)
+      }
+    }
+  }
+</script>
+</body>
+</html>

@@ -18,4 +18,23 @@ var maxArea = function (height) {
   return max;
 };
 
+/**
+ * @param {number[]} height
+ * @return {number}
+ */
+var maxArea1 = function (height) {
+  let i = 0, j = height.length - 1, max = 0;
+  while (i < j) {
+    const left = height[i], right = height[j];
+    max = Math.max(Math.min(height[i], height[j]) * (j - i), max);
+    if (left < right) {
+      i++
+    } else {
+      j--;
+    }
+  }
+  return max;
+};
+
 console.log(maxArea([1, 8, 6, 2, 5, 4, 8, 3, 7]));
+console.log(maxArea1([1, 8, 6, 2, 5, 4, 8, 3, 7]));
