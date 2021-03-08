@@ -53,4 +53,84 @@ function findKth (a, K) {
   return fn(a, K)
 }
 
-console.log(findKth([1, 2, 3, 4, 4,7,6,7,8,9,10], 6))
+// console.log(findKth([1, 2, 3, 4, 4,7,6,7,8,9,10], 6))
+function minNumberdisappered( arr ) {
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i] >= 0 && arr[i] < arr.length - 1) {
+      swap(arr[i])
+    }
+  }
+
+  function swap(i) {
+    if (i >= arr.length) return ;
+    if (arr[i] !== i) {
+      let temp = arr[i];
+      arr[i] = i;
+      swap(temp, temp)
+    }
+  }
+
+  for (let i = 1; i < arr.length; i++) {
+    if (arr[i] !== i) {
+      return i
+    }
+  }
+  return arr[arr.length - 1] + 1
+}
+
+// console.log(minNumberdisappered([1,2,3,4]))
+
+function removeWithoutCopy(arr, item) {
+  let prev = 0;
+  while(arr[prev] !== item && prev < arr.length) {
+    prev++;
+  }
+  if (prev === arr.length) {
+    return arr
+  }
+  let next = prev;
+  while(next < arr.length) {
+    while (arr[prev] !== item) {
+      prev++;
+    }
+    while (arr[next] === item) {
+      next++;
+      if (next === arr.length) {
+        arr.length = prev;
+        return arr
+      }
+    }
+    arr[prev] = arr[next];
+    arr[next] = item;
+  }
+}
+
+// console.log(removeWithoutCopy([1, 2, 3, 2, 3, 4, 3, 3, 3], 3))
+function cssStyle2DomStyle(sName) {
+  let str = "";
+  let nextUpper = false;
+  for (let i = 0; i < sName.length; i++) {
+    if (sName[i] === "-") {
+      nextUpper = true;
+    } else if (nextUpper) {
+      str += sName[i].toUpperCase();
+      nextUpper = false;
+    } else {
+      str += sName[i];
+    }
+  }
+  return str;
+}
+
+function makeClosures(arr, fn) {
+  return arr.map((item) => {
+    return () => {
+      return fn(item)
+    }
+  })
+}
+
+const result = makeClosures([1, 2, 3], function (x) {
+  return x * x;
+})
+console.log(result[2]())
