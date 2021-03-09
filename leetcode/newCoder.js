@@ -54,18 +54,18 @@ function findKth (a, K) {
 }
 
 // console.log(findKth([1, 2, 3, 4, 4,7,6,7,8,9,10], 6))
-function minNumberdisappered( arr ) {
+function minNumberdisappered (arr) {
   for (let i = 0; i < arr.length; i++) {
     if (arr[i] >= 0 && arr[i] < arr.length - 1) {
       swap(arr[i])
     }
   }
 
-  function swap(i) {
-    if (i >= arr.length) return ;
+  function swap (i) {
+    if (i >= arr.length) return
     if (arr[i] !== i) {
-      let temp = arr[i];
-      arr[i] = i;
+      let temp = arr[i]
+      arr[i] = i
       swap(temp, temp)
     }
   }
@@ -80,49 +80,49 @@ function minNumberdisappered( arr ) {
 
 // console.log(minNumberdisappered([1,2,3,4]))
 
-function removeWithoutCopy(arr, item) {
-  let prev = 0;
-  while(arr[prev] !== item && prev < arr.length) {
-    prev++;
+function removeWithoutCopy (arr, item) {
+  let prev = 0
+  while (arr[prev] !== item && prev < arr.length) {
+    prev++
   }
   if (prev === arr.length) {
     return arr
   }
-  let next = prev;
-  while(next < arr.length) {
+  let next = prev
+  while (next < arr.length) {
     while (arr[prev] !== item) {
-      prev++;
+      prev++
     }
     while (arr[next] === item) {
-      next++;
+      next++
       if (next === arr.length) {
-        arr.length = prev;
+        arr.length = prev
         return arr
       }
     }
-    arr[prev] = arr[next];
-    arr[next] = item;
+    arr[prev] = arr[next]
+    arr[next] = item
   }
 }
 
 // console.log(removeWithoutCopy([1, 2, 3, 2, 3, 4, 3, 3, 3], 3))
-function cssStyle2DomStyle(sName) {
-  let str = "";
-  let nextUpper = false;
+function cssStyle2DomStyle (sName) {
+  let str = ''
+  let nextUpper = false
   for (let i = 0; i < sName.length; i++) {
-    if (sName[i] === "-") {
-      nextUpper = true;
+    if (sName[i] === '-') {
+      nextUpper = true
     } else if (nextUpper) {
-      str += sName[i].toUpperCase();
-      nextUpper = false;
+      str += sName[i].toUpperCase()
+      nextUpper = false
     } else {
-      str += sName[i];
+      str += sName[i]
     }
   }
-  return str;
+  return str
 }
 
-function makeClosures(arr, fn) {
+function makeClosures (arr, fn) {
   return arr.map((item) => {
     return () => {
       return fn(item)
@@ -131,6 +131,65 @@ function makeClosures(arr, fn) {
 }
 
 const result = makeClosures([1, 2, 3], function (x) {
-  return x * x;
+  return x * x
 })
-console.log(result[2]())
+// console.log(result[2]())
+
+function flat (arr) {
+  let i = 0
+  while (i < arr.length) {
+    while (Array.isArray(arr[i]) && curLevel < level) {
+      arr.splice(i, 1, ...arr[i])
+    }
+    i++
+  }
+  return arr
+}
+
+// console.log(flat([[1, 2, [3]], 4, [[5, 6, [8, [9]]], 7]], 3))
+
+function makeLimit (limit) {
+  return function (arr) {
+    let index = 0;
+    let isError = false;
+    return new Promise((resolve, reject) => {
+      for (let i = 0; i < limit; i++) {
+        next(i);
+      }
+      function next (i) {
+        if (isError) return;
+        if (index === arr.length) {
+          resolve()
+        }
+        return arr[index++]().then(() => {
+          next(i);
+        }).catch(() => {
+          isError = true;
+          reject()
+        })
+      }
+    })
+  }
+}
+
+const limiter = makeLimit(2);
+
+function success() {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      console.log("success")
+      resolve()
+    }, 1000)
+  })
+}
+
+function fail() {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      console.log("fail")
+      reject()
+    }, 1000)
+  })
+}
+
+limiter([success, fail, success, success, success, success, success])
