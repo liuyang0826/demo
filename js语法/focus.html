@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="丿Coder">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>focus</title>
+  <style>
+    *:focus {
+        color: red;
+    }
+  </style>
+</head>
+<button>点击</button>
+<div>点击</div>
+<body>
+<script>
+  document.querySelector("button").onclick = () => {
+    console.log('onclick')
+  }
+  setTimeout(() => {
+    document.querySelector("button").focus()
+  })
+</script>
+</body>
+</html>
