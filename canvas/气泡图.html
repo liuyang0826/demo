@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="1161906592@qq.com">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>气泡图</title>
+  <script src="https://cdn.bootcdn.net/ajax/libs/echarts/4.8.0/echarts.js"></script>
+</head>
+<body>
+<div id="chart" style="width: 600px;margin: auto;height: 600px;"></div>
+<script>
+var plantCap = [
+  { name: "1工具", value: 1000, id: "001" },
+  { name: "2社交", value: 900, id: "002" },
+  { name: "3汽车", value: 800, id: "003" },
+  { name: "4母婴", value: 700, id: "004" },
+  { name: "5理财", value: 600, id: "005" },
+  { name: "6视听", value: 500, id: "006" },
+  { name: "7游戏", value: 400, id: "007" },
+  { name: "8教育", value: 300, id: "008" },
+  { name: "9健康", value: 200, id: "009" },
+  { name: "10购物", value: 100, id: "010" }
+];
+
+plantCap.sort((a, b) => a.value - b.value);
+
+var datalist = [
+  { color: "#f467ce" },
+  { color: "#7aabe2" },
+  { color: "#ff7123" },
+  { color: "#ffc400" },
+  { color: "#5e333f" },
+  { color: "#6b3442" },
+  { color: "#8a3647" },
+  { color: "#68333f" },
+  { color: "#68333f" },
+  { color: "#68333f" },
+  { color: "#68333f" },
+  { color: "#68333f" },
+  { color: "#68333f" },
+  { color: "#68333f" },
+  { color: "#68333f" },
+  { color: "#68333f" },
+  { color: "#68333f" },
+  { color: "#68333f" },
+  { color: "#68333f" },
+  { color: "#68333f" },
+];
+
+var minSymbolSize = 40, maxSymbolSize = 100, sum = 0, val = [];
+for (var i = 0; i < plantCap.length; i++) {
+  sum += plantCap[i].value;
+  val.push(plantCap[i].value);
+}
+var datas = [], len = 100 / plantCap.length, leftLen = len / 2, maxVal = Math.max(...val);
+
+datas.push({
+  name: plantCap[0].value + "\n" + plantCap[0].name,
+  value: [50, 50, plantCap[0].id],
+  symbolSize: maxSymbolSize,
+  itemStyle: {
+    normal: {
+      color: "red",
+    }
+  },
+});
+
+function makeRandomPosition (n) {
+  const map = {};
+  const result = [];
+  for (let i = 0; i < n; i++) {
+    result.push(gen())
+  }
+  return result
+  function gen() {
+    const i = ~~ (Math.random() * n)
+    if (map.hasOwnProperty(i)) {
+      return gen()
+    } else {
+      map[i] = i
+      return i
+    }
+  }
+}
+
+const randomPositions = makeRandomPosition(plantCap.length - 1)
+
+const angle = Math.PI * 2 / (plantCap.length - 1);
+const r = 25;
+const rOffset = 15;
+
+for (var i = 0; i < randomPositions.length; i++) {
+  var item = plantCap[i];
+  var itemToStyle = datalist[i];
+  var symbolsize = (item.value / sum) * maxVal;
+  if (symbolsize >= maxSymbolSize) {
+    symbolsize = maxSymbolSize;
+  } else if (symbolsize < minSymbolSize) {
+    symbolsize = minSymbolSize;
+  }
+  const p = randomPositions[i]
+  const currentR = (r + rOffset * Math.random())
+  var offset = [50 + currentR * Math.sin(angle * p), 50 + currentR * Math.cos(angle * p), item.id];
+  leftLen += len;
+  datas.push({
+    name: item.value + "\n" + item.name,
+    value: offset,
+    symbolSize: symbolsize,
+    itemStyle: {
+      normal: {
+        color: itemToStyle.color,
+      }
+    },
+  });
+}
+
+echarts.init(document.getElementById("chart")).setOption({
+  grid: {
+    show: false,
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0
+  },
+  xAxis: [
+    {
+      type: "value",
+      show: false,
+      min: 0,
+      max: 100,
+    }
+  ],
+  yAxis: [
+    {
+      type: "value",
+      min: 0,
+      show: false,
+      max: 100,
+    }
+  ],
+  series: [
+    {
+      type: "scatter",
+      label: {
+        normal: {
+          show: true,
+          formatter: "{b}",
+          color: "#fff",
+          textStyle: {
+            fontSize: 12
+          }
+        },
+      },
+      data: datas
+    }
+  ]
+});
+</script>
+</body>
+</html>

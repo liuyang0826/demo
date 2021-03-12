@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="1161906592@qq.com">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>图片旋转</title>
+</head>
+<body>
+<input type="file">
+<script>
+document.querySelector("input").onchange = (e) => {
+  const fr = new FileReader();
+  fr.onloadend = (e) => {
+    rotate(e.target.result, 90);
+  };
+  fr.readAsDataURL(e.target.files[0]);
+};
+
+function rotate (src, angle) {
+  const canvas = document.createElement("canvas");
+  document.body.appendChild(canvas);
+  const ctx = canvas.getContext("2d");
+  const image = new Image();
+  document.body.appendChild(image)
+  image.onload = () => {
+    canvas.width = image.height;
+    canvas.height = image.width;
+    ctx.translate(image.height, 0);
+    ctx.rotate(angle * Math.PI / 180);
+    ctx.drawImage(image, 0, 0, image.width, image.height);
+  };
+
+  image.src = src;
+}
+
+function download (src) {
+  const a = document.createElement("a");
+  a.href = src;
+  a.download = "下载"
+  a.click()
+}
+</script>
+</body>
+</html>

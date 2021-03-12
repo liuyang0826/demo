@@ -7,18 +7,28 @@
   <title>map</title>
 </head>
 <body>
+<div class="box">
+  <div class="inner">sss</div>
+</div>
+<button>按钮</button>
 <script>
-let map = new Map();
-let fn = function () {
-  console.log(1);
-};
-map.set(fn, 100);
-map.forEach(function () {
-  console.log(arguments);
-});
-let mapIter = map.entries();
-console.log(mapIter.next());
-// console.log(map.get(fn));
+let p1 = new Promise((resolve, reject) => {
+  setTimeout(() => {
+    resolve('success')
+  },300)
+})
+
+let p2 = new Promise((resolve, reject) => {
+  setTimeout(() => {
+    reject('failed')
+  }, 500)
+})
+
+Promise.race([p1, p2]).then((result) => {
+  console.log(result)
+}).catch((error) => {
+  console.log(error)  // 打开的是 'failed'
+})
 </script>
 </body>
 </html>

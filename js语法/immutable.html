@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="1161906592@qq.com">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>immutable</title>
+<!--  <script src="https://cdn.bootcdn.net/ajax/libs/immutable/4.0.0-rc.9/immutable.js"></script>-->
+  <style>
+  * {
+    margin: 0;padding: 0;
+  }
+  div {
+    background: red;
+  }
+  [class=content] {
+    background: black;
+  }
+  .box {
+    width: 500px;
+    height: 500px;
+    margin: auto;
+  }
+  .inner {
+    width: 50%;
+    padding-bottom: 50%;
+    position: relative;
+  }
+  .content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .bfc {
+    overflow: hidden;
+    background: #000;
+  }
+  .float {
+    float: left;
+    height: 200px;
+  }
+  </style>
+</head>
+<body>
+<div class="box">
+  <div class="inner">
+    <div class="content"></div>
+  </div>
+</div>
+<div class="bfc">
+  <div class="float"></div>
+</div>
+<script>
+// const { Map } = Immutable;
+// const map1 = Map({ a: 1, b: 2, c: 3 });
+// const map2 = map1.set('b', 50);
+// console.log(map1, map2);
+// console.log(map1.toJS());
+// console.log(map2.toJS());
+</script>
+</body>
+</html>

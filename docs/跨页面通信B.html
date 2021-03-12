@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="1161906592@qq.com">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>跨页面通信</title>
+</head>
+<body>
+<script>
+window.addEventListener("storage", function(ev){
+  if (ev.key === 'message') {
+    // removeItem同样触发storage事件，此时ev.newValue为空
+    if(!ev.newValue)
+      return;
+    var message = JSON.parse(ev.newValue);
+    console.log(message);
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="1161906592@qq.com">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>call</title>
+</head>
+<body>
+<div style="width: 100px;height: 100px;padding: 20px;border: 10px solid #000;box-sizing: border-box;"></div>
+<script>
+Function.prototype.myCall = function (context, ...args) {
+  context.fn = this
+  // console.log("myCall", this);
+  return context.fn(...args)
+}
+Function.prototype.myBind = function (context, ...args1) {
+  return (...args2) => {
+    this.myCall(context, ...args1, ...args2)
+  }
+}
+function test (a, b) {
+  console.log("test", this, arguments);
+}
+
+const test1 = (...args) => {
+  console.log("test1", this, args);
+}
+
+const obj = {
+  a: 100
+}
+test.myCall(obj, 1, 2)
+test.bind(obj, 4, 5)(2,3)
+test.myBind(obj, 4, 5)(2,3)
+test1.myCall(obj, 1, 2)
+test1.bind(obj, 4, 5)(2,3)
+test1.myBind(obj, 4, 5)(2,3)
+</script>
+</body>
+</html>

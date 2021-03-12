@@ -2,52 +2,21 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8">
-  <meta name="author" content="丿Coder">
+  <meta name="author" content="1161906592@qq.com">
   <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
   <title>upload</title>
 </head>
 <body>
-<input type="file">
+<input type="file" id="file">
 <script>
-  const a = [10, 10]
-  const b = [20, 10]
-  const p = [15, 20]
-
-  console.log(Math.sqrt(calcDistance(a, b, p)))
-
-  function calcDistance (a, b, p) {
-    const vAB = [b[0] - a[0], b[1] - a[1]];
-    const vAP = [p[0] - a[0], p[1] - a[1]];
-    const vBP = [p[0] - b[0], p[1] - b[1]];
-    const dotAB_AP = vAB[0] * vAP[0] + vAB[1] * vAP[1]
-    const dotAB_BP = vAB[0] * vBP[0] + vAB[1] * vBP[1]
-    if (dotAB_AP < 0) {
-      // AP
-      return d(a, p)
-    } else if (dotAB_BP > 0) {
-      // BP
-      return d(b, p)
-    } else {
-      // 点到直线
-      if (a[0] === b[0]) {
-        // 垂直
-        return (p[0] - a[0]) ** 2
-      } else if (a[1] === b[1]) {
-        // 水平
-        return (p[1] - a[1]) ** 2
-      } else {
-        // 普通倾斜直线 暂不实现
-        // y - (y2 - y1) * (x - x1) / (x2 - x1) - y1 = 0
-        // y - ( (y2 - y1) * x / (x2 - x1) - (y2 - y1) * x1 / (x2 - x1) ) - y1 = 0
-        // y - (y2 - y1) * x / (x2 - x1) + (y2 - y1) * x1 / (x2 - x1) - y1 = 0
-      }
-    }
-
-    function d(a, b) {
-      // 只需比较大小 不进行开平方操作
-      return (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2
-    }
-  }
+document.getElementById("file").onchange = function (e) {
+  const fd = new FormData();
+  fd.append("file", e.target.files[0])
+  fetch("http://127.0.0.1:4001/api/upload", {
+    method: "post",
+    body: fd
+  })
+}
 </script>
 </body>
 </html>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="1161906592@qq.com">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>跨页面通信</title>
+</head>
+<body>
+<button id="new">新开</button>
+<button id="send">发送</button>
+<script>
+let subWin;
+document.getElementById("new").onclick = function () {
+  subWin = window.open("/跨页面通信B.html");
+};
+document.getElementById("send").onclick = function () {
+  // 发送消息给B页面
+  sendMessage({
+    name: "这是来自A的name"
+  });
+};
+
+function sendMessage (message) {
+  localStorage.setItem("message", JSON.stringify(message));
+  localStorage.removeItem("message");
+}
+</script>
+</body>
+</html>

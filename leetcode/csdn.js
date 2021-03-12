@@ -25,7 +25,27 @@ function main (list) {
   return res
 }
 
-// console.log(main([2, 3, 1, 0, 2, 5, 3, 0]))
+/**
+ * 长度n的数组 里面有范围为 0-n的元素，找出重复元素
+ * @param {number[]} nums
+ **/
+function repeatNum (nums) {
+  let i = 0;
+  while (i < nums.length) {
+    if (nums[i] === i) {
+      i++;
+    } else {
+      console.log(nums.join(","));
+      if (nums[i] === nums[nums[i]]) {
+        return nums[i]
+      }
+      swap(nums, i, nums[i]);
+    }
+  }
+  return false
+}
+
+console.log(2222, repeatNum([2, 3, 1, 0, 2, 4, 5, 0]))
 
 /**
  * 题目：请实现一个函数，把字符串中的每个空格替换成 “%20”。 例如输入 “We are happy.”，则输出”We%20are%20happy.”。
@@ -742,7 +762,7 @@ function threeSum (nums) {
 // console.log(threeSum([-1, 0, 1, 2, -1, -4]))
 
 /**
- * 回溯
+ * 回溯 判断数组中是否有指定n个数之和为sum是否
  **/
 function combinationSum2 (nums, n, sum) {
 
@@ -783,7 +803,7 @@ function find(nums, n) {
   return result;
 }
 
-console.log(find([32, 3, 5, 1, 30, 76, 2, 10, 29], 31))
+// console.log(find([32, 3, 5, 1, 30, 76, 2, 10, 29], 31))
 
 function runPromiseAsParallel (promise1, promise2) {
   return new Promise((resolve, reject) => {
@@ -915,7 +935,7 @@ function merge (a, b) {
   return result;
 }
 
-console.log(mergeSort([1, 2, 3, 1, 32, 4, 5, 2, 2, 34, 4]))
+// console.log(mergeSort([1, 2, 3, 1, 32, 4, 5, 2, 2, 34, 4]))
 
 /**
  * 楼梯问题
@@ -926,7 +946,7 @@ function step (n) {
   return step(n - 1) + step(n - 2)
 }
 
-console.log(step(7))
+// console.log(step(7))
 // f(3) = f(2) + f(1)
 function step1 (n) {
   if (n <= 0) {
@@ -948,7 +968,7 @@ function step1 (n) {
   }
   return res
 }
-console.log(step1(7))
+// console.log(step1(7))
 
 function each (root) {
   console.log(root)

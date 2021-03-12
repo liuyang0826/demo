@@ -5,10 +5,30 @@
   <meta name="author" content="丿Coder">
   <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
   <title>throttle</title>
+  <style>
+  * {
+    margin: 0;padding: 0;
+  }
+  .outer {
+    width: 600px;
+    height: 800px;
+    margin: auto;
+    background: red;
+  }
+  .inner {
+    width: 50%;
+    margin: auto;
+    padding-bottom: 50%;
+    height: 0;
+    background: blue;
+  }
+  </style>
 </head>
 <body>
 <button>点击</button>
-
+<div class="outer">
+  <div class="inner"></div>
+</div>
 <script>
   const test = throttle(function (index) {
     console.log("test", index)
