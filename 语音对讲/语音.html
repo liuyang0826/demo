@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta name="apple-mobile-web-capable" content="yes">
+  <title>录音并传递给后台</title>
+</head>
+<body>
+<button id="intercomBegin">开始对讲</button>
+<button id="intercomEnd">关闭对讲</button>
+</body>
+<script type="text/javascript">
+var begin = document.getElementById("intercomBegin");
+var end = document.getElementById("intercomEnd");
+
+function createAudioData (outputSampleRate, outputSampleBits) {
+  let size = 0;
+  let buffer = [];
+  const inputSampleRate = 48000;
+  const inputSampleBits = 16;
+  return {
+    clear () {
+      buffer = [];
+      size = 0;
+    },
+    input (data) {
+      buffer.push(new Float32Array(data));
+      size += data.length;
+    },
+    compress () {
+      const data = new Float32Array(size);
+      let offset = 0;
+      for (let i = 0; i < buffer.length; i++) {
+        data.set(buffer[i], offset);
+        offset += buffer[i].length;
+      }
+      const compression = ~~(inputSampleRate / outputSampleRate);
+      const length = data.length / compression;
+      const result = new Float32Array(length);
+      let index = 0, j = 0;
+      while (index < length) {
+        result[index] = data[j];
+        j += compression;
+        index++;
+      }
+      return result;
+    },
+    encodeWAV () {
+      const sampleRate = Math.min(inputSampleRate, outputSampleRate);
+      const sampleBits = Math.min(inputSampleBits, outputSampleBits);
+      const bytes = this.compress();
+      const dataLength = bytes.length * (sampleBits / 8);
+      const buffer = new ArrayBuffer(44 + dataLength);
+      const data = new DataView(buffer);
+
+      const channelCount = 1;//单声道
+      let offset = 0;
+
+      const writeString = function (str) {
+        for (var i = 0; i < str.length; i++) {
+          data.setUint8(offset + i, str.charCodeAt(i));
+        }
+      };
+
+      // 资源交换文件标识符
+      writeString("RIFF");
+      offset += 4;
+      // 下个地址开始到文件尾总字节数,即文件大小-8
+      data.setUint32(offset, 36 + dataLength, true);
+      offset += 4;
+      // WAV文件标志
+      writeString("WAVE");
+      offset += 4;
+      // 波形格式标志
+      writeString("fmt ");
+      offset += 4;
+      // 过滤字节,一般为 0x10 = 16
+      data.setUint32(offset, 16, true);
+      offset += 4;
+      // 格式类别 (PCM形式采样数据)
+      data.setUint16(offset, 1, true);
+      offset += 2;
+      // 通道数
+      data.setUint16(offset, channelCount, true);
+      offset += 2;
+      // 采样率,每秒样本数,表示每个通道的播放速度
+      data.setUint32(offset, sampleRate, true);
+      offset += 4;
+      // 波形数据传输率 (每秒平均字节数) 单声道×每秒数据位数×每样本数据位/8
+      data.setUint32(offset, channelCount * sampleRate * (sampleBits / 8), true);
+      offset += 4;
+      // 快数据调整数 采样一次占用字节数 单声道×每样本的数据位数/8
+      data.setUint16(offset, channelCount * (sampleBits / 8), true);
+      offset += 2;
+      // 每样本数据位数
+      data.setUint16(offset, sampleBits, true);
+      offset += 2;
+      // 数据标识符
+      writeString("data");
+      offset += 4;
+      // 采样数据总数,即数据总大小-44
+      data.setUint32(offset, dataLength, true);
+      offset += 4;
+      // 写入采样数据
+      if (sampleBits === 8) {
+        for (let i = 0; i < bytes.length; i++, offset++) {
+          const s = Math.max(-1, Math.min(1, bytes[i]));
+          let val = s < 0 ? s * 0x8000 : s * 0x7FFF;
+          val = ~~(255 / (65535 / (val + 32768)));
+          data.setInt8(offset, val, true);
+        }
+      } else {
+        for (let i = 0; i < bytes.length; i++, offset += 2) {
+          const s = Math.max(-1, Math.min(1, bytes[i]));
+          data.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+        }
+      }
+
+      return new Blob([data], { type: "audio/wav" });
+    }
+  };
+}
+
+function createRecorder (stream) {
+  const sampleBits = 16;
+  const sampleRate = 8000;
+  const context = new AudioContext();
+  const audioInput = context.createMediaStreamSource(stream);
+  const recorder = context.createScriptProcessor(4096, 1, 1);
+  const audioData = createAudioData(sampleRate, sampleBits);
+
+  return {
+    start (cb) {
+      audioInput.connect(recorder);
+      recorder.connect(context.destination);
+
+      let count = 0;
+      recorder.onaudioprocess = (e) => {
+        audioData.input(e.inputBuffer.getChannelData(0));
+        count++;
+        if (count === 8) {
+          cb(audioData.encodeWAV());
+          audioData.clear();
+          count = 0;
+        }
+      };
+    },
+
+    stop () {
+      recorder.disconnect();
+    },
+
+    audioPlay (data) {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      audioContext.decodeAudioData(data).then((buffer) => {
+        const audioBufferSourceNode = audioContext.createBufferSource();
+        const analyser = audioContext.createAnalyser();
+        audioBufferSourceNode.connect(audioContext.destination);
+        analyser.connect(audioContext.destination);
+        audioBufferSourceNode.buffer = buffer;
+        audioBufferSourceNode.start(0, 0, 1);
+      });
+    }
+  };
+}
+
+function createMediaStream () {
+  return new Promise((resolve) => {
+    navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia;
+    if (!navigator.getUserMedia) {
+      alert("浏览器不支持音频输入");
+    } else {
+      navigator.getUserMedia({
+        audio: true
+      },
+      function (mediaStream) {
+        resolve(mediaStream);
+      },
+      function (error) {
+        switch (error.message || error.name) {
+          case "PERMISSION_DENIED":
+          case "PermissionDeniedError":
+            console.info("用户拒绝提供信息。");
+            break;
+          case "NOT_SUPPORTED_ERROR":
+          case "NotSupportedError":
+            console.info("浏览器不支持硬件设备。");
+            break;
+          case "MANDATORY_UNSATISFIED_ERROR":
+          case "MandatoryUnsatisfiedError":
+            console.info("无法发现指定的硬件设备。");
+            break;
+          default:
+            console.info("无法打开麦克风。异常信息:" + (error.code || error.name));
+            break;
+        }
+      }
+      );
+    }
+  });
+}
+
+function createWebSocketClient (url) {
+  let ws;
+
+  let record;
+
+  let _mediaStream;
+
+  function createWebSocket () {
+    ws = new WebSocket(url);
+    ws.binaryType = "arraybuffer";
+
+    ws.onopen = () => {
+      if (ws.readyState === 1) {
+        createMediaStream().then((mediaStream) => {
+          _mediaStream = mediaStream;
+          record = createRecorder(mediaStream);
+          record.start((data) => {
+            ws.send(data);
+          });
+        });
+      }
+    };
+
+    ws.onmessage = (e) => {
+      record.audioPlay(e.data);
+    };
+
+    ws.onerror = () => {
+      record?.stop();
+      setTimeout(() => {
+        createWebSocket();
+      }, 300);
+    };
+
+    ws.onclose = () => {
+      record?.stop();
+      _mediaStream?.getTracks().forEach((track) => {
+        track.stop();
+      });
+    };
+  }
+
+  createWebSocket();
+
+  return {
+    close () {
+      ws?.close();
+    }
+  };
+}
+
+let webSocketClient;
+/*
+* 开始对讲
+*/
+begin.onclick = function () {
+  webSocketClient = createWebSocketClient("ws://10.76.49.5:8888?id=1");
+};
+
+/*
+* 关闭对讲
+*/
+end.onclick = function () {
+  webSocketClient.close();
+  console.log("关闭对讲以及WebSocket");
+};
+</script>
+</html>

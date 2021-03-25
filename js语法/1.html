@@ -5,37 +5,44 @@
   <title>Title</title>
 </head>
 <body>
-<input type="file" id="file" multiple>
 <script>
-var input = document.getElementById("file");
-input.onchange = function (e) {
-  Array.from(this.files).forEach((file, index) => {
-    setTimeout(() => {
-      let fr = new FileReader();
-      fr.readAsArrayBuffer(file);
-      let type = file.type;
-      let name = file.name;
-      let regex = new RegExp("[\\u4E00-\\u9FFF]", "g");
-      for (let i = 0; i < name.length; i++) {
-        if (regex.test(name[i]) && name[i] !== "、") {
-          name = name.substr(i);
-          console.log(name);
-          break;
-        }
-      }
-      fr.onload = function () {
-        let a = document.createElement("a");
-        a.href = (window.URL || window.webkitURL).createObjectURL(
-        new Blob([fr.result], {
-          type: type
-        })
-        );
-        a.download = name;
-        a.click();
-      };
-    }, index * 500)
-  });
+// App组件对应的fiber对象
+const fiber = {
+  // 保存该FunctionComponent对应的Hooks链表
+  memoizedState: null,
+  // 指向App函数
+  stateNode: App
 };
+
+function dispatchAction(queue, action) {
+  // 创建update
+  const update = {
+    action,
+    next: null
+  }
+
+  // 环状单向链表操作
+  if (queue.pending === null) {
+    update.next = update;
+  } else {
+    update.next = queue.pending.next;
+    queue.pending.next = update;
+  }
+  queue.pending = update;
+
+  // 模拟React开始调度更新
+  schedule();
+}
+
+function App() {
+  const [num, updateNum] = useState(0);
+
+  return {
+    onclick() {
+      updateNum(num => num + 1)
+    }
+  };
+}
 </script>
 </body>
 </html>
