@@ -202,12 +202,10 @@ function createMediaStream () {
   });
 }
 
-function createWebSocketClient (url) {
+function createWebSocketClient (url, mediaStream) {
   let ws;
 
   let record;
-
-  let _mediaStream;
 
   function createWebSocket () {
     ws = new WebSocket(url);
@@ -215,18 +213,16 @@ function createWebSocketClient (url) {
 
     ws.onopen = () => {
       if (ws.readyState === 1) {
-        createMediaStream().then((mediaStream) => {
-          _mediaStream = mediaStream;
-          record = createRecorder(mediaStream);
-          record.start((data) => {
-            ws.send(data);
-          });
+        record = createRecorder(mediaStream);
+        record.start((data) => {
+          ws.send(data);
         });
+        console.log("开启对讲以及WebSocket");
       }
     };
 
     ws.onmessage = (e) => {
-      record.audioPlay(e.data);
+      record?.audioPlay(e.data);
     };
 
     ws.onerror = () => {
@@ -238,9 +234,11 @@ function createWebSocketClient (url) {
 
     ws.onclose = () => {
       record?.stop();
-      _mediaStream?.getTracks().forEach((track) => {
+      mediaStream?.stop?.();
+      mediaStream?.getTracks()?.forEach?.((track) => {
         track.stop();
       });
+      console.log("关闭对讲以及WebSocket");
     };
   }
 
@@ -258,7 +256,10 @@ let webSocketClient;
 * 开始对讲
 */
 begin.onclick = function () {
-  webSocketClient = createWebSocketClient("ws://10.76.49.5:8888?id=1");
+  if (webSocketClient) return;
+  createMediaStream().then((mediaStream) => {
+    webSocketClient = createWebSocketClient("ws://10.76.49.5:8888?id=" + Date.now(), mediaStream);
+  })
 };
 
 /*
@@ -266,7 +267,7 @@ begin.onclick = function () {
 */
 end.onclick = function () {
   webSocketClient.close();
-  console.log("关闭对讲以及WebSocket");
+  webSocketClient = null;
 };
 </script>
 </html>

@@ -3,22 +3,42 @@ const WebSocket = require("ws");
 
 const app = new Koa();
 const ws = new WebSocket.Server({ port: 8888 });
+const wsPool = {};
 
 ws.on("connection", (ws, req) => {
-  console.log("server connection", req.url);
+  const id = req.connection.remoteAddress;
+  if (!id) return;
+
+  console.log("server connection", id);
+
+  wsPool[id] = ws;
 
   ws.on("message", msg => {
     console.log("server receive msg：", msg);
-    ws.send(msg);
+    Object.values(wsPool).forEach((item) => {
+      if (item !== ws) {
+        item.send(msg)
+      }
+    })
   });
 
   ws.on("close", () => {
-    console.log("close");
+    delete wsPool[id];
+    console.log("close", id);
   });
 });
 
 function parseParams (url) {
-  const parts = url.substr(2).split("&");
+  const queryStr = /[^?]*\?([^?#]*).*/.exec(url);
+  const params = {};
+  if (!queryStr) {
+    return params;
+  }
+  queryStr[1].split("&").forEach((pair) => {
+    const [key, value] = pair.split("=");
+    params[key] = value;
+  });
+  return params;
 }
 
 app.listen(3000, () => {
