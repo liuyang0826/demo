@@ -9,6 +9,7 @@
   * {
     margin: 0;padding: 0;
   }
+
   .root {
     width: 800px;
     height: 600px;
@@ -24,7 +25,253 @@
   </svg>
 </div>
 <script>
-const svg = d3.select("#svg1")
+const data = [
+  {
+    "n": {
+      "identity": 0,
+      "labels": [
+        "概念"
+      ],
+      "properties": {
+        "chapter": "数据与信息", // 显示
+        "lable": "概念",
+        "concept_id": 1,
+        "concept": "数据",
+        "module": "数据与计算"
+      }
+    },
+    "r": {
+      "identity": 393,
+      "start": null,
+      "end": 2,
+      "type": "实例", // 关系的名称 显示在线上
+      "properties": {
+        "type": "实例"
+      }
+    }
+  },
+  {
+    "n": {
+      "identity": 0,
+      "labels": [
+        "概念"
+      ],
+      "properties": {
+        "chapter": "数据与信息", // 显示在圆里面
+        "lable": "概念",
+        "concept_id": 2, // 自身id
+        "concept": "数据",
+        "module": "数据与计算"
+      }
+    },
+    "r": {
+      "identity": 393,
+      "start": 1, // 找上一级的id
+      "end": null,
+      "type": "实例", // 关系的名称 显示在线上
+      "properties": {
+        "type": "实例"
+      }
+    }
+  },
+  {
+    "n": {
+      "identity": 0,
+      "labels": [
+        "概念"
+      ],
+      "properties": {
+        "chapter": "数据与信息", // 显示
+        "lable": "概念",
+        "concept_id": 3,
+        "concept": "数据", // 显示
+        "module": "数据与计算" // 显示
+      }
+    },
+    "r": {
+      "identity": 393,
+      "start": 1,
+      "end": 394,
+      "type": "实例", // 关系的名称
+      "properties": {
+        "type": "实例"
+      }
+    }
+  },
+  {
+    "n": {
+      "identity": 0,
+      "labels": [
+        "概念"
+      ],
+      "properties": {
+        "chapter": "数据与信息", // 显示
+        "lable": "概念",
+        "concept_id": 4,
+        "concept": "数据", // 显示
+        "module": "数据与计算" // 显示
+      }
+    },
+    "r": {
+      "identity": 393,
+      "start": 2,
+      "end": 394,
+      "type": "实例", // 关系的名称
+      "properties": {
+        "type": "实例"
+      }
+    }
+  },
+  {
+    "n": {
+      "identity": 0,
+      "labels": [
+        "概念"
+      ],
+      "properties": {
+        "chapter": "数据与信息", // 显示
+        "lable": "概念",
+        "concept_id": 5,
+        "concept": "数据", // 显示
+        "module": "数据与计算" // 显示
+      }
+    },
+    "r": {
+      "identity": 393,
+      "start": 2,
+      "end": 394,
+      "type": "实例", // 关系的名称
+      "properties": {
+        "type": "实例"
+      }
+    }
+  },
+];
+
+const svg = d3.select("#svg1");
+const width = svg.attr("width");
+const height = svg.attr("height");
+
+var names = ['Films', 'Characters', 'Planets', 'Starships', 'Vehicles', 'Species'];
+var colors = ['#6ca46c', '#4e88af', '#ca635f', '#d2907c', '#d6744d', '#ded295'];
+
+// 背景颜色设置 补充CSS样式设置字体布局
+// for (var i=0; i < names.length; i++) {
+//   $('#indicator').append("<div><span style='background-color:" + colors[i] + "'></span>" + names[i] + "</div>");
+// }
+
+const simulation = d3.forceSimulation()
+.force("link", d3.forceLink()
+  .id(d => d.n.properties.concept_id)
+  .distance(160) // 设置每个节点的距离
+)
+.force("charge", d3.forceManyBody())
+.force("center", d3.forceCenter(width / 2, height / 2));
+
+var graph = {
+  links: data.filter(d => d.r.start).map((d) => {
+    return {
+      source: d.r.start,
+      target: d.n.properties.concept_id,
+      text: d.r.type
+    };
+  }),
+  nodes: data,
+};
+
+// 连接线
+var link = svg.append("g").attr("class", "links").selectAll("line").data(graph.links).enter()
+.append("line")
+.attr("stroke-width", d => 1) // 线的粗细
+.attr("stroke", d => "#f00"); // 颜色
+
+// 所有节点
+var node = svg.append("g").attr("class", "nodes").selectAll("circle").data(graph.nodes).enter()
+.append("circle")
+.attr("r", d => 30) // 半径
+.attr("fill", d => colors[~~(Math.random() * 6)])
+.attr("stroke", "red") // 边框颜色
+.call(
+  d3
+  .drag()
+  .on("start", dragstarted)
+  .on("drag", dragged)
+  .on("end", dragended)
+);
+
+// 所有节点上的文字
+var text = svg.append("g").attr("class", "texts").selectAll("text").data(graph.nodes).enter()
+.append("text")
+.attr("font-size", d => 12) // 字体大小
+.attr("fill", d => "#fff") // 颜色
+.text(d => d.n.properties.chapter) // 文字
+.attr("text-anchor", "middle")
+.call(
+  d3
+  .drag()
+  .on("start", dragstarted)
+  .on("drag", dragged)
+  .on("end", dragended)
+);
+
+// 显示线上所有的文本
+var labelText = svg.append("g").attr("class", "labelTexts").selectAll("text").data(graph.links).enter()
+.append("text")
+.attr("font-size", d => 12) // 字体大小
+.attr("fill", d => colors[~~(Math.random() * 6)]) // 颜色 随机取值
+.text(d => d.text) // 文本
+.attr("text-anchor", "middle")
+
+//圆增加title
+// node.append("title").text(function (d) {
+//   return d.id;
+// });
+
+// simulation中ticked数据初始化并生成图形
+simulation
+.nodes(graph.nodes)
+.on("tick", ticked);
+
+simulation.force("link")
+.links(graph.links);
+
+// ticked()函数确定link线的起始点x、y坐标 node确定中心点 文本通过translate平移变化
+function ticked () {
+  link
+  .attr("x1", d => d.source.x)
+  .attr("y1", d => d.source.y)
+  .attr("x2", d => d.target.x)
+  .attr("y2", d => d.target.y)
+
+  node
+  .attr("cx", d => d.x)
+  .attr("cy", d => d.y)
+
+  text.attr("transform", d => "translate(" + (d.x + 0) + "," + (d.y + 0) + ")");
+
+  labelText.attr("transform", d => `translate(${(d.source.x + d.target.x) / 2},${(d.source.y + d.target.y) / 2}), rotate(${Math.atan2(d.source.y- d.target.y, d.source.x- d.target.x) * 180 / Math.PI})`);
+}
+
+
+// 拖动开始
+function dragstarted (event, d) {
+  if (!event.active) simulation.alphaTarget(0.3).restart();
+  d.fx = d.x;
+  d.fy = d.y;
+}
+
+// 拖动进行中
+function dragged (event, d) {
+  d.fx = event.x;
+  d.fy = event.y;
+}
+
+// 拖动结束
+function dragended (event, d) {
+  if (!event.active) simulation.alphaTarget(0);
+  d.fx = null;
+  d.fy = null;
+}
 </script>
 </body>
 </html>
