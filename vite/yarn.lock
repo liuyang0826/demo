@@ -1739,9 +1739,9 @@ minimatch@^3.0.4:
     brace-expansion "^1.1.7"
 
 minimist@^1.2.0, minimist@^1.2.5:
-  version "1.2.5"
-  resolved "https://registry.npm.taobao.org/minimist/download/minimist-1.2.5.tgz#67d66014b66a6a8aaa0c083c5fd58df4e4e97602"
-  integrity sha1-Z9ZgFLZqaoqqDAg8X9WN9OTpdgI=
+  version "1.2.6"
+  resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.6.tgz#8637a5b759ea0d6e98702cfb3a9283323c93af44"
+  integrity sha512-Jsjnk4bw3YJqYzbdyBiNsPWHPfO++UGG749Cxs6peCu5Xg4nrena6OVxOYxrQTqww0Jmwt+Ref8rggumkTLz9Q==
 
 mkdirp@^0.5.0, mkdirp@~0.5.1:
   version "0.5.5"
@@ -2452,9 +2452,9 @@ rollup-plugin-terser@^5.3.0:
     terser "^4.6.2"
 
 rollup-plugin-vue@^6.0.0-beta.1:
-  version "6.0.0-alpha.10"
-  resolved "https://registry.npm.taobao.org/rollup-plugin-vue/download/rollup-plugin-vue-6.0.0-alpha.10.tgz#0fbe33f2e3d9f13c392a1eef0c421aa9cc218bb6"
-  integrity sha1-D74z8uPZ8Tw5Kh7vDEIaqcwhi7Y=
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/rollup-plugin-vue/-/rollup-plugin-vue-6.0.0.tgz#e379e93e5ae9a8648522f698be2e452e8672aaf2"
+  integrity sha512-oVvUd84d5u73M2HYM3XsMDLtZRIA/tw2U0dmHlXU2UWP5JARYHzh/U9vcxaN/x/9MrepY7VH3pHFeOhrWpxs/Q==
   dependencies:
     debug "^4.1.1"
     hash-sum "^2.0.0"
