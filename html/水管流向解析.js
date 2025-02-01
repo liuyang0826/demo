@@ -14,12 +14,18 @@ flows.forEach(flow1 => {
   if (count) {
     point.isBranch = count > 1;
     intersections.push(point);
-  }
-});
-
-flows.forEach(flow => {
-  if (intersections.every(point => !equals(point, flow.points.at(0)) && !equals(point, flow.points.at(-1)))) {
-    intersections.push(flow.points.at(0));
+  } else {
+    const count = flows.filter(
+      flow2 =>
+        flow1 !== flow2 &&
+        (equals(flow1.points.at(-1), flow2.points.at(0)) ||
+          equals(flow1.points.at(-1), flow2.points.at(-1)) ||
+          equals(flow1.points.at(0), flow2.points.at(0)) ||
+          equals(flow1.points.at(0), flow2.points.at(-1)))
+    ).length;
+    if (!count) {
+      intersections.push(flow1.points.at(0));
+    }
   }
 });
 
