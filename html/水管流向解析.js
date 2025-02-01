@@ -38,7 +38,7 @@ const edges = flows.map(flow => {
 fs.writeFileSync(
   './nodes.txt',
   `[
-  ${nodes.map(node => `{ ${node.isBranch ? 'isBranch: true, ' : ''}on: true },`).join('\r\n  ')}  
+  ${nodes.map(node => `{ ${node.isBranch ? 'isBranch: true' : 'on: true'} },`).join('\r\n  ')}  
 ]`,
   'utf-8'
 );
