@@ -12,7 +12,7 @@ flows.forEach(flow1 => {
 
   const count = flows.filter(flow2 => flow1 !== flow2 && equals(point, flow2.points.at(0))).length;
   if (count) {
-    point.isBranch = count > 1;
+    point.branch = count > 1;
     intersections.push(point);
   } else {
     const count = flows.filter(
@@ -30,7 +30,7 @@ flows.forEach(flow1 => {
 });
 
 const nodes = intersections.map(point => {
-  return { isBranch: point.isBranch };
+  return { branch: point.branch };
 });
 const edges = flows.map(flow => {
   const source = intersections.findIndex(intersection => equals(intersection, flow.points.at(0)));
@@ -44,7 +44,7 @@ const edges = flows.map(flow => {
 fs.writeFileSync(
   './nodes.txt',
   `[
-  ${nodes.map(node => `{ ${node.isBranch ? 'isBranch: true' : 'on: true'} },`).join('\r\n  ')}  
+  ${nodes.map(node => `{ ${node.branch ? 'branch: true' : 'on: true'} },`).join('\r\n  ')}  
 ]`,
   'utf-8'
 );
