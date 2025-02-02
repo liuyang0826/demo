@@ -28,7 +28,7 @@ edges.forEach(edge => {
 
 const nodeMap = {};
 nodes.forEach((node, index) => {
-  nodeMap[index] = node.isBranch || node.on;
+  nodeMap[index] = node.branch || node.on;
 });
 
 const isOpen = edge => {
